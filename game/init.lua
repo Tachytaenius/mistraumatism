@@ -16,6 +16,7 @@ end
 
 function game:init()
 	self.framebufferWidth, self.framebufferHeight = 56, 48
+	self.viewportWidth, self.viewportHeight = 32, 32
 	self.currentFramebuffer, self.otherFramebuffer = self:newFramebuffer(), self:newFramebuffer()
 	self.updateTimer = 0 -- Used when player is not in control, "spent" on fixed updates
 
@@ -32,7 +33,7 @@ function game:init()
 		state.map[x] = column
 		for y = 0, state.map.height - 1 do
 			local tile = {}
-			tile.type = love.math.random() < 0.05 and "pit" or love.math.random() < 0.5 and "wall" or "floor"
+			tile.type = love.math.random() < 0.005 and "pit" or love.math.random() < 0.025 and "wall" or "floor"
 			column[y] = tile
 		end
 	end

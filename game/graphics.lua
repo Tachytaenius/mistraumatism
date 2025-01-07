@@ -21,16 +21,15 @@ function game:draw() -- After this function completes, the result is in currentF
 	local state = self.state
 	self:clearFramebuffer()
 
-	local viewportWidth, viewportHeight = self.framebufferWidth, self.framebufferHeight
 	local viewportScreenX, viewportScreenY = 0, 0
-	local topLeftX = math.floor(state.player.x - viewportWidth / 2)
-	local topLeftY = math.floor(state.player.y - viewportHeight / 2)
+	local topLeftX = math.floor(state.player.x - self.viewportWidth / 2)
+	local topLeftY = math.floor(state.player.y - self.viewportHeight / 2)
 	local function drawCharacter(worldX, worldY, character, foregroundColour, backgroundColour)
 		local viewportX = worldX - topLeftX
 		local viewportY = worldY - topLeftY
 		if
-			0 <= viewportX and viewportX < viewportWidth and
-			0 <= viewportY and viewportY < viewportHeight
+			0 <= viewportX and viewportX < self.viewportWidth and
+			0 <= viewportY and viewportY < self.viewportHeight
 		then
 			local cell = framebuffer[viewportX + viewportScreenX][viewportY + viewportScreenY]
 			cell.character = character
@@ -39,11 +38,17 @@ function game:draw() -- After this function completes, the result is in currentF
 		end
 	end
 
-	for x = 0, viewportWidth - 1 do
-		local x = x + viewportScreenX
+	local visibilityMap = self:computeVisibilityMap(state.player.x, state.player.y, 24) -- For the next draw(s)
+
+	for viewportSpaceX = 0, self.viewportWidth - 1 do
+		local visibilityColumn = visibilityMap[viewportSpaceX]
+		local x = viewportSpaceX + viewportScreenX
 		local column = framebuffer[x]
-		for y = 0, viewportHeight - 1 do
-			local y = y + viewportScreenY
+		for viewportSpaceY = 0, self.viewportHeight - 1 do
+			if not visibilityColumn[viewportSpaceY] then
+				goto continue
+			end
+			local y = viewportSpaceY + viewportScreenY
 			local cell = column[y]
 
 			local tileX, tileY = x + topLeftX, y + topLeftY
