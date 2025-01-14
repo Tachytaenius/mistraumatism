@@ -3,7 +3,7 @@ local game = {}
 -- Not my algorithm, it's:
 -- http://www.adammil.net/blog/view.php?id=125
 
-function game:computeVisibilityMap(startX, startY, rangeLimit)
+function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCheck)
 	local visibilityMapWidth, visibilityMapHeight = self.viewportWidth, self.viewportHeight
 	local visibilityMapTopLeftX = math.floor(startX - visibilityMapWidth / 2)
 	local visibilityMapTopLeftY = math.floor(startY - visibilityMapHeight / 2)
@@ -21,7 +21,7 @@ function game:computeVisibilityMap(startX, startY, rangeLimit)
 		if not tile then
 			return true
 		end
-		return tile.type == "wall"
+		return self.state.tileTypes[tile.type].blocksLight
 	end
 
 	local function getDistance(x, y)
@@ -154,7 +154,7 @@ function game:computeVisibilityMap(startX, startY, rangeLimit)
 
 			local wasOpaque = -1
 			for y = topY, bottomY, -1 do
-				if rangeLimit < 0 or getDistance(x, y) <= rangeLimit then
+				if rangeLimit < 0 or (not disableDistanceCheck and getDistance(x, y) <= rangeLimit) then
 					local isOpaque = blocksLight(x, y, octant, startX, startY)
 					-- local isVisible = isOpaque or ((y ~= topY or slopeGreater(slopeTopX, slopeTopY, x * 4 + 1, y * 4 - 1)) and (y ~= bottomY or slopeLess(slopeBottomX, slopeBottomY, x * 4 - 1, y * 4 + 1)))
 					local isVisible = (y ~= topY or slopeGreaterOrEqual(slopeTopX, slopeTopY, x, y)) and (y ~= bottomY or slopeLessOrEqual(slopeBottomX, slopeBottomY, x, y))
@@ -225,6 +225,11 @@ function game:computeVisibilityMap(startX, startY, rangeLimit)
 	-- end
 
 	return visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight
+end
+
+function game:hitscan(startX, startY, endX, endY)
+	local rangeLimit = math.max(math.abs(endX - startX), math.abs(endY - startY))
+	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = game:computeVisibilityMap(startX, startX, rangeLimit, true) -- lol
 end
 
 return game

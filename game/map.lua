@@ -10,7 +10,7 @@ end
 
 function game:getWalkable(x, y)
 	local tile = self:getTile(x, y)
-	return tile and tile.type == "floor"
+	return tile and self.state.tileTypes[tile.type].solidity == "passable"
 end
 
 return game

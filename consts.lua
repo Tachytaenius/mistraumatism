@@ -50,6 +50,18 @@ consts.colourCoords = {
 	lightGrey = {0, 7}, white = {1, 7}
 }
 
+consts.darkerColours = {}
+for name, coords in pairs(consts.colourCoords) do
+	if coords[1] == 1 then
+		for otherName, otherCoords in pairs(consts.colourCoords) do
+			if otherCoords[2] == coords[2] and otherCoords[1] ~= coords[1] then
+				consts.darkerColours[name] = otherName
+			end
+		end
+	end
+end
+consts.darkerColours.lightGrey = "darkGrey" -- Extra
+
 consts.fixedUpdateTickLength = 0.03125
 
 consts.diagonal = 1 / math.sqrt(2) -- Sine off 45 degrees, sqrt(2) / 2, or both components of the normalisation result of the vector 1, 1

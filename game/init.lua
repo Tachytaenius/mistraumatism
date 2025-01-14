@@ -25,6 +25,23 @@ function game:init()
 
 	state.time = 0
 
+	state.tileTypes = {
+		wall = {solidity = "solid", character = "O", boxDrawingNumber = 2, blocksLight = true},
+		floor = {solidity = "passable", character = "+"},
+		pit = {solidity = "fall", character = "·", ignoreSpatter = true, darkenColour = true}
+	}
+
+	state.materials = {}
+	local function addMaterial(name, displayName, colour, matterState)
+		state.materials[name] = {
+			displayName = displayName,
+			colour = colour,
+			matterState = matterState
+		}
+	end
+	addMaterial("bloodRed", "blood", "darkRed", "liquid")
+	addMaterial("bone", "bone", "white", "solid")
+
 	state.map = {}
 	state.map.width = 128
 	state.map.height = 128
@@ -33,7 +50,7 @@ function game:init()
 		state.map[x] = column
 		for y = 0, state.map.height - 1 do
 			local tile = {}
-			tile.type = love.math.random() < 0.005 and "pit" or love.math.random() < 0.025 and "wall" or "floor"
+			tile.type = love.math.random() < 0.005 and "pit" or love.math.random() < 0.1 and "wall" or "floor"
 			column[y] = tile
 		end
 	end
