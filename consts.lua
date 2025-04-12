@@ -2,9 +2,9 @@ local utf8 = require("utf8")
 
 local consts = {}
 
-consts.loveIdentity = "shooter-prototyping"
+consts.loveIdentity = "hope-and-rage"
 consts.loveVersion = "12.0"
-consts.windowTitle = "Shooter Prototyping"
+consts.windowTitle = "Hope and Rage"
 
 local null = utf8.char(0)
 local nonBreakingSpace = utf8.char(160)
@@ -64,6 +64,6 @@ consts.darkerColours.lightGrey = "darkGrey" -- Extra
 
 consts.fixedUpdateTickLength = 0.03125
 
-consts.diagonal = 1 / math.sqrt(2) -- Sine off 45 degrees, sqrt(2) / 2, or both components of the normalisation result of the vector 1, 1
+consts.diagonal = 1 / math.sqrt(2) -- Sine of 45 degrees, sqrt(2) / 2, or both components of the normalisation result of the vector (1, 1)
 
 return consts

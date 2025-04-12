@@ -31,31 +31,33 @@ function game:getPlayerInput()
 		return
 	end
 
-	assert(player.speed, "Player is supposed to move but has no speed")
-	local direction
-	if commands.checkCommand("moveRight") then
-		direction = "right"
-	elseif commands.checkCommand("moveUpRight") then
-		direction = "upRight"
-	elseif commands.checkCommand("moveUp") then
-		direction = "up"
-	elseif commands.checkCommand("moveUpLeft") then
-		direction = "upLeft"
-	elseif commands.checkCommand("moveLeft") then
-		direction = "left"
-	elseif commands.checkCommand("moveDownLeft") then
-		direction = "downLeft"
-	elseif commands.checkCommand("moveDown") then
-		direction = "down"
-	elseif commands.checkCommand("moveDownRight") then
-		direction = "downRight"
-	end
-	if direction then
-		local offsetX, offsetY = self:getDirectionOffset(direction)
-		if self:getWalkable(player.x + offsetX, player.y + offsetY) then
-			player.moveDirection = direction
-			local multiplier = self:isDirectionDiagonal(direction) and consts.diagonal or 1
-			player.moveTimer = 1 / (player.speed * multiplier)
+	local playerSpeed = state.creatureTypes[player.creatureType].speed
+	if playerSpeed > 0 then
+		local direction
+		if commands.checkCommand("moveRight") then
+			direction = "right"
+		elseif commands.checkCommand("moveUpRight") then
+			direction = "upRight"
+		elseif commands.checkCommand("moveUp") then
+			direction = "up"
+		elseif commands.checkCommand("moveUpLeft") then
+			direction = "upLeft"
+		elseif commands.checkCommand("moveLeft") then
+			direction = "left"
+		elseif commands.checkCommand("moveDownLeft") then
+			direction = "downLeft"
+		elseif commands.checkCommand("moveDown") then
+			direction = "down"
+		elseif commands.checkCommand("moveDownRight") then
+			direction = "downRight"
+		end
+		if direction then
+			local offsetX, offsetY = self:getDirectionOffset(direction)
+			if self:getWalkable(player.x + offsetX, player.y + offsetY) then
+				player.moveDirection = direction
+				local multiplier = self:isDirectionDiagonal(direction) and consts.diagonal or 1
+				player.moveTimer = 1 / (playerSpeed * multiplier)
+			end
 		end
 	end
 end

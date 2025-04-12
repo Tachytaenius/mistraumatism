@@ -4,7 +4,6 @@ local utf8 = require("utf8")
 
 -- Ordered in trinary with places 0 to 3 being right, up, left, then down,
 -- and the values in each place being the number of lines on that side.
--- ! means the character does not exist
 local chars = {nil, nil, nil, nil, "└", "╘", nil, "╙", "╚", nil, "─", nil, "┘", "┴", nil, "╜", "╨", nil, nil, nil, "═", "╛", nil, "╧", "╝", nil, "╩", nil, "┌", "╒", "│", "├", "╞", nil, nil, nil, "┐", "┬", nil, "┤", "┼", nil, nil, nil, nil, nil, nil, "╤", "╡", nil, "╪", nil, nil, nil, nil, "╓", "╔", nil, nil, nil, "║", "╟", "╠", nil, "╥", nil, nil, nil, nil, nil, "╫", nil, "╗", nil, "╦", nil, nil, nil, "╣", nil, "╬"}
 
 local function checkArg(arg)

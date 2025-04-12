@@ -169,7 +169,7 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	for _, entity in ipairs(state.entities) do
-		drawCharacterWorldToViewport(entity.x, entity.y, "@", "white", "black")
+		drawCharacterWorldToViewport(entity.x, entity.y, entity.type.tile, entity.type.colour, "black")
 	end
 end
 

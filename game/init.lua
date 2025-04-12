@@ -42,6 +42,8 @@ function game:init()
 	addMaterial("bloodRed", "blood", "darkRed", "liquid")
 	addMaterial("bone", "bone", "white", "solid")
 
+	self:loadCreatureTypes()
+
 	state.map = {}
 	state.map.width = 128
 	state.map.height = 128
@@ -56,11 +58,10 @@ function game:init()
 	end
 
 	state.entities = {}
-	state.player = {}
-	state.player.x = 0
-	state.player.y = 0
-	state.player.speed = 8
-	state.entities[#state.entities+1] = state.player
+	state.player = self:newCreatureEntity({
+		creatureType = "human",
+		x = 0, y = 0
+	})
 end
 
 return game
