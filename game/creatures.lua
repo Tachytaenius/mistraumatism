@@ -10,7 +10,7 @@ function game:loadCreatureTypes()
 		colour = "white",
 
 		speed = 8,
-
+		sightDistance = 20,
 		maxHealth = 12, -- I was gonna make a whole complicated gore system using graph theory for body parts and stuff
 		maxBlood = 2
 	}

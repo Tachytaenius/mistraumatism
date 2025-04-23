@@ -2,9 +2,9 @@ local utf8 = require("utf8")
 
 local consts = {}
 
-consts.loveIdentity = "hope-and-rage"
+consts.loveIdentity = "mistraumatism"
 consts.loveVersion = "12.0"
-consts.windowTitle = "Hope and Rage"
+consts.windowTitle = "Mistraumatism"
 
 local null = utf8.char(0)
 local nonBreakingSpace = utf8.char(160)

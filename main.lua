@@ -28,6 +28,7 @@ end
 
 function love.update(dt)
 	game:realtimeUpdate(dt)
+	game.realTime = game.realTime + dt
 	commands.tickFinished()
 end
 

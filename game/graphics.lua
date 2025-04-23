@@ -26,6 +26,13 @@ function game:draw() -- After this function completes, the result is in currentF
 	local viewportScreenX, viewportScreenY = 1, 1
 	local topLeftX = math.floor(state.player.x - self.viewportWidth / 2)
 	local topLeftY = math.floor(state.player.y - self.viewportHeight / 2)
+
+	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(state.player.x, state.player.y, state.player.type.sightDistance)
+	assert(visibilityMapTopLeftX == topLeftX)
+	assert(visibilityMapTopLeftY == topLeftY)
+	assert(visibilityMapWidth == self.viewportWidth)
+	assert(visibilityMapHeight == self.viewportHeight)
+
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
@@ -50,12 +57,23 @@ function game:draw() -- After this function completes, the result is in currentF
 			cell.backgroundColour = backgroundColour
 		end
 	end
-
-	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(state.player.x, state.player.y, 24) -- For the next draw(s)
-	assert(visibilityMapTopLeftX == topLeftX)
-	assert(visibilityMapTopLeftY == topLeftY)
-	assert(visibilityMapWidth == self.viewportWidth)
-	assert(visibilityMapHeight == self.viewportHeight)
+	local function drawCharacterWorldToViewportVisibleOnly(worldX, worldY, character, foregroundColour, backgroundColour)
+		local viewportX = worldX - topLeftX
+		local viewportY = worldY - topLeftY
+		if
+			0 <= viewportX and viewportX < self.viewportWidth and
+			0 <= viewportY and viewportY < self.viewportHeight
+		then
+			local visibilityColumn = visibilityMap[viewportX]
+			if not (visibilityColumn and visibilityColumn[viewportY]) then
+				return
+			end
+			local cell = framebuffer[viewportX + viewportScreenX][viewportY + viewportScreenY]
+			cell.character = character
+			cell.foregroundColour = foregroundColour
+			cell.backgroundColour = backgroundColour
+		end
+	end
 
 	for viewportSpaceX = 0, self.viewportWidth - 1 do
 		local visibilityColumn = visibilityMap[viewportSpaceX]
@@ -169,7 +187,17 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	for _, entity in ipairs(state.entities) do
-		drawCharacterWorldToViewport(entity.x, entity.y, entity.type.tile, entity.type.colour, "black")
+		drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.type.tile, entity.type.colour, "black")
+	end
+
+	for _, projectile in ipairs(state.projectiles) do
+		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+	end
+
+	if state.cursor then
+		if self.realTime % 1 < 0.5 then
+			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, "X", "yellow", "black")
+		end
 	end
 end
 

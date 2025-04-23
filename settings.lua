@@ -13,6 +13,17 @@ return {
 		moveLeft = "a",
 		moveDownLeft = "z",
 		moveDown = "x",
-		moveDownRight = "c"
+		moveDownRight = "c",
+
+		look = "v",
+		lockOn = "l",
+		recentreCursor = "k",
+		shoot = "f",
+		pickUp = "g",
+		wait = "h",
+		-- reload = "r",
+		switchWeapons = "b",
+		interact = "t",
+		jump = "j"
 	}
 }

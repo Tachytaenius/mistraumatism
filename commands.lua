@@ -10,7 +10,11 @@ local commandTypes = {
 	moveLeft = "hold",
 	moveDownLeft = "hold",
 	moveDown = "hold",
-	moveDownRight = "hold"
+	moveDownRight = "hold",
+
+	wait = "hold",
+
+	shoot = "pressed"
 }
 
 commands.pressed = {}
