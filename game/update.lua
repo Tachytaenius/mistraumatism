@@ -74,6 +74,7 @@ function game:getPlayerInput()
 	-- Try shooting
 	if commands.checkCommand("shoot") and state.cursor then
 		local newProjectile = {
+			shooter = player,
 			startX = player.x,
 			startY = player.y,
 			currentX = player.x,
@@ -82,7 +83,10 @@ function game:getPlayerInput()
 			targetY = state.cursor.y,
 			tile = "∙",
 			colour = "darkGrey",
-			subtickMoveTimerLength = 256,
+			subtickMoveTimerLength = 64,
+			subtickAge = 0,
+			moved = false,
+			damage = 5,
 			moveTimer = 0
 		}
 		if newProjectile.startX == newProjectile.targetX and newProjectile.startY == newProjectile.targetY then

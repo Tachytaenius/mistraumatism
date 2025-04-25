@@ -1,16 +1,13 @@
 local consts = require("consts")
 
-local function progressTimeWithTimer(curTime, timer)
-	assert(curTime <= consts.projectileSubticks)
+local function progressTimeWithTimer(curTime, timer, age)
 	local usableTime = consts.projectileSubticks - curTime
 	local timer2 = math.max(timer - usableTime, 0) -- use usableTime to progress/increase timer, stopping at 0
 	local usableTime2 = usableTime - (timer - timer2) -- get new used usable time using change in timer
-	local curTime2 = curTime + (usableTime - usableTime2) -- progress current time by how much usable time was used
-	assert(timer2 <= timer)
-	assert(usableTime2 <= usableTime)
-	assert(curTime2 >= curTime)
-	assert(curTime2 <= consts.projectileSubticks)
-	return curTime2, timer2
+	local timeUsed = usableTime - usableTime2
+	local curTime2 = curTime + timeUsed
+	local age2 = age + timeUsed
+	return curTime2, timer2, age2
 end
 
 local game = {}
@@ -29,12 +26,29 @@ function game:updateProjectiles()
 	local projectilesToStop = {}
 	for _, projectile in ipairs(state.projectiles) do
 		local currentTime = 0
+		local function checkForEntityHit() -- Returns true if the projectile should stop
+			for _, entity in ipairs(state.entities) do
+				if not (entity.x == projectile.currentX and entity.y == projectile.currentY) then
+					goto continue
+				end
+				if not (entity == projectile.shooter and not projectile.moved) then -- Safety
+					local damage = projectile.damage
+					entity.health = entity.health - damage
+					entity.blood = entity.blood - damage
+					return true
+				end
+			    ::continue::
+			end
+			return false
+		end
 		while currentTime < consts.projectileSubticks do
 			if not projectile.trajectoryOctant then
+				-- Projectile age is not increased in this branch
 				projectilesToStop[projectile] = true
+				checkForEntityHit()
 				break
 			else
-				currentTime, projectile.moveTimer = progressTimeWithTimer(currentTime, projectile.moveTimer)
+				currentTime, projectile.moveTimer, projectile.subtickAge = progressTimeWithTimer(currentTime, projectile.moveTimer, projectile.subtickAge)
 				if projectile.moveTimer <= 0 then
 					local startX, startY = projectile.startX, projectile.startY
 					local endX, endY = projectile.targetX, projectile.targetY
@@ -83,6 +97,7 @@ function game:updateProjectiles()
 					end
 					if not newTile then
 						projectilesToStop[projectile] = true
+						checkForEntityHit()
 						break
 					end
 					local distance = math.sqrt(
@@ -92,8 +107,15 @@ function game:updateProjectiles()
 					projectile.currentOctantX = newTile.localX
 					projectile.currentX = newTile.globalX
 					projectile.currentY = newTile.globalY
+					projectile.moved = true
 					projectile.moveTimer = math.floor(distance * projectile.subtickMoveTimerLength)
-					if projectile.moveTimer <= 0 then
+					if projectile.moveTimer <= 0 then -- Avoid a hang in case distance fails (why would it?)
+						projectilesToStop[projectile] = true
+						checkForEntityHit()
+						break
+					end
+
+					if checkForEntityHit() then
 						projectilesToStop[projectile] = true
 						break
 					end
