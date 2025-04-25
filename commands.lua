@@ -13,6 +13,7 @@ local commandTypes = {
 	moveDownRight = "hold",
 
 	wait = "hold",
+	waitPrecise = "pressed",
 
 	shoot = "pressed"
 }

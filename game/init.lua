@@ -24,7 +24,7 @@ function game:init()
 	local state = {}
 	self.state = state
 
-	state.time = 0
+	state.tick = 0
 
 	state.tileTypes = {
 		wall = {solidity = "solid", character = "O", boxDrawingNumber = 2, blocksLight = true},

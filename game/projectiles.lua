@@ -1,17 +1,19 @@
-local game = {}
+local consts = require("consts")
 
-local function progressTimeWithTimer(curTime, dt, timer)
-	assert(curTime <= dt)
-	local usableTime = dt - curTime
+local function progressTimeWithTimer(curTime, timer)
+	assert(curTime <= consts.projectileSubticks)
+	local usableTime = consts.projectileSubticks - curTime
 	local timer2 = math.max(timer - usableTime, 0) -- use usableTime to progress/increase timer, stopping at 0
 	local usableTime2 = usableTime - (timer - timer2) -- get new used usable time using change in timer
 	local curTime2 = curTime + (usableTime - usableTime2) -- progress current time by how much usable time was used
 	assert(timer2 <= timer)
 	assert(usableTime2 <= usableTime)
 	assert(curTime2 >= curTime)
-	assert(curTime2 <= dt)
+	assert(curTime2 <= consts.projectileSubticks)
 	return curTime2, timer2
 end
+
+local game = {}
 
 function game:tileBlocksProjectiles(x, y)
 	local tile = self:getTile(x, y)
@@ -21,18 +23,18 @@ function game:tileBlocksProjectiles(x, y)
 	return self.state.tileTypes[tile.type].solidity == "solid"
 end
 
-function game:updateProjectiles(dt)
+function game:updateProjectiles()
 	local state = self.state
 
 	local projectilesToStop = {}
 	for _, projectile in ipairs(state.projectiles) do
 		local currentTime = 0
-		while currentTime < dt do
+		while currentTime < consts.projectileSubticks do
 			if not projectile.trajectoryOctant then
 				projectilesToStop[projectile] = true
 				break
 			else
-				currentTime, projectile.moveTimer = progressTimeWithTimer(currentTime, dt, projectile.moveTimer)
+				currentTime, projectile.moveTimer = progressTimeWithTimer(currentTime, projectile.moveTimer)
 				if projectile.moveTimer <= 0 then
 					local startX, startY = projectile.startX, projectile.startY
 					local endX, endY = projectile.targetX, projectile.targetY
@@ -90,7 +92,7 @@ function game:updateProjectiles(dt)
 					projectile.currentOctantX = newTile.localX
 					projectile.currentX = newTile.globalX
 					projectile.currentY = newTile.globalY
-					projectile.moveTimer = distance / projectile.speed
+					projectile.moveTimer = math.floor(distance * projectile.subtickMoveTimerLength)
 					if projectile.moveTimer <= 0 then
 						projectilesToStop[projectile] = true
 						break

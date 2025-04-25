@@ -65,5 +65,8 @@ consts.darkerColours.lightGrey = "darkGrey" -- Extra
 consts.fixedUpdateTickLength = 0.03125
 
 consts.diagonal = 1 / math.sqrt(2) -- Sine of 45 degrees, sqrt(2) / 2, or both components of the normalisation result of the vector (1, 1)
+consts.inverseDiagonal = math.sqrt(2)
+
+consts.projectileSubticks = 64
 
 return consts

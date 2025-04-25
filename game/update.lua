@@ -7,7 +7,7 @@ local game = {}
 function game:isPlayerInControl()
 	local state = self.state
 	local player = state.player
-	return not (player.moveDirection or player.waitTimer)
+	return not (player.moveTimer or player.waitTimer)
 end
 
 function game:realtimeUpdate(dt)
@@ -20,7 +20,7 @@ function game:realtimeUpdate(dt)
 	self.updateTimer = self.updateTimer + dt
 	if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
 		self.updateTimer = 0
-		self:update(consts.fixedUpdateTickLength)
+		self:update()
 	end
 end
 
@@ -34,14 +34,14 @@ function game:getPlayerInput()
 	-- We return after every potential action
 
 	-- Try waiting
-	if commands.checkCommand("wait") then
-		player.waitTimer = 0.25
+	if commands.checkCommand("wait") or commands.checkCommand("waitPrecise") then
+		player.waitTimer = 1 -- One tick
 		return -- No further actions
 	end
-	
+
 	-- Try moving
-	local playerSpeed = state.creatureTypes[player.creatureType].speed
-	if playerSpeed > 0 then
+	local playerMoveTimerLength = state.creatureTypes[player.creatureType].moveTimerLength
+	if playerMoveTimerLength then
 		local direction
 		if commands.checkCommand("moveRight") then
 			direction = "right"
@@ -64,8 +64,8 @@ function game:getPlayerInput()
 			local offsetX, offsetY = self:getDirectionOffset(direction)
 			if self:getWalkable(player.x + offsetX, player.y + offsetY) then
 				player.moveDirection = direction
-				local multiplier = self:isDirectionDiagonal(direction) and consts.diagonal or 1
-				player.moveTimer = 1 / (playerSpeed * multiplier)
+				local multiplier = self:isDirectionDiagonal(direction) and consts.inverseDiagonal or 1
+				player.moveTimer = math.floor(playerMoveTimerLength * multiplier)
 				return -- No further actions
 			end
 		end
@@ -80,9 +80,9 @@ function game:getPlayerInput()
 			currentY = player.y,
 			targetX = state.cursor.x,
 			targetY = state.cursor.y,
-			speed = 3,
 			tile = "∙",
 			colour = "darkGrey",
+			subtickMoveTimerLength = 256,
 			moveTimer = 0
 		}
 		if newProjectile.startX == newProjectile.targetX and newProjectile.startY == newProjectile.targetY then
@@ -121,14 +121,14 @@ function game:getPlayerInput()
 	end
 end
 
-function game:update(dt)
+function game:update()
 	local state = self.state
 
-	self:updateProjectiles(dt)
+	self:updateProjectiles()
 
 	for _, entity in ipairs(state.entities) do
 		if entity.waitTimer then
-			entity.waitTimer = entity.waitTimer - dt
+			entity.waitTimer = entity.waitTimer - 1
 			if entity.waitTimer <= 0 then
 				entity.waitTimer = nil
 			end
@@ -137,7 +137,7 @@ function game:update(dt)
 		if entity.moveDirection then
 			local destinationX, destinationY = self:getDestinationTile(entity)
 			if self:getWalkable(destinationX, destinationY) then
-				entity.moveTimer = entity.moveTimer - dt
+				entity.moveTimer = entity.moveTimer - 1
 				if entity.moveTimer <= 0 then
 					entity.x, entity.y = destinationX, destinationY
 					entity.moveTimer = nil
@@ -150,7 +150,7 @@ function game:update(dt)
 		end
 	end
 
-	state.time = state.time + dt
+	state.tick = state.tick + 1
 end
 
 return game

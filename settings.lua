@@ -21,6 +21,7 @@ return {
 		shoot = "f",
 		pickUp = "g",
 		wait = "h",
+		waitPrecise = "y",
 		-- reload = "r",
 		switchWeapons = "b",
 		interact = "t",
