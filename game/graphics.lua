@@ -27,7 +27,7 @@ function game:draw() -- After this function completes, the result is in currentF
 	local topLeftX = math.floor(state.player.x - self.viewportWidth / 2)
 	local topLeftY = math.floor(state.player.y - self.viewportHeight / 2)
 
-	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(state.player.x, state.player.y, state.player.type.sightDistance)
+	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(state.player.x, state.player.y, state.player.creatureType.sightDistance)
 	assert(visibilityMapTopLeftX == topLeftX)
 	assert(visibilityMapTopLeftY == topLeftY)
 	assert(visibilityMapWidth == self.viewportWidth)
@@ -132,17 +132,17 @@ function game:draw() -- After this function completes, the result is in currentF
 						end
 					end
 				end
-				if largestSpatter and largestSpatter.amount >= 1 then
+				if largestSpatter and largestSpatter.amount >= consts.spatterThreshold1 then
 					local material = state.materials[largestSpatter.materialName]
 					cell.foregroundColour = material.colour
 					local matterState = material.matterState
 					if tileType.solidity ~= "solid" then
-						if largestSpatter.amount >= 4 then
+						if largestSpatter.amount >= consts.spatterThreshold4 then
 							-- cell.character = matterState == "liquid" and "█" or "▓"
 							cell.character = matterState == "liquid" and "≈" or "▒"
-						elseif largestSpatter.amount >= 3 then
+						elseif largestSpatter.amount >= consts.spatterThreshold3 then
 							cell.character = matterState == "liquid" and "≈" or "▒"
-						elseif largestSpatter.amount >= 2 then
+						elseif largestSpatter.amount >= consts.spatterThreshold2 then
 							cell.character = matterState == "liquid" and "~" or "░"
 						end
 					end
@@ -187,7 +187,9 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	for _, entity in ipairs(state.entities) do
-		drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.type.tile, entity.type.colour, "black")
+		if entity.entityType == "creature" then
+			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, "black")
+		end
 	end
 
 	for _, projectile in ipairs(state.projectiles) do
@@ -195,7 +197,7 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	if state.cursor then
-		if self.realTime % 1 < 0.5 then
+		if self.realTime % 0.5 < 0.25 then
 			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, "X", "yellow", "black")
 		end
 	end

@@ -44,6 +44,7 @@ function game:init()
 	addMaterial("bone", "bone", "white", "solid")
 
 	self:loadCreatureTypes()
+	self:loadItemTypes()
 
 	state.map = {}
 	state.map.width = 128
@@ -60,12 +61,15 @@ function game:init()
 
 	state.entities = {}
 	state.player = self:newCreatureEntity({
-		creatureType = "human",
-		x = 0, y = 0
+		creatureTypeName = "human",
+		x = 0, y = 0,
+		heldItem = self:newItemData({
+			itemTypeName = "pistol"
+		})
 	})
 	self:newCreatureEntity({
-		creatureType = "human",
-		x = 0, y = 0,
+		creatureTypeName = "human",
+		x = 2, y = 2
 	})
 
 	state.projectiles = {}

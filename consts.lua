@@ -67,6 +67,11 @@ consts.fixedUpdateTickLength = 0.03125
 consts.diagonal = 1 / math.sqrt(2) -- Sine of 45 degrees, sqrt(2) / 2, or both components of the normalisation result of the vector (1, 1)
 consts.inverseDiagonal = math.sqrt(2)
 
-consts.projectileSubticks = 64
+consts.projectileSubticks = 256
+
+consts.spatterThreshold1 = 1
+consts.spatterThreshold2 = 9
+consts.spatterThreshold3 = 17
+consts.spatterThreshold4 = 25
 
 return consts

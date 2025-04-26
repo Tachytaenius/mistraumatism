@@ -28,6 +28,9 @@ function game:updateProjectiles()
 		local currentTime = 0
 		local function checkForEntityHit() -- Returns true if the projectile should stop
 			for _, entity in ipairs(state.entities) do
+				if entity.entityType ~= "creature" then
+					goto continue
+				end
 				if not (entity.x == projectile.currentX and entity.y == projectile.currentY) then
 					goto continue
 				end

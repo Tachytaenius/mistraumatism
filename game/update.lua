@@ -40,7 +40,7 @@ function game:getPlayerInput()
 	end
 
 	-- Try moving
-	local playerMoveTimerLength = state.creatureTypes[player.creatureType].moveTimerLength
+	local playerMoveTimerLength = player.creatureType.moveTimerLength
 	if playerMoveTimerLength then
 		local direction
 		if commands.checkCommand("moveRight") then
@@ -73,86 +73,25 @@ function game:getPlayerInput()
 
 	-- Try shooting
 	if commands.checkCommand("shoot") and state.cursor then
-		local newProjectile = {
-			shooter = player,
-			startX = player.x,
-			startY = player.y,
-			currentX = player.x,
-			currentY = player.y,
+		player.shootInfo = {
 			targetX = state.cursor.x,
-			targetY = state.cursor.y,
-			tile = "∙",
-			colour = "darkGrey",
-			subtickMoveTimerLength = 64,
-			subtickAge = 0,
-			moved = false,
-			damage = 5,
-			moveTimer = 0
+			targetY = state.cursor.y
 		}
-		if newProjectile.startX == newProjectile.targetX and newProjectile.startY == newProjectile.targetY then
-			-- No trajectory
-		else
-			local hitscanResult, info = self:hitscan(newProjectile.startX, newProjectile.startY, newProjectile.targetX, newProjectile.targetY)
-			local trajectoryOctant
-			if hitscanResult then
-				-- An octant actually hit the end result, so pick it as the trajectory octant for the projectile
-				trajectoryOctant = info.octant
-			else
-				-- Get the octant of the two which got furthest, if there were two
-				if #info.triedHitTiles == 1 then
-					trajectoryOctant = info.triedHitTiles[1].octant
-				else
-					local function getMaxDistance(hitTiles)
-						local currentMax = -math.huge -- Works fine if #hitTiles == 0
-						-- Probably could just check which has a greater number of hit tiles, or only check the distance of the last one, or whatever
-						for _, tile in ipairs(hitTiles) do
-							local tileDistance = math.sqrt(tile.localX ^ 2 + tile.localY ^ 2)
-							currentMax = math.max(currentMax, tileDistance)
-						end
-						return currentMax
-					end
-					if getMaxDistance(info.triedHitTiles[1].hitTiles) >= getMaxDistance(info.triedHitTiles[2].hitTiles) then
-						trajectoryOctant = info.triedHitTiles[1].octant
-					else
-						trajectoryOctant = info.triedHitTiles[2].octant
-					end
-				end
-			end
-			newProjectile.trajectoryOctant = trajectoryOctant
-		end
-		state.projectiles[#state.projectiles+1] = newProjectile
+		player.waitTimer = 1
 		return -- No further actions
 	end
 end
 
 function game:update()
 	local state = self.state
+	
+	self:setInitialNonPersistentVariables()
 
+	self:updateItems()
 	self:updateProjectiles()
+	self:updateEntities()
 
-	for _, entity in ipairs(state.entities) do
-		if entity.waitTimer then
-			entity.waitTimer = entity.waitTimer - 1
-			if entity.waitTimer <= 0 then
-				entity.waitTimer = nil
-			end
-		end
-
-		if entity.moveDirection then
-			local destinationX, destinationY = self:getDestinationTile(entity)
-			if self:getWalkable(destinationX, destinationY) then
-				entity.moveTimer = entity.moveTimer - 1
-				if entity.moveTimer <= 0 then
-					entity.x, entity.y = destinationX, destinationY
-					entity.moveTimer = nil
-					entity.moveDirection = nil
-				end
-			else
-				entity.moveTimer = nil
-				entity.moveDirection = nil
-			end
-		end
-	end
+	self:clearNonPersistentVariables()
 
 	state.tick = state.tick + 1
 end

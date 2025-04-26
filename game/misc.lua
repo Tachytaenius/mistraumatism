@@ -2,6 +2,25 @@ local consts = require("consts")
 
 local game = {}
 
+function game:setInitialNonPersistentVariables()
+	local state = self.state
+
+	for _, entity in ipairs(state.entities) do
+		entity.initialHealthThisTick = entity.health
+		entity.initialBloodThisTick = entity.blood
+	end
+end
+
+function game:clearNonPersistentVariables()
+	local state = self.state
+
+	for _, entity in ipairs(state.entities) do
+		entity.shootInfo = nil
+		entity.initialHealthThisTick = nil
+		entity.initialBloodThisTick = nil
+	end
+end
+
 function game:getDirectionOffset(direction)
 	if direction == "right" then
 		return 1, 0
