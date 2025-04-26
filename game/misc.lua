@@ -1,3 +1,4 @@
+local util = require("util")
 local consts = require("consts")
 
 local game = {}
@@ -11,6 +12,47 @@ function game:setInitialNonPersistentVariables()
 	end
 end
 
+function game:newTeam(name)
+	local state = self.state
+
+	assert(not state.teams[name], "Team with name " .. name .. " already exists")
+
+	state.teams[name] = {relations = {}}
+end
+
+local relations = util.arrayToSet({"enemy", "neutral", "friendly"})
+function game:setTeamRelation(teamAName, teamBName, relation)
+	local state = self.state
+
+	local teamA = state.teams[teamAName]
+	local teamB = state.teams[teamBName]
+	assert(teamA, "No team with name " .. teamAName)
+	assert(teamB, "No team with name " .. teamBName)
+
+	if not relations[relation] then
+		error("Invalid team relation " .. relation)
+	end
+	if relation == "neutral" then
+		relation = nil
+	end
+
+	teamA.relations[teamB] = relation
+	teamB.relations[teamA] = relation
+end
+
+function game:getTeamRelation(teamAName, teamBName)
+	local state = self.state
+
+	local teamA = state.teams[teamAName]
+	local teamB = state.teams[teamBName]
+	assert(teamA, "No team with name " .. teamAName)
+	assert(teamB, "No team with name " .. teamBName)
+
+	assert(teamA.relations[teamB] == teamB.relations[teamA], "Mismatched relations between " .. teamAName .. " and " .. teamBName)
+
+	return teamA.relations[teamB]
+end
+
 function game:clearNonPersistentVariables()
 	local state = self.state
 
@@ -18,6 +60,28 @@ function game:clearNonPersistentVariables()
 		entity.shootInfo = nil
 		entity.initialHealthThisTick = nil
 		entity.initialBloodThisTick = nil
+	end
+end
+
+function game:getDirection(x, y)
+	if x == 1 and y == 0 then
+		return "right"
+	elseif x == 1 and y == -1 then
+		return "upRight"
+	elseif x == 0 and y == -1 then
+		return "up"
+	elseif x == -1 and y == -1 then
+		return "upLeft"
+	elseif x == -1 and y == 0 then
+		return "left"
+	elseif x == -1 and y == 1 then
+		return "downLeft"
+	elseif x == 0 and y == 1 then
+		return "down"
+	elseif x == 1 and y == 1 then
+		return "downRight"
+	else
+		-- TODO if needed
 	end
 end
 

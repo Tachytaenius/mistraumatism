@@ -213,6 +213,9 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 								end
 							else
 								if y == bottomY then
+									if not visibilityMapInfo.wholeMap then
+										visibilityMapInfo.collidedX = x
+									end
 									return
 								end
 							end
@@ -226,6 +229,9 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 							-- 	nx = nx + 1
 							-- end
 							if slopeGreaterOrEqual(slopeBottomX, slopeBottomY, nx, ny) then
+								if not visibilityMapInfo.wholeMap then
+									visibilityMapInfo.collidedX = x
+								end
 								return
 							end
 							slopeTopY, slopeTopX = ny, nx

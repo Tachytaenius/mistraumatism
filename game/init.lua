@@ -53,23 +53,33 @@ function game:init()
 		local column = {}
 		state.map[x] = column
 		for y = 0, state.map.height - 1 do
-			local tile = {}
+			local tile = {x = x, y = y}
 			tile.type = love.math.random() < 0.005 and "pit" or love.math.random() < 0.1 and "wall" or "floor"
 			column[y] = tile
 		end
 	end
 
+	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
+
+	state.teams = {}
+	self:newTeam("player")
+	self:newTeam("monster")
+	self:setTeamRelation("player", "monster", "enemy")
+
 	state.entities = {}
 	state.player = self:newCreatureEntity({
 		creatureTypeName = "human",
+		team = "player",
 		x = 0, y = 0,
-		heldItem = self:newItemData({
-			itemTypeName = "pistol"
-		})
+		-- heldItem = self:newItemData({
+		-- 	itemTypeName = "pistol"
+		-- })
 	})
 	self:newCreatureEntity({
-		creatureTypeName = "human",
-		x = 2, y = 2
+		creatureTypeName = "zombie",
+		team = "monster",
+		x = 5, y = 5,
+		targetEntity = state.player -- TEMP
 	})
 
 	state.projectiles = {}

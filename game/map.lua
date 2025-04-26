@@ -13,6 +13,23 @@ function game:getWalkable(x, y)
 	return tile and self.state.tileTypes[tile.type].solidity == "passable"
 end
 
+function game:getWalkableNeighbourTiles(x, y)
+	local list = {}
+	for ox = -1, 1 do
+		for oy = -1, 1 do
+			if ox == 0 and oy == 0 then
+				goto continue
+			end
+			local tileX, tileY = x + ox, y + oy
+			if self:getWalkable(tileX, tileY) then
+				list[#list+1] = self:getTile(tileX, tileY)
+			end
+		    ::continue::
+		end
+	end
+	return list
+end
+
 function game:addSpatter(x, y, materialName, amount)
 	local tile = self:getTile(x, y)
 	if not tile then

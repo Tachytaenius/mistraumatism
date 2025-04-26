@@ -74,4 +74,8 @@ consts.spatterThreshold2 = 9
 consts.spatterThreshold3 = 17
 consts.spatterThreshold4 = 25
 
+consts.tau = math.pi * 2
+
+consts.spreadRetargetDistance = 128
+
 return consts

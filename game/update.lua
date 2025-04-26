@@ -7,10 +7,17 @@ local game = {}
 function game:isPlayerInControl()
 	local state = self.state
 	local player = state.player
+	if not player then
+		return false
+	end
 	return not (player.moveTimer or player.waitTimer)
 end
 
 function game:realtimeUpdate(dt)
+	if not self.state.player then
+		return
+	end
+
 	if self:isPlayerInControl() then
 		self.updateTimer = 0
 		self:getPlayerInput()
@@ -64,6 +71,7 @@ function game:getPlayerInput()
 			local offsetX, offsetY = self:getDirectionOffset(direction)
 			if self:getWalkable(player.x + offsetX, player.y + offsetY) then
 				player.moveDirection = direction
+				-- TODO: Factor out (also in entities.lua)
 				local multiplier = self:isDirectionDiagonal(direction) and consts.inverseDiagonal or 1
 				player.moveTimer = math.floor(playerMoveTimerLength * multiplier)
 				return -- No further actions
@@ -92,6 +100,10 @@ function game:update()
 	self:updateEntities()
 
 	self:clearNonPersistentVariables()
+
+	if state.player then
+		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = state.player.x, state.player.y, state.player.creatureType.sightDistance
+	end
 
 	state.tick = state.tick + 1
 end

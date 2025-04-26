@@ -23,11 +23,18 @@ function game:draw() -- After this function completes, the result is in currentF
 	local state = self.state
 	self:clearFramebuffer()
 
-	local viewportScreenX, viewportScreenY = 1, 1
-	local topLeftX = math.floor(state.player.x - self.viewportWidth / 2)
-	local topLeftY = math.floor(state.player.y - self.viewportHeight / 2)
+	local cameraX, cameraY, cameraSightDistance
+	if state.player then
+		cameraX, cameraY, cameraSightDistance = state.player.x, state.player.y, state.player.creatureType.sightDistance
+	else
+		cameraX, cameraY, cameraSightDistance = state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance
+	end
 
-	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(state.player.x, state.player.y, state.player.creatureType.sightDistance)
+	local viewportScreenX, viewportScreenY = 1, 1
+	local topLeftX = math.floor(cameraX - self.viewportWidth / 2)
+	local topLeftY = math.floor(cameraY - self.viewportHeight / 2)
+
+	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(cameraX, cameraY, cameraSightDistance)
 	assert(visibilityMapTopLeftX == topLeftX)
 	assert(visibilityMapTopLeftY == topLeftY)
 	assert(visibilityMapWidth == self.viewportWidth)
@@ -188,7 +195,8 @@ function game:draw() -- After this function completes, the result is in currentF
 
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType == "creature" then
-			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, "black")
+			local background = entity.dead and "darkRed" or "black"
+			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
 		end
 	end
 
