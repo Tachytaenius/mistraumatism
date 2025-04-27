@@ -1,5 +1,27 @@
 local game = {}
 
+function game:loadTileTypes()
+	local state = self.state
+	state.tileTypes = {
+		wall = {
+			solidity = "solid",
+			character = "O",
+			boxDrawingNumber = 2,
+			blocksLight = true
+		},
+		floor = {
+			solidity = "passable",
+			character = "+"
+		},
+		pit = {
+			solidity = "fall",
+			character = "·",
+			ignoreSpatter = true,
+			darkenColour = true
+		}
+	}
+end
+
 function game:getTile(x, y)
 	local column = self.state.map[x]
 	if not column then

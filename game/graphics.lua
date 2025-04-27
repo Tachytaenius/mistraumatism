@@ -106,29 +106,14 @@ function game:draw() -- After this function completes, the result is in currentF
 			cell.backgroundColour = "black"
 
 			local tileType = state.tileTypes[tile.type]
-			cell.foregroundColour = "lightGrey"
+			cell.foregroundColour = state.materials[tile.material].colour
 			if tileType.darkenColour then
 				local darker = consts.darkerColours[cell.foregroundColour]
 				if darker then
 					cell.foregroundColour = darker
 				end
 			end
-			if tileType.boxDrawingNumber then
-				local right = self:getTile(tileX + 1, tileY)
-				local up    = self:getTile(tileX, tileY - 1)
-				local left  = self:getTile(tileX - 1, tileY)
-				local down  = self:getTile(tileX, tileY + 1)
-				local num = tileType.boxDrawingNumber
-				local boxCharacter = util.getBoxDrawingCharacter(
-					right and right.type == tile.type and num or 0,
-					up    and up.type == tile.type    and num or 0,
-					left  and left.type == tile.type  and num or 0,
-					down  and down.type == tile.type  and num or 0
-				)
-				cell.character = boxCharacter or tileType.character
-			else
-				cell.character = tileType.character
-			end
+			cell.character = self:getTileCharacter(tileX, tileY)
 
 			if not tileType.ignoreSpatter then
 				local largestSpatter
@@ -226,6 +211,94 @@ function game:newFramebuffer()
 		end
 	end
 	return framebuffer
+end
+
+local function getWallConnections(neighbours)
+	-- Returns right, up, left, down
+
+	if neighbours.right and neighbours.up and neighbours.left and neighbours.down then
+		if neighbours.upRight and neighbours.upLeft and neighbours.downLeft and neighbours.downRight then
+			return true, true, true, true
+		end
+
+		if neighbours.upRight and neighbours.downLeft and neighbours.downRight then
+			return false, true, true, false
+		end
+		if neighbours.upLeft and neighbours.downLeft and neighbours.downRight then
+			return true, true, false, false
+		end
+		if neighbours.upLeft and neighbours.upRight and neighbours.downRight then
+			return false, false, true, true
+		end
+		if neighbours.upLeft and neighbours.upRight and neighbours.downLeft then
+			return true, false, false, true
+		end
+		return true, true, true, true
+	end
+
+	if neighbours.up and neighbours.down and neighbours.left then
+		if neighbours.upLeft and neighbours.downLeft then
+			return false, true, false, true
+		end
+		return false, true, true, true
+	end
+	if neighbours.up and neighbours.down and neighbours.right then
+		if neighbours.upRight and neighbours.downRight then
+			return false, true, false, true
+		end
+		return true, true, false, true
+	end
+	if neighbours.up and neighbours.left and neighbours.right then
+		if neighbours.upLeft and neighbours.upRight then
+			return true, false, true, false
+		end
+		return true, true, true, false
+	end
+	if neighbours.down and neighbours.left and neighbours.right then
+		if neighbours.downLeft and neighbours.downRight then
+			return true, false, true, false
+		end
+		return true, false, true, true
+	end
+
+	return neighbours.right, neighbours.up, neighbours.left, neighbours.down
+end
+
+function game:getTileCharacter(x, y)
+	local state = self.state
+	local tile = self:getTile(x, y)
+	local tileType = state.tileTypes[tile.type]
+	if tileType.boxDrawingNumber then
+		local neighbours = {}
+		for ox = -1, 1 do
+			for oy = -1, 1 do
+				if ox == 0 and oy == 0 then
+					goto continue
+				end
+				local direction = self:getDirection(ox, oy)
+				local tileX, tileY = x + ox, y + oy
+				local otherTile = self:getTile(tileX, tileY)
+				local sameType = otherTile.type == tile.type
+				local groupedAutotiling = tile.autotileGroup or otherTile.autotileGroup
+				local sameGroup = tile.autotileGroup == otherTile.autotileGroup
+				neighbours[direction] = otherTile and sameType and (not groupedAutotiling or sameGroup)
+				::continue::
+			end
+		end
+
+		local right, up, left, down = getWallConnections(neighbours)
+
+		local num = tileType.boxDrawingNumber
+		local boxCharacter = util.getBoxDrawingCharacter(
+			right and num or 0,
+			up and num or 0,
+			left and num or 0,
+			down and num or 0
+		)
+		return boxCharacter or tileType.character
+	else
+		return tileType.character
+	end
 end
 
 return game

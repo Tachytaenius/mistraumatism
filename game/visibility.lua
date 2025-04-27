@@ -249,7 +249,8 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 	end
 end
 
-function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCheck)
+function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCheck, allVisible)
+	allVisible = allVisible or false -- no nil
 	local visibilityMapWidth, visibilityMapHeight = self.viewportWidth, self.viewportHeight
 	local visibilityMapTopLeftX = math.floor(startX - visibilityMapWidth / 2)
 	local visibilityMapTopLeftY = math.floor(startY - visibilityMapHeight / 2)
@@ -258,22 +259,24 @@ function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCh
 		local column = {}
 		visibilityMap[x] = column
 		for y = 0, visibilityMapHeight - 1 do
-			column[y] = false
+			column[y] = allVisible
 		end
 	end
 
-	local visibilityMapInfo = {
-		wholeMap = true,
-		visibilityMapWidth = visibilityMapWidth,
-		visibilityMapHeight = visibilityMapHeight,
-		visibilityMapTopLeftX = visibilityMapTopLeftX,
-		visibilityMapTopLeftY = visibilityMapTopLeftY,
-		visibilityMap = visibilityMap
-	}
+	if not allVisible then
+		local visibilityMapInfo = {
+			wholeMap = true,
+			visibilityMapWidth = visibilityMapWidth,
+			visibilityMapHeight = visibilityMapHeight,
+			visibilityMapTopLeftX = visibilityMapTopLeftX,
+			visibilityMapTopLeftY = visibilityMapTopLeftY,
+			visibilityMap = visibilityMap
+		}
 
-	setVisibleBasic(startX, startY, visibilityMapInfo)
-	for octant = 0, 7 do
-		self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, 1, 1, 1, 1, 0, disableDistanceCheck, visibilityMapInfo)
+		setVisibleBasic(startX, startY, visibilityMapInfo)
+		for octant = 0, 7 do
+			self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, 1, 1, 1, 1, 0, disableDistanceCheck, visibilityMapInfo)
+		end
 	end
 
 	return visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight
