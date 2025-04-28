@@ -57,7 +57,6 @@ function game:clearNonPersistentVariables()
 	local state = self.state
 
 	for _, entity in ipairs(state.entities) do
-		entity.shootInfo = nil
 		entity.initialHealthThisTick = nil
 		entity.initialBloodThisTick = nil
 	end

@@ -28,6 +28,7 @@ function game:init()
 
 	state.nextAutotileGroup = 0
 
+	self:loadActionTypes()
 	self:loadTileTypes()
 	self:loadMaterials()
 	self:loadCreatureTypes()

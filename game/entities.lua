@@ -1,14 +1,19 @@
-local pathfind = require("lib.batteries.pathfind")
 local util = require("util")
-local consts = require("consts")
 
 local game = {}
 
 function game:getDestinationTile(entity)
-	if not entity.moveDirection then
+	local action
+	for _, listAction in ipairs(entity.actions) do
+		if listAction.type == "move" then
+			action = listAction
+			break
+		end
+	end
+	if not action then
 		return nil
 	end
-	local offsetX, offsetY = self:getDirectionOffset(entity.moveDirection)
+	local offsetX, offsetY = self:getDirectionOffset(action.direction)
 	return entity.x + offsetX, entity.y + offsetY
 end
 
@@ -60,123 +65,114 @@ function game:newCreatureEntity(parameters)
 	new.health = creatureType.maxHealth
 	new.blood = creatureType.maxBlood
 	new.dead = false
+	new.actions = {}
 
 	state.entities[#state.entities+1] = new
 	return new
 end
 
-function game:updateEntities()
+function game:updateEntitiesAndProjectiles()
 	local state = self.state
+
+	local function processActions(actionTypeName)
+		local processFunction = state.actionTypes[actionTypeName].process
+		for _, entity in ipairs(state.entities) do
+			if entity.entityType ~= "creature" or entity.dead then
+				goto continue
+			end
+			local i = 1
+			while i <= #entity.actions do
+				local action = entity.actions[i]
+				local removed = false
+				if action.type == actionTypeName then
+					processFunction(self, entity, action)
+					if action.doneType then
+						table.remove(entity.actions, i)
+						removed = true
+					end
+				end
+				if not removed then
+					i = i + 1
+				end
+			end
+		    ::continue::
+		end
+	end
 
 	-- Creatures
 	local creaturesToRemove = {}
-	for _, entity in ipairs(state.entities) do
-		local function kill()
-			entity.dead = true
-			-- creaturesToRemove[entity] = true
-		end
-
-		if entity.entityType == "creature" then
-			if not entity.dead then
-				if not entity.moveDirection then
-					local targetLocationX, targetLocationY
-					if entity ~= state.player and entity.targetEntity then
-						targetLocationX, targetLocationY = entity.targetEntity.x, entity.targetEntity.y
-					end
-					if targetLocationX and targetLocationY then
-						local startTile = self:getTile(entity.x, entity.y)
-						local endTile = self:getTile(targetLocationX, targetLocationY)
-						if startTile and endTile then
-							local result = pathfind({
-								start = startTile,
-								goal = function(tile)
-									return tile == endTile
-								end,
-								neighbours = function(tile)
-									return self:getWalkableNeighbourTiles(tile.x, tile.y)
-								end,
-								distance = function(tileA, tileB)
-									return math.sqrt(
-										(tileB.x - tileA.x) ^ 2 +
-										(tileB.y - tileA.y) ^ 2
-									)
-								end
-							})
-							if result then
-								local nextTile = result[2]
-								if nextTile then
-									local moveDirection = self:getDirection(nextTile.x - startTile.x, nextTile.y - startTile.y)
-									if moveDirection then
-										-- TODO: Factor out (also in update.lua)
-										entity.moveDirection = moveDirection
-										local multiplier = self:isDirectionDiagonal(moveDirection) and consts.inverseDiagonal or 1
-										entity.moveTimer = math.floor(entity.creatureType.moveTimerLength * multiplier)
-									end
-								end
-							end
-						end
-					end
-				end
-
-				if entity.moveDirection then
-					local destinationX, destinationY = self:getDestinationTile(entity)
-					if self:getWalkable(destinationX, destinationY) then
-						entity.moveTimer = entity.moveTimer - 1
-						if entity.moveTimer <= 0 then
-							entity.x, entity.y = destinationX, destinationY
-							entity.moveTimer = nil
-							entity.moveDirection = nil
-						end
-					else
-						entity.moveTimer = nil
-						entity.moveDirection = nil
-					end
-				end
-			end
-
-			if entity.blood then
-				local lossPerSpatter = 8
-				local sameTileSpatterThreshold = 4
-
-				local bloodLoss = math.max(0, entity.initialBloodThisTick - entity.blood)
-				if bloodLoss > 0 then
-					local bloodRemaining = bloodLoss
-					while bloodRemaining > 0 do
-						local lossThisSpatter
-						local forceSameTile = false
-						if bloodRemaining == bloodLoss then
-							-- First lot, make it lose 1 and be on the same tile
-							lossThisSpatter = 1
-							forceSameTile = true
-						else
-							lossThisSpatter = math.min(bloodRemaining, lossPerSpatter)
-						end
-						bloodRemaining = bloodRemaining - lossThisSpatter
-						local x, y
-						if forceSameTile or lossThisSpatter < sameTileSpatterThreshold then
-							x, y = entity.x, entity.y
-						else
-							local minX = math.max(0, entity.x - 1)
-							local maxX = math.min(state.map.width - 1, entity.x + 1)
-
-							local minY = math.max(0, entity.y - 1)
-							local maxY = math.min(state.map.height - 1, entity.y + 1)
-
-							x = love.math.random(minX, maxX)
-							y = love.math.random(minY, maxY)
-						end
-						self:addSpatter(x, y, entity.creatureType.bloodMaterialName, lossThisSpatter)
-					end
-				end
-			end
-
-			if not entity.dead then
-				if entity.health <= 0 or (entity.blood and entity.blood <= 0) then
-					kill()
-				end
-			end
-		end
+	local function kill(entity)
+		entity.dead = true
+		entity.actions = {}
+		-- creaturesToRemove[entity] = true
 	end
+
+	-- AI (player input already happened)
+	for _, entity in ipairs(state.entities) do
+		if #entity.actions > 0 or entity == state.player then
+			goto continue
+		end
+		if not entity.entityType == "creature" or entity.dead then
+			goto continue
+		end
+		self:getAIActions(entity)
+	    ::continue::
+	end
+
+	-- Actions (and other things)
+	processActions("shoot")
+	self:updateProjectiles()
+	processActions("move")
+
+	-- Damage and bleeding
+	for _, entity in ipairs(state.entities) do
+		if entity.entityType ~= "creature" then
+			goto continue
+		end
+		if entity.blood then -- Bleed even if dead
+			local lossPerSpatter = 8
+			local sameTileSpatterThreshold = 4
+
+			local bloodLoss = math.max(0, entity.initialBloodThisTick - entity.blood)
+			if bloodLoss > 0 then
+				local bloodRemaining = bloodLoss
+				while bloodRemaining > 0 do
+					local lossThisSpatter
+					local forceSameTile = false
+					if bloodRemaining == bloodLoss then
+						-- First lot, make it lose 1 and be on the same tile
+						lossThisSpatter = 1
+						forceSameTile = true
+					else
+						lossThisSpatter = math.min(bloodRemaining, lossPerSpatter)
+					end
+					bloodRemaining = bloodRemaining - lossThisSpatter
+					local x, y
+					if forceSameTile or lossThisSpatter < sameTileSpatterThreshold then
+						x, y = entity.x, entity.y
+					else
+						local minX = math.max(0, entity.x - 1)
+						local maxX = math.min(state.map.width - 1, entity.x + 1)
+
+						local minY = math.max(0, entity.y - 1)
+						local maxY = math.min(state.map.height - 1, entity.y + 1)
+
+						x = love.math.random(minX, maxX)
+						y = love.math.random(minY, maxY)
+					end
+					self:addSpatter(x, y, entity.creatureType.bloodMaterialName, lossThisSpatter)
+				end
+			end
+		end
+		if not entity.dead then
+			if entity.health <= 0 or (entity.blood and entity.blood <= 0) then
+				kill(entity)
+			end
+		end
+	    ::continue::
+	end
+
+	-- Entity removal
 	local i = 1
 	while i <= #state.entities do
 		local entity = state.entities[i]
