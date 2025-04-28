@@ -78,13 +78,6 @@ function game:updateEntities()
 
 		if entity.entityType == "creature" then
 			if not entity.dead then
-				if entity.waitTimer then
-					entity.waitTimer = entity.waitTimer - 1
-					if entity.waitTimer <= 0 then
-						entity.waitTimer = nil
-					end
-				end
-
 				if not entity.moveDirection then
 					local targetLocationX, targetLocationY
 					if entity ~= state.player and entity.targetEntity then

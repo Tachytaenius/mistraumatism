@@ -7,10 +7,10 @@ local game = {}
 function game:isPlayerInControl()
 	local state = self.state
 	local player = state.player
-	if not player then
+	if not player or state.waiting then
 		return false
 	end
-	return not (player.moveTimer or player.waitTimer)
+	return not player.moveTimer
 end
 
 function game:realtimeUpdate(dt)
@@ -20,8 +20,12 @@ function game:realtimeUpdate(dt)
 
 	if self:isPlayerInControl() then
 		self.updateTimer = 0
-		self:getPlayerInput()
-		return
+		local result = self:getPlayerInput()
+		if result and result.wait then
+			self.state.waiting = true
+		else
+			return
+		end
 	end
 
 	self.updateTimer = self.updateTimer + dt
@@ -42,8 +46,7 @@ function game:getPlayerInput()
 
 	-- Try waiting
 	if commands.checkCommand("wait") or commands.checkCommand("waitPrecise") then
-		player.waitTimer = 1 -- One tick
-		return -- No further actions
+		return {wait = true} -- No further actions
 	end
 
 	-- Try moving
@@ -85,14 +88,14 @@ function game:getPlayerInput()
 			targetX = state.cursor.x,
 			targetY = state.cursor.y
 		}
-		player.waitTimer = 1
 		return -- No further actions
 	end
 end
 
 function game:update()
 	local state = self.state
-	
+	state.waiting = false -- No longer needed
+
 	self:setInitialNonPersistentVariables()
 
 	self:updateItems()
