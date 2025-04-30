@@ -15,7 +15,8 @@ function game:loadItemTypes()
 		shotCooldownTimerLength = 4,
 		damage = 16,
 		manual = false,
-		projectileSubtickMoveTimerLength = 16
+		projectileSubtickMoveTimerLength = 16,
+		range = 17
 	}
 
 	itemTypes.shotgun = {
@@ -25,7 +26,8 @@ function game:loadItemTypes()
 		shotCooldownTimerLength = 14,
 		damage = 6, -- Per projectile
 		manual = true,
-		projectileSubtickMoveTimerLength = 20
+		projectileSubtickMoveTimerLength = 20,
+		range = 16
 	}
 end
 
@@ -66,6 +68,7 @@ function game:shootGun(entity, action, gun)
 					colour = "darkGrey",
 					subtickMoveTimerLength = gunType.projectileSubtickMoveTimerLength,
 					damage = gunType.damage,
+					range = gunType.range,
 
 					aimX = aimX,
 					aimY = aimY,

@@ -61,7 +61,9 @@ function game:updateProjectiles()
 
 						local deltaX, deltaY = endX - startX, endY - startY
 						local magX, magY = math.abs(deltaX), math.abs(deltaY)
-						local rangeLimit = math.max(magX, magY)
+						-- local rangeLimit = math.max(magX, magY)
+						local rangeLimit = projectile.range
+						local disableDistanceCheck = false
 
 						local octant = projectile.trajectoryOctant
 						local localX, localY
@@ -83,7 +85,7 @@ function game:updateProjectiles()
 
 						local currentOctantX = projectile.currentOctantX or 0
 						local currentOctantY = projectile.currentOctantY or 0
-						self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, currentOctantX + 1, localX * 4 - 1, localY * 4 + 1, localX * 4 + 1, localY * 4 - 1, true, visibilityMapInfo)
+						self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, currentOctantX + 1, localX * 4 - 1, localY * 4 + 1, localX * 4 + 1, localY * 4 - 1, disableDistanceCheck, visibilityMapInfo)
 						if visibilityMapInfo.collidedX == currentOctantX + 1 then
 							projectilesToStop[projectile] = true
 							checkForEntityHit()
