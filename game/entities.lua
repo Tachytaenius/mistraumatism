@@ -107,7 +107,41 @@ function game:updateEntitiesAndProjectiles()
 		-- creaturesToRemove[entity] = true
 	end
 
-	-- AI (player input already happened)
+	-- AI visibility etc
+	for _, entity in ipairs(state.entities) do
+		assert(not (entity.targetEntity and entity.targetEntity.removed), "An entity is targetting a removed entity")
+
+		if entity == state.player then
+			goto continue
+		end
+
+		if entity.targetEntity and entity.targetEntity.dead then
+			entity.targetEntity = nil
+		end
+
+		if entity.targetEntity then
+			-- Stay locked on until target is dead for now, no need to switch
+			goto continue
+		end
+
+		-- No target
+		local potentialTarget = state.player -- Just look for player for now
+		if not potentialTarget then
+			goto continue
+		end
+		if not potentialTarget.dead then -- potentialTarget could be from a for loop
+			if
+				self:getTeamRelation(entity.team, potentialTarget.team) == "enemy" and
+				self:entityCanSeeEntity(entity, potentialTarget)
+			then
+				-- TODO: Announce monster wakeup etc?
+				entity.targetEntity = potentialTarget
+			end
+		end
+
+	    ::continue::
+	end
+	-- AI actions (player input already happened)
 	for _, entity in ipairs(state.entities) do
 		if #entity.actions > 0 or entity == state.player then
 			goto continue
@@ -177,7 +211,15 @@ function game:updateEntitiesAndProjectiles()
 	while i <= #state.entities do
 		local entity = state.entities[i]
 		if creaturesToRemove[entity] then
+			entity.removed = true
 			table.remove(state.entities, i)
+
+			-- Remove links
+			for _, entity2 in ipairs(state.entities) do
+				if entity2.targetEntity == entity then
+					entity2.targetEntity = nil
+				end
+			end
 			if entity == state.player then
 				state.player = nil
 			end
@@ -185,6 +227,25 @@ function game:updateEntitiesAndProjectiles()
 			i = i + 1
 		end
 	end
+end
+
+function game:entityCanSeeTile(entity, x, y)
+	if not entity.creatureType.sightDistance then
+		return false
+	end
+
+	local distance = math.sqrt(
+		(x - entity.x) ^ 2 +
+		(y - entity.y) ^ 2
+	)
+	if distance <= entity.creatureType.sightDistance then -- Uses <= like in visibility.lua's rangeLimit check
+		return self:hitscan(entity.x, entity.y, x, y)
+	end
+	return false
+end
+
+function game:entityCanSeeEntity(seer, seen)
+	return self:entityCanSeeTile(seer, seen.x, seen.y)
 end
 
 return game

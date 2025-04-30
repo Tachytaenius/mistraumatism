@@ -182,7 +182,7 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 						setVisible(x, y, octant, startX, startY, visibilityMapInfo)
 					else
 						if globalX == visibilityMapInfo.globalEndX and globalY == visibilityMapInfo.globalEndY then
-							visibilityMapInfo.hitEndTile = true
+							visibilityMapInfo.endTileVisible = true
 						end
 					end
 				end
@@ -358,12 +358,12 @@ function game:hitscan(startX, startY, endX, endY)
 			globalEndX = endX,
 			globalEndY = endY,
 			hitTiles = {}, -- Contains info on whether it was a full hit (corresponding to setVisible or just the code looking at that tile)
-			hitEndTile = false
+			endTileVisible = false
 		}
 
 		self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, 1, localX * 4 - 1, localY * 4 + 1, localX * 4 + 1, localY * 4 - 1, true, visibilityMapInfo)
 
-		if visibilityMapInfo.hitEndTile then
+		if visibilityMapInfo.endTileVisible then
 			return true, {octant = octant, hitTiles = visibilityMapInfo.hitTiles}
 		end
 		triedHitTiles[#triedHitTiles+1] = {octant = octant, hitTiles = visibilityMapInfo.hitTiles}

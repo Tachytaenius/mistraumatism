@@ -6,7 +6,7 @@ local game = {}
 function game:isPlayerInControl()
 	local state = self.state
 	local player = state.player
-	if not player or state.waiting then
+	if not player or state.waiting or player.dead then
 		return false
 	end
 	return #player.actions == 0
@@ -37,7 +37,7 @@ end
 function game:getPlayerInput()
 	local state = self.state
 	local player = state.player
-	if not player then
+	if not player or player.dead then
 		return
 	end
 

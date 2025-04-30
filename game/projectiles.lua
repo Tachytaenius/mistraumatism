@@ -170,11 +170,11 @@ function game:newProjectile(parameters)
 	if not (parameters.aimX == parameters.startX and parameters.aimY == parameters.startX) and parameters.bulletSpread then
 		local relativeX = parameters.aimX - parameters.startX
 		local relativeY = parameters.aimY - parameters.startY
-		local angle = math.atan2(relativeX, relativeY)
+		local angle = math.atan2(relativeY, relativeX)
 		local newAngle = angle + (love.math.random() - 0.5) * parameters.bulletSpread
 		local r = consts.spreadRetargetDistance
-		targetX = math.floor(math.cos(newAngle) * r + 0.5) -- Round
-		targetY = math.floor(math.sin(newAngle) * r + 0.5)
+		targetX = math.floor(math.cos(newAngle) * r + 0.5) + parameters.startX -- Round
+		targetY = math.floor(math.sin(newAngle) * r + 0.5) + parameters.startY
 	else
 		targetX = parameters.aimX
 		targetY = parameters.aimY
@@ -198,6 +198,7 @@ function game:newProjectile(parameters)
 			trajectoryOctant = info.octant
 		else
 			-- Get the octant of the two which got furthest, if there were two
+			-- This is the most likely branch for a spread projectile, for which the target location is no longer exact
 			if #info.triedHitTiles == 1 then
 				trajectoryOctant = info.triedHitTiles[1].octant
 			else

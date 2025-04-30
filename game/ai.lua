@@ -3,6 +3,7 @@ local pathfind = require("lib.batteries.pathfind")
 local game = {}
 
 -- self is game instance
+
 local function tryMove(self, entity)
 	local targetLocationX, targetLocationY
 	if entity.targetEntity then
@@ -41,6 +42,17 @@ local function tryMove(self, entity)
 	end
 end
 
+local function tryShoot(self, entity)
+	local targetEntity = entity.targetEntity
+	if not targetEntity then
+		return
+	end
+	if not self:entityCanSeeEntity(entity, targetEntity) then
+		return
+	end
+	return self.state.actionTypes.shoot.construct(self, entity, targetEntity.x, targetEntity.y)
+end
+
 function game:getAIActions(entity)
 	local state = self.state
 	if entity == state.player then
@@ -51,6 +63,12 @@ function game:getAIActions(entity)
 	end
 
 	-- Return after every potential action
+
+	local shootAction = tryShoot(self, entity)
+	if shootAction then
+		entity.actions[#entity.actions+1] = shootAction
+		return
+	end
 
 	local moveAction = tryMove(self, entity)
 	if moveAction then
