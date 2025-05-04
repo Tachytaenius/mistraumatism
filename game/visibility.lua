@@ -104,6 +104,13 @@ local function slopeLessOrEqual(x1, y1, x2, y2)
 end
 
 function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, slopeTopX, slopeTopY, slopeBottomX, slopeBottomY, disableDistanceCheck, visibilityMapInfo)
+	local function handleCollision()
+		if visibilityMapInfo.singleLine then
+			visibilityMapInfo.collidedX = x
+		end
+	end
+
+	local stepped = false
 	while x <= rangeLimit do
 		local topY
 		if slopeTopX == 1 then
@@ -141,7 +148,7 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 
 		local wasOpaque = -1
 		for y = topY, bottomY, -1 do
-			if rangeLimit < 0 or disableDistanceCheck or (not disableDistanceCheck and getDistance(x, y) <= rangeLimit) then
+			if rangeLimit < 0 or disableDistanceCheck or (not disableDistanceCheck and getDistance(x, y) <= (visibilityMapInfo.distanceCheckRangeLimit or rangeLimit)) then
 				local globalX, globalY
 				if not visibilityMapInfo.wholeMap then
 					local nx = startX
@@ -188,11 +195,17 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 				end
 
 				if not visibilityMapInfo.wholeMap then
-					visibilityMapInfo.hitTiles[#visibilityMapInfo.hitTiles+1] = {
-						localX = x, localY = y,
-						globalX = globalX, globalY = globalY,
-						fullHit = isVisible
-					}
+					local tile = self:getTile(globalX, globalY)
+					if tile and not visibilityMapInfo.hitTiles[tile] then
+						local hitTileInfo = {
+							localX = x, localY = y,
+							globalX = globalX, globalY = globalY,
+							fullHit = isVisible,
+							tile = tile
+						}
+						visibilityMapInfo.hitTiles[tile] = hitTileInfo
+						visibilityMapInfo.hitTiles[#visibilityMapInfo.hitTiles+1] = hitTileInfo
+					end
 				end
 
 				if x ~= rangeLimit then
@@ -209,13 +222,21 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 									slopeBottomX = nx
 									break
 								else
+									if visibilityMapInfo.sectorsNextStep then
+										local xTable = visibilityMapInfo.sectorsNextStep[x + 1] or {}
+										visibilityMapInfo.sectorsNextStep[x + 1] = xTable
+										xTable[#xTable+1] = {
+											slopeTopX = slopeTopX,
+											slopeTopY = slopeTopY,
+											slopeBottomX = nx,
+											slopeBottomY = ny
+										}
+									end
 									self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x + 1, slopeTopX, slopeTopY, nx, ny, disableDistanceCheck, visibilityMapInfo)
 								end
 							else
 								if y == bottomY then
-									if not visibilityMapInfo.wholeMap then
-										visibilityMapInfo.collidedX = x
-									end
+									handleCollision()
 									return
 								end
 							end
@@ -229,9 +250,7 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 							-- 	nx = nx + 1
 							-- end
 							if slopeGreaterOrEqual(slopeBottomX, slopeBottomY, nx, ny) then
-								if not visibilityMapInfo.wholeMap then
-									visibilityMapInfo.collidedX = x
-								end
+								handleCollision()
 								return
 							end
 							slopeTopY, slopeTopX = ny, nx
@@ -243,7 +262,18 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 		end
 
 		if wasOpaque ~= 0 then
+			handleCollision()
 			break
+		end
+		if visibilityMapInfo.sectorsNextStep then
+			local xTable = visibilityMapInfo.sectorsNextStep[x + 1] or {}
+			visibilityMapInfo.sectorsNextStep[x + 1] = xTable
+			xTable[#xTable+1] = {
+				slopeTopX = slopeTopX,
+				slopeTopY = slopeTopY,
+				slopeBottomX = slopeBottomX,
+				slopeBottomY = slopeBottomY
+			}
 		end
 		x = x + 1
 	end
@@ -282,7 +312,19 @@ function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCh
 	return visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight
 end
 
+-- Return values:
+-- - true, {sameTile = true}
+-- - true, octantInfoTable
+-- - false, {octants = listOfOctantInfoTables}
+-- Octant info table data:
+-- - octant
+-- - hitTiles
+-- - collidedX
 function game:hitscan(startX, startY, endX, endY)
+	if startX == endX and startY == endY then
+		return true, {sameTile = true}
+	end
+
 	local deltaX, deltaY = endX - startX, endY - startY
 	local magX, magY = math.abs(deltaX), math.abs(deltaY)
 	local rangeLimit = math.max(math.abs(deltaX), math.abs(deltaY))
@@ -323,7 +365,7 @@ function game:hitscan(startX, startY, endX, endY)
 	-- 	end
 	-- end
 
-	local triedHitTiles = {}
+	local octants = {}
 	for octant = 0, 7 do -- Should only ever actually call computeVisibilityMapOctant with at most two octants
 		-- Check if target tile is in the quadrant
 		local quadrant = math.floor(octant / 2)
@@ -354,6 +396,7 @@ function game:hitscan(startX, startY, endX, endY)
 		-- Perform check
 
 		local visibilityMapInfo = {
+			singleLine = true,
 			wholeMap = false,
 			globalEndX = endX,
 			globalEndY = endY,
@@ -363,14 +406,15 @@ function game:hitscan(startX, startY, endX, endY)
 
 		self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, 1, localX * 4 - 1, localY * 4 + 1, localX * 4 + 1, localY * 4 - 1, true, visibilityMapInfo)
 
+		local info = {octant = octant, hitTiles = visibilityMapInfo.hitTiles, collidedX = visibilityMapInfo.collidedX}
 		if visibilityMapInfo.endTileVisible then
-			return true, {octant = octant, hitTiles = visibilityMapInfo.hitTiles}
+			return true, info
 		end
-		triedHitTiles[#triedHitTiles+1] = {octant = octant, hitTiles = visibilityMapInfo.hitTiles}
+		octants[#octants+1] = info
 	    ::continue::
 	end
 
-	return false, {triedHitTiles = triedHitTiles} -- #triedHitTiles should be 2
+	return false, {octants = octants} -- #octants should be 2
 end
 
 return game

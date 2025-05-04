@@ -50,7 +50,7 @@ function game:updateProjectiles()
 		else
 			while currentTime < consts.projectileSubticks do
 				if not projectile.trajectoryOctant then
-					-- Projectile age is not increased in this branch
+					-- Already did checkForEntityHit
 					projectilesToStop[projectile] = true
 					break
 				else
@@ -58,11 +58,24 @@ function game:updateProjectiles()
 					if projectile.moveTimer <= 0 then
 						local startX, startY = projectile.startX, projectile.startY
 						local endX, endY = projectile.targetX, projectile.targetY
+						local rangeLimit = projectile.range + 4 -- Add a buffer just to be sure, since we use actual float distance checks
+						-- Recalculate endX and endY to be pushed as far as needed because going beyond them will cause issues (like the sector for the singleLine computeVisibilityMapOctant starting to spread out)
+						-- Single line checks that have their delta to their target multiplied by an integer >= 2 actually seem to have lower collidedX values, this is probably because the sector is narrower. That said, we still reach our destinations if they are visible. This has been exhaustively tested
+						-- All of this is probably horrible and horribly done
+						local startToTargetX = projectile.targetX - startX
+						local startToTargetY = projectile.targetY - startY
+						while
+							math.max(
+								math.abs(endX - startX),
+								math.abs(endY - startY)
+							) <= rangeLimit
+						do
+							endX = endX + startToTargetX
+							endY = endY + startToTargetY
+						end
 
 						local deltaX, deltaY = endX - startX, endY - startY
 						local magX, magY = math.abs(deltaX), math.abs(deltaY)
-						-- local rangeLimit = math.max(magX, magY)
-						local rangeLimit = projectile.range
 						local disableDistanceCheck = false
 
 						local octant = projectile.trajectoryOctant
@@ -74,29 +87,75 @@ function game:updateProjectiles()
 							localX, localY = magY, magX
 						end
 
-						local blockFunction = self.tileBlocksProjectiles
-						local visibilityMapInfo = {
-							projectile = true,
-							wholeMap = false,
-							-- Don't need globalEndX etc
-							blockFunction = blockFunction,
-							hitTiles = {}
-						}
-
 						local currentOctantX = projectile.currentOctantX or 0
 						local currentOctantY = projectile.currentOctantY or 0
-						self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, currentOctantX + 1, localX * 4 - 1, localY * 4 + 1, localX * 4 + 1, localY * 4 - 1, disableDistanceCheck, visibilityMapInfo)
-						if visibilityMapInfo.collidedX == currentOctantX + 1 then
+
+						local blockFunction = self.tileBlocksProjectiles
+
+						local singleLineVisibilityMapInfo = {
+							singleLine = true,
+							wholeMap = false,
+							blockFunction = blockFunction,
+							hitTiles = {},
+							distanceCheckRangeLimit = projectile.range
+						}
+						self:computeVisibilityMapOctant(
+							octant,
+							startX, startY,
+							rangeLimit, currentOctantX + 1,
+							localX * 4 - 1, localY * 4 + 1,
+							localX * 4 + 1, localY * 4 - 1,
+							disableDistanceCheck,
+							singleLineVisibilityMapInfo
+						)
+						if singleLineVisibilityMapInfo.collidedX == currentOctantX + 1 then
 							projectilesToStop[projectile] = true
 							checkForEntityHit()
 							break
+						end
+
+						local visibilityMapInfo = {
+							wholeMap = false,
+							blockFunction = blockFunction,
+							hitTiles = {},
+							distanceCheckRangeLimit = projectile.range,
+							sectorsNextStep = {}
+						}
+						if not projectile.previousSectors then
+							self:computeVisibilityMapOctant(
+								octant,
+								startX, startY,
+								rangeLimit, currentOctantX + 1,
+								1, 1,
+								1, 0,
+								disableDistanceCheck,
+								visibilityMapInfo,
+								true
+							)
+						else
+							for _, sector in ipairs(projectile.previousSectors) do
+								self:computeVisibilityMapOctant(
+									octant,
+									startX, startY,
+									rangeLimit, currentOctantX + 1,
+									sector.slopeTopX, sector.slopeTopY,
+									sector.slopeBottomX, sector.slopeBottomY,
+									disableDistanceCheck,
+									visibilityMapInfo,
+									true
+								)
+							end
 						end
 						local hitTiles = visibilityMapInfo.hitTiles
 
 						local potentialNextTiles = {}
 						local minimumX = math.huge
 						for _, hitTile in ipairs(hitTiles) do
-							if not blockFunction(self, hitTile.globalX, hitTile.globalY) then
+							if
+								hitTile.fullHit and -- Visible
+								singleLineVisibilityMapInfo.hitTiles[hitTile.tile] and -- On the actual single line path
+								not blockFunction(self, hitTile.globalX, hitTile.globalY) -- Available tile to path on
+							then
 								minimumX = math.min(minimumX, hitTile.localX)
 								potentialNextTiles[#potentialNextTiles+1] = hitTile
 							end
@@ -110,7 +169,11 @@ function game:updateProjectiles()
 						end
 						for _, hitTile in ipairs(potentialNextTiles) do
 							if hitTile.localX == minimumX then
-								if not newTile or math.abs(realLineCloseness(hitTile)) < math.abs(realLineCloseness(newTile)) then
+								-- Ensure we always go through the target location (if it is available to be pathed on)
+								local previousNewTileIsOriginalTargetTile = newTile and newTile.globalX == projectile.targetX and newTile.globalY == projectile.targetY
+								local isOriginalTargetTile = hitTile.globalX == projectile.targetX and hitTile.globalY == projectile.targetY
+
+								if not previousNewTileIsOriginalTargetTile and (not newTile or (isOriginalTargetTile or math.abs(realLineCloseness(hitTile)) < math.abs(realLineCloseness(newTile)))) then
 									newTile = hitTile
 								end
 							end
@@ -120,6 +183,7 @@ function game:updateProjectiles()
 							checkForEntityHit()
 							break
 						end
+						projectile.previousSectors = visibilityMapInfo.sectorsNextStep[newTile.localX + 1]
 						local distance = math.sqrt(
 							(newTile.globalX - projectile.currentX) ^ 2 +
 							(newTile.globalY - projectile.currentY) ^ 2
@@ -201,8 +265,8 @@ function game:newProjectile(parameters)
 		else
 			-- Get the octant of the two which got furthest, if there were two
 			-- This is the most likely branch for a spread projectile, for which the target location is no longer exact
-			if #info.triedHitTiles == 1 then
-				trajectoryOctant = info.triedHitTiles[1].octant
+			if #info.octants == 1 then
+				trajectoryOctant = info.octants[1].octant
 			else
 				local function getMaxDistance(hitTiles)
 					local currentMax = -math.huge -- Works fine if #hitTiles == 0
@@ -213,10 +277,11 @@ function game:newProjectile(parameters)
 					end
 					return currentMax
 				end
-				if getMaxDistance(info.triedHitTiles[1].hitTiles) >= getMaxDistance(info.triedHitTiles[2].hitTiles) then
-					trajectoryOctant = info.triedHitTiles[1].octant
+				-- if getMaxDistance(info.octants[1].hitTiles) >= getMaxDistance(info.octants[2].hitTiles) then
+				if info.octants[1].collidedX >= info.octants[2].collidedX then
+					trajectoryOctant = info.octants[1].octant
 				else
-					trajectoryOctant = info.triedHitTiles[2].octant
+					trajectoryOctant = info.octants[2].octant
 				end
 			end
 		end

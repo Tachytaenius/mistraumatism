@@ -278,6 +278,9 @@ function game:getTileCharacter(x, y)
 				local direction = self:getDirection(ox, oy)
 				local tileX, tileY = x + ox, y + oy
 				local otherTile = self:getTile(tileX, tileY)
+				if not otherTile then
+					goto continue
+				end
 				local sameType = otherTile.type == tile.type
 				local groupedAutotiling = tile.autotileGroup or otherTile.autotileGroup
 				local sameGroup = tile.autotileGroup == otherTile.autotileGroup
