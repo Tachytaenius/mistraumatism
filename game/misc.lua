@@ -41,6 +41,10 @@ function game:setTeamRelation(teamAName, teamBName, relation)
 end
 
 function game:getTeamRelation(teamAName, teamBName)
+	if not teamAName or not teamBName then
+		return "neutral"
+	end
+
 	local state = self.state
 
 	local teamA = state.teams[teamAName]
