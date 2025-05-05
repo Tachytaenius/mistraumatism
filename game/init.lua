@@ -16,7 +16,7 @@ end
 
 function game:init()
 	self.framebufferWidth, self.framebufferHeight = 56, 48
-	self.viewportWidth, self.viewportHeight = 40, 40
+	self.viewportWidth, self.viewportHeight = 37, 37
 	self.currentFramebuffer, self.otherFramebuffer = self:newFramebuffer(), self:newFramebuffer()
 	self.updateTimer = 0 -- Used when player is not in control, "spent" on fixed updates
 	self.realTime = 0

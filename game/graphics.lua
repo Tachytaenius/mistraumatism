@@ -31,8 +31,8 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	local viewportScreenX, viewportScreenY = 1, 1
-	local topLeftX = math.floor(cameraX - self.viewportWidth / 2)
-	local topLeftY = math.floor(cameraY - self.viewportHeight / 2)
+	local topLeftX = cameraX - math.floor(self.viewportWidth / 2)
+	local topLeftY = cameraY - math.floor(self.viewportHeight / 2)
 
 	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(cameraX, cameraY, cameraSightDistance)
 	assert(visibilityMapTopLeftX == topLeftX)

@@ -282,8 +282,8 @@ end
 function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCheck, allVisible)
 	allVisible = allVisible or false -- no nil
 	local visibilityMapWidth, visibilityMapHeight = self.viewportWidth, self.viewportHeight
-	local visibilityMapTopLeftX = math.floor(startX - visibilityMapWidth / 2)
-	local visibilityMapTopLeftY = math.floor(startY - visibilityMapHeight / 2)
+	local visibilityMapTopLeftX = startX - math.floor(visibilityMapWidth / 2)
+	local visibilityMapTopLeftY = startY - math.floor(visibilityMapHeight / 2)
 	local visibilityMap = {}
 	for x = 0, visibilityMapWidth - 1 do
 		local column = {}

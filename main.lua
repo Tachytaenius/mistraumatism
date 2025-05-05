@@ -56,5 +56,4 @@ function love.draw()
 		end
 	end
 	love.graphics.setShader()
-	-- love.graphics.print(love.timer.getFPS())
 end
