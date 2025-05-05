@@ -28,7 +28,7 @@ function game:loadCreatureTypes()
 		bloodMaterialName = "bloodRed",
 
 		moveTimerLength = 6,
-		sightDistance = 18,
+		sightDistance = 17,
 		maxHealth = 14,
 		maxBlood = 14
 	}

@@ -14,13 +14,7 @@ for _, itemName in ipairs(love.filesystem.getDirectoryItems("game")) do
 	::continue::
 end
 
-function game:init()
-	self.framebufferWidth, self.framebufferHeight = 56, 48
-	self.viewportWidth, self.viewportHeight = 37, 37
-	self.currentFramebuffer, self.otherFramebuffer = self:newFramebuffer(), self:newFramebuffer()
-	self.updateTimer = 0 -- Used when player is not in control, "spent" on fixed updates
-	self.realTime = 0
-
+function game:newState()
 	local state = {}
 	self.state = state
 
@@ -52,6 +46,25 @@ function game:init()
 	})
 
 	state.cursor = {x = 0, y = 0}
+
+	state.announcements = {}
+	state.splitAnnouncements = {}
+end
+
+function game:init()
+	self.framebufferWidth, self.framebufferHeight = 56, 48
+
+	self.viewportWidth, self.viewportHeight = 35, 35
+
+	self.consoleWidth = self.framebufferWidth - 2
+	self.consoleHeight = self.framebufferHeight - self.viewportHeight - 3
+
+	self.currentFramebuffer, self.otherFramebuffer = self:newFramebuffer(), self:newFramebuffer()
+
+	self.updateTimer = 0 -- Used when player is not in control, "spent" on fixed updates
+	self.realTime = 0
+
+	self:newState()
 end
 
 return game

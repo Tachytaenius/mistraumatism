@@ -51,6 +51,46 @@ function game:draw() -- After this function completes, the result is in currentF
 			cell.backgroundColour = backgroundColour
 		end
 	end
+
+	-- Draw borders
+	local borderDouble = true
+	local borderNum = borderDouble and 2 or 1
+	local borderForeground = "lightGrey"
+	local borderBackground = "darkGrey"
+	local rectangles = {
+		{x = 0, y = 0, w = self.viewportWidth + 2, h = self.viewportHeight + 2},
+		{x = 0, y = self.viewportHeight + 1, w = self.consoleWidth + 2, h = self.consoleHeight + 2},
+		{x = self.viewportWidth + 1, y = 0, w = self.framebufferWidth - self.viewportWidth - 1, h = self.framebufferHeight - self.consoleHeight - 1}
+	}
+	local function isBorder(x, y)
+		for _, rectangle in ipairs(rectangles) do
+			local dx, dy = x - rectangle.x, y - rectangle.y
+			if dx >= 0 and dy >= 0 and dx <= rectangle.w - 1 and dy <= rectangle.h - 1 then
+				if not (dx > 0 and dy > 0 and dx < rectangle.w - 1 and dy < rectangle.h - 1) then
+					return true
+				end
+			end
+		end
+		return false
+	end
+	for x = 0, self.framebufferWidth - 1 do
+		for y = 0, self.framebufferHeight - 1 do
+			if not isBorder(x, y) then
+				goto continue
+			end
+			local character = util.getBoxDrawingCharacter(
+				isBorder(x + 1, y) and borderNum or 0,
+				isBorder(x, y - 1) and borderNum or 0,
+				isBorder(x - 1, y) and borderNum or 0,
+				isBorder(x, y + 1) and borderNum or 0
+			)
+			if character then
+				drawCharacterFramebuffer(x, y, character, borderForeground, borderBackground)
+			end
+		    ::continue::
+		end
+	end
+
 	local function drawCharacterWorldToViewport(worldX, worldY, character, foregroundColour, backgroundColour)
 		local viewportX = worldX - topLeftX
 		local viewportY = worldY - topLeftY
@@ -145,39 +185,6 @@ function game:draw() -- After this function completes, the result is in currentF
 		end
 	end
 
-	-- Draw viewport box
-	local borderDouble = true
-	local borderNum = borderDouble and 2 or 1
-	local borderForeground = "lightGrey"
-	local borderBackground = "darkGrey"
-	for ySide = 0, 1 do
-		local framebufferY = viewportScreenY + self.viewportHeight * ySide - (1 - ySide)
-		for framebufferX = viewportScreenX, viewportScreenX + self.viewportWidth - 1 do
-			local character = util.getBoxDrawingCharacter(borderNum, 0, borderNum, 0)
-			drawCharacterFramebuffer(framebufferX, framebufferY, character, borderForeground, borderBackground)
-		end
-	end
-	for xSide = 0, 1 do
-		local framebufferX = viewportScreenX + self.viewportWidth * xSide - (1 - xSide)
-		for framebufferY = viewportScreenY, viewportScreenY + self.viewportHeight - 1 do
-			local character = util.getBoxDrawingCharacter(0, borderNum, 0, borderNum)
-			drawCharacterFramebuffer(framebufferX, framebufferY, character, borderForeground, borderBackground)
-		end
-	end
-	for xSide = 0, 1 do
-		local framebufferX = viewportScreenX + self.viewportWidth * xSide - (1 - xSide)
-		for ySide = 0, 1 do
-			local framebufferY = viewportScreenY + self.viewportHeight * ySide - (1 - ySide)
-			local character = util.getBoxDrawingCharacter(
-				borderNum * (1 - xSide),
-				borderNum * ySide,
-				borderNum * xSide,
-				borderNum * (1 - ySide)
-			)
-			drawCharacterFramebuffer(framebufferX, framebufferY, character, borderForeground, borderBackground)
-		end
-	end
-
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType == "creature" then
 			local background = entity.dead and "darkRed" or "black"
@@ -192,6 +199,27 @@ function game:draw() -- After this function completes, the result is in currentF
 	if state.cursor then
 		if self.realTime % 0.5 < 0.25 then
 			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, "X", "yellow", "black")
+		end
+	end
+
+	-- Console
+	local rows = {}
+	for i = #state.splitAnnouncements, 1, -1 do
+		local line = state.splitAnnouncements[i]
+		table.insert(rows, 1, {text = line.text, colour = line.announcement.colour})
+		if #rows >= self.consoleHeight then
+			break
+		end
+	end
+	for rowI, row in ipairs(rows) do
+		for textI = 1, #row.text do
+			drawCharacterFramebuffer(
+				1 + textI - 1,
+				2 + self.viewportHeight + rowI - 1,
+				row.text:sub(textI, textI),
+				row.colour,
+				"black"
+			)
 		end
 	end
 end
