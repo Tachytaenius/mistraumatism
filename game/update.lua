@@ -17,6 +17,8 @@ function game:realtimeUpdate(dt)
 		return
 	end
 
+	self:updateCursor()
+
 	if self:isPlayerInControl() then
 		self.updateTimer = 0
 		local result = self:getPlayerInput()
@@ -31,6 +33,7 @@ function game:realtimeUpdate(dt)
 	if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
 		self.updateTimer = 0
 		self:update()
+		self:autoUpdateCursorEntity()
 	end
 end
 
@@ -48,11 +51,15 @@ function game:getPlayerInput()
 
 	-- Try making an action
 	for _, actionType in ipairs(state.actionTypes) do
+		if not actionType.fromInput then
+			goto continue
+		end
 		local newAction = actionType.fromInput(self, player)
 		if newAction then
 			player.actions[#player.actions+1] = newAction
 			return -- No further actions
 		end
+	    ::continue::
 	end
 end
 

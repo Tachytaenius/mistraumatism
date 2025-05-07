@@ -78,4 +78,7 @@ consts.tau = math.pi * 2
 
 consts.spreadRetargetDistance = 128
 
+consts.initialKeyRepeatTimerLength = 0.2
+consts.keyRepeatTimerLength = 0.05
+
 return consts

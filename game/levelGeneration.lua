@@ -70,10 +70,12 @@ function game:generateLevel(parameters)
 	self:newCreatureEntity({
 		creatureTypeName = "zombie",
 		team = "monster",
-		x = 30, y = 40,
-		heldItem = self:newItemData({
-			itemTypeName = "shotgun"
-		})
+		x = 30, y = 40
+	})
+	self:newCreatureEntity({
+		creatureTypeName = "slug",
+		team = "monster",
+		x = 28, y = 40
 	})
 
 	local spawnX, spawnY = 22, 32

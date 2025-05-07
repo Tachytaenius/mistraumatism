@@ -83,6 +83,8 @@ function game:getDirection(x, y)
 		return "down"
 	elseif x == 1 and y == 1 then
 		return "downRight"
+	elseif x == 0 and y == 0 then
+		return "zero"
 	else
 		-- TODO if needed
 	end
@@ -105,6 +107,8 @@ function game:getDirectionOffset(direction)
 		return 0, 1
 	elseif direction == "downRight" then
 		return 1, 1
+	elseif direction == "zero" then
+		return 0, 0
 	else
 		error("Unknown direction " .. direction)
 	end
@@ -128,6 +132,8 @@ function game:getDirectionOffsetNormalised(direction)
 		return 0, 1
 	elseif direction == "downRight" then
 		return d, d
+	elseif direction == "zero" then
+		error("Can't normalise zero direction")
 	else
 		error("Unknown direction " .. direction)
 	end
@@ -150,6 +156,8 @@ function game:isDirectionDiagonal(direction)
 		return false
 	elseif direction == "downRight" then
 		return true
+	elseif direction == "zero" then
+		error("Diagonality doesn't apply to zero direction")
 	else
 		error("Unknown direction " .. direction)
 	end

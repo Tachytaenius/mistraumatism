@@ -28,6 +28,7 @@ function game:updateProjectiles()
 	for _, projectile in ipairs(state.projectiles) do
 		local currentTime = 0
 		local function checkForEntityHit() -- Returns true if the projectile should stop
+			local potentialHits = {}
 			for _, entity in ipairs(state.entities) do
 				if entity.entityType ~= "creature" or entity.dead then
 					goto continue
@@ -36,14 +37,26 @@ function game:updateProjectiles()
 					goto continue
 				end
 				if not (entity == projectile.shooter and not projectile.moved) then -- Safety
-					local damage = projectile.damage
-					entity.health = entity.health - damage
-					entity.blood = entity.blood - damage
-					return true
+					potentialHits[#potentialHits+1] = entity
 				end
 			    ::continue::
 			end
-			return false
+			if #potentialHits == 0 then
+				return false
+			end
+			local hitEntity
+			for _, entity in ipairs(potentialHits) do
+				if entity == projectile.targetEntity then
+					hitEntity = entity
+					break
+				end
+			end
+			if not hitEntity then
+				hitEntity = potentialHits[love.math.random(#potentialHits)]
+			end
+			local damage = projectile.damage
+			self:damageEntity(hitEntity, damage, projectile.shooter)
+			return true
 		end
 		if checkForEntityHit() then -- Initial check before moving in case something walked into it
 			projectilesToStop[projectile] = true

@@ -23,6 +23,7 @@ function game:loadCreatureTypes()
 	state.creatureTypes = creatureTypes
 
 	creatureTypes.human = {
+		displayName = "human",
 		tile = "@",
 		colour = "white",
 		bloodMaterialName = "bloodRed",
@@ -30,10 +31,13 @@ function game:loadCreatureTypes()
 		moveTimerLength = 6,
 		sightDistance = 17,
 		maxHealth = 14,
-		maxBlood = 14
+		maxBlood = 14,
+		meleeTimerLength = 5,
+		meleeDamage = 5
 	}
 
 	creatureTypes.zombie = {
+		displayName = "zombie",
 		tile = "z",
 		colour = "lightGrey",
 		bloodMaterialName = "bloodRed",
@@ -41,7 +45,23 @@ function game:loadCreatureTypes()
 		moveTimerLength = 12,
 		sightDistance = 10,
 		maxHealth = 6,
-		maxBlood = 7
+		maxBlood = 7,
+		meleeTimerLength = 8,
+		meleeDamage = 2
+	}
+
+	creatureTypes.slug = {
+		displayName = "slug",
+		tile = "~",
+		colour = "darkGreen",
+		bloodMaterialName = "bloodBlue",
+
+		moveTimerLength = 16,
+		sightDistance = 6,
+		maxHealth = 10,
+		maxBlood = 5,
+		meleeTimerLength = 1,
+		meleeDamage = 1
 	}
 end
 
@@ -120,8 +140,13 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		if entity.targetEntity then
-			-- Stay locked on until target is dead for now, no need to switch
-			goto continue
+			if not (
+				self:getTeamRelation(entity.team, entity.targetEntity.team) == "enemy" and
+				self:entityCanSeeEntity(entity, entity.targetEntity)
+			) then
+				entity.targetEntity = nil
+				goto continue
+			end
 		end
 
 		-- No target
@@ -157,6 +182,7 @@ function game:updateEntitiesAndProjectiles()
 	processActions("shoot")
 	self:updateProjectiles()
 	processActions("move")
+	processActions("melee")
 
 	-- Damage and bleeding
 	for _, entity in ipairs(state.entities) do
@@ -246,6 +272,28 @@ end
 
 function game:entityCanSeeEntity(seer, seen)
 	return self:entityCanSeeTile(seer, seen.x, seen.y)
+end
+
+function game:getEntityDisplayName(entity)
+	if entity.entityType == "creature" then
+		return entity.creatureType.displayName
+	else
+		return "TODO: Display name"
+	end
+end
+
+function game:damageEntity(entity, damage, sourceEntity)
+	entity.health = entity.health - damage
+	entity.blood = entity.blood - damage
+	local player = self.state.player
+	-- TODO: Aggregate damage over tick. Shotguns, after all
+	if entity == player and sourceEntity == player then
+		self:announce("You hit yourself for " .. damage .. " damage!", "red")
+	elseif entity == player then
+		self:announce("The " .. self:getEntityDisplayName(sourceEntity) .. " hits you for " .. damage .. " damage!", "red")
+	elseif sourceEntity == player then
+		self:announce("You hit the " .. self:getEntityDisplayName(entity) .. " for " .. damage .. " damage.", "cyan")
+	end
 end
 
 return game

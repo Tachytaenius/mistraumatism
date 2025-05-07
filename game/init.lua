@@ -42,10 +42,11 @@ function game:newState()
 	state.player = self:newCreatureEntity({
 		creatureTypeName = "human",
 		team = "player",
-		x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY
+		x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY,
+		heldItem = self:newItemData({
+			itemTypeName = "shotgun"
+		})
 	})
-
-	state.cursor = {x = 0, y = 0}
 
 	state.announcements = {}
 	state.splitAnnouncements = {}

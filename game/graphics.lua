@@ -1,6 +1,7 @@
 local util = require("util")
 
 local consts = require("consts")
+local commands = require("commands")
 
 local game = {}
 
@@ -197,8 +198,8 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	if state.cursor then
-		if self.realTime % 0.5 < 0.25 then
-			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, "X", "yellow", "black")
+		if self.realTime % 0.5 < (commands.checkCommand("moveCursor") and 0.4 or 0.25) then
+			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, "X", (self:getCursorEntity() and state.cursor.lockedOn) and "cyan" or "yellow", "black")
 		end
 	end
 
@@ -221,6 +222,14 @@ function game:draw() -- After this function completes, the result is in currentF
 				"black"
 			)
 		end
+	end
+
+	-- Status panel
+	local entity = self:getCursorEntity() -- TEMP
+	local statusX = self.viewportWidth + 2
+	local statusY = 1
+	if entity then
+		drawCharacterFramebuffer(statusX + 1, statusY + 1, entity.creatureType.tile, entity.creatureType.colour, "black")
 	end
 end
 

@@ -27,6 +27,7 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
+	commands.tickStarted(dt)
 	game:realtimeUpdate(dt)
 	game.realTime = game.realTime + dt
 	commands.tickFinished()

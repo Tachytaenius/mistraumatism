@@ -54,7 +54,7 @@ function game:newItemData(parameters) -- Will have to be stored inside an entity
 	return new
 end
 
-function game:shootGun(entity, action, gun)
+function game:shootGun(entity, action, gun, targetEntity)
 	if entity.entityType == "creature" and not entity.dead then
 		if entity.heldItem and entity.heldItem == gun and gun.itemType.isGun then
 			local gunType = gun.itemType
@@ -72,7 +72,9 @@ function game:shootGun(entity, action, gun)
 
 					aimX = aimX,
 					aimY = aimY,
-					bulletSpread = gunType.bulletSpread
+					bulletSpread = gunType.bulletSpread,
+
+					targetEntity = targetEntity -- Can be nil
 				})
 			end
 		end

@@ -12,7 +12,7 @@ function game:tileBlocksLight(x, y)
 end
 
 local function getDistance(x, y)
-	return math.floor(math.sqrt(x ^ 2 + y ^ 2))
+	return math.sqrt(x ^ 2 + y ^ 2)
 end
 
 local function setVisibleBasic(x, y, visibilityMapInfo)

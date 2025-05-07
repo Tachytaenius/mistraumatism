@@ -13,6 +13,7 @@ function game:loadMaterials()
 	end
 
 	addMaterial("bloodRed", "blood", "darkRed", "liquid")
+	addMaterial("bloodBlue", "blue blood", "darkBlue", "liquid")
 	addMaterial("bone", "bone", "white", "solid")
 
 	addMaterial("steel", "steel", "darkGrey", "solid")
