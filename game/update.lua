@@ -68,6 +68,7 @@ function game:update()
 
 	self:setInitialNonPersistentVariables()
 	self:updateEntitiesAndProjectiles()
+	self:announceDamages()
 	self:clearNonPersistentVariables()
 
 	if state.player then

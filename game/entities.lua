@@ -280,17 +280,40 @@ function game:getEntityDisplayName(entity)
 end
 
 function game:damageEntity(entity, damage, sourceEntity)
+	-- Deal
+
+	local state = self.state
 	entity.health = entity.health - damage
 	entity.blood = entity.blood - damage
-	local player = self.state.player
-	-- TODO: Aggregate damage over tick. Shotguns, after all
-	if entity == player and sourceEntity == player then
-		self:announce("You hit yourself for " .. damage .. " damage!", "red")
-	elseif entity == player then
-		self:announce("The " .. self:getEntityDisplayName(sourceEntity) .. " hits you for " .. damage .. " damage!", "red")
-	elseif sourceEntity == player then
-		self:announce("You hit the " .. self:getEntityDisplayName(entity) .. " for " .. damage .. " damage.", "cyan")
+
+	-- Record
+
+	-- TODO: Non-entity sources
+
+	local dealtDamageList
+	for _, sourceEntityList in ipairs(state.damagesThisTick) do
+		if sourceEntityList.sourceEntity == sourceEntity then
+			dealtDamageList = sourceEntityList
+			break
+		end
 	end
+	if not dealtDamageList then
+		dealtDamageList = {sourceEntity = sourceEntity}
+		state.damagesThisTick[#state.damagesThisTick+1] = dealtDamageList
+	end
+
+	local damageReceiverInfo
+	for _, damageReceiver in ipairs(dealtDamageList) do
+		if damageReceiver.entity == entity then
+			damageReceiverInfo = damageReceiver
+			break
+		end
+	end
+	if not damageReceiverInfo then
+		damageReceiverInfo = {entity = entity, total = 0}
+		dealtDamageList[#dealtDamageList+1] = damageReceiverInfo
+	end
+	damageReceiverInfo.total = damageReceiverInfo.total + damage
 end
 
 return game

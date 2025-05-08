@@ -93,7 +93,6 @@ function game:updateCursor()
 		cameraX, cameraY = state.lastPlayerX, state.lastPlayerY
 	end
 	-- Remove cursor if offscreen
-	-- TODO: Back cursor up, nil original variable, and bring it back if it comes back into view without having been moved since...?
 	local topLeftX = cameraX - math.floor(self.viewportWidth / 2)
 	local topLeftY = cameraY - math.floor(self.viewportHeight / 2)
 	if state.cursor then
