@@ -11,10 +11,6 @@ function game:tileBlocksLight(x, y)
 	return self.state.tileTypes[tile.type].blocksLight
 end
 
-local function getDistance(x, y)
-	return math.sqrt(x ^ 2 + y ^ 2)
-end
-
 local function setVisibleBasic(x, y, visibilityMapInfo)
 	local mapX, mapY = x - visibilityMapInfo.visibilityMapTopLeftX, y - visibilityMapInfo.visibilityMapTopLeftY
 	if
@@ -148,7 +144,7 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 
 		local wasOpaque = -1
 		for y = topY, bottomY, -1 do
-			if rangeLimit < 0 or disableDistanceCheck or (not disableDistanceCheck and getDistance(x, y) <= (visibilityMapInfo.distanceCheckRangeLimit or rangeLimit)) then
+			if rangeLimit < 0 or disableDistanceCheck or (not disableDistanceCheck and self:length(x, y) <= (visibilityMapInfo.distanceCheckRangeLimit or rangeLimit)) then
 				local globalX, globalY
 				if not visibilityMapInfo.wholeMap then
 					local nx = startX

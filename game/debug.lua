@@ -38,7 +38,7 @@ function game:testProjectilePaths()
 		creatureTypeName = "zombie"
 	})
 	local map = self.state.map
-	local range = math.ceil(math.sqrt((map.width - 1) ^ 2 + (map.height - 1) ^ 2)) + 8
+	local range = math.ceil(self:length(map.width - 1, map.height - 1)) + 8
 	local failures = 0
 	local total = 0
 	local target = (map.width * map.height) ^ 2

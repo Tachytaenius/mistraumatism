@@ -163,4 +163,12 @@ function game:isDirectionDiagonal(direction)
 	end
 end
 
+function game:length(x, y)
+	return math.sqrt(x ^ 2 + y ^ 2)
+end
+
+function game:distance(x1, y1, x2, y2)
+	return self:length(x2 - x1, y2 - y1)
+end
+
 return game

@@ -197,10 +197,7 @@ function game:updateProjectiles()
 							break
 						end
 						projectile.previousSectors = visibilityMapInfo.sectorsNextStep[newTile.localX + 1]
-						local distance = math.sqrt(
-							(newTile.globalX - projectile.currentX) ^ 2 +
-							(newTile.globalY - projectile.currentY) ^ 2
-						)
+						local distance = self:distance(projectile.currentX, projectile.currentY, newTile.globalX, newTile.globalY)
 						projectile.currentOctantX = newTile.localX
 						projectile.currentOctantY = newTile.localY
 						projectile.currentX = newTile.globalX
@@ -281,16 +278,6 @@ function game:newProjectile(parameters)
 			if #info.octants == 1 then
 				trajectoryOctant = info.octants[1].octant
 			else
-				local function getMaxDistance(hitTiles)
-					local currentMax = -math.huge -- Works fine if #hitTiles == 0
-					-- Probably could just check which has a greater number of hit tiles, or only check the distance of the last one, or whatever
-					for _, tile in ipairs(hitTiles) do
-						local tileDistance = math.sqrt(tile.localX ^ 2 + tile.localY ^ 2)
-						currentMax = math.max(currentMax, tileDistance)
-					end
-					return currentMax
-				end
-				-- if getMaxDistance(info.octants[1].hitTiles) >= getMaxDistance(info.octants[2].hitTiles) then
 				if info.octants[1].collidedX >= info.octants[2].collidedX then
 					trajectoryOctant = info.octants[1].octant
 				else

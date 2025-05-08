@@ -17,9 +17,8 @@ function game:realtimeUpdate(dt)
 		return
 	end
 
-	self:updateCursor()
-
 	if self:isPlayerInControl() then
+		self:updateCursor()
 		self.updateTimer = 0
 		local result = self:getPlayerInput()
 		if result and result.wait then

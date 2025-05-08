@@ -24,10 +24,7 @@ local function chaseTargetEntity(self, entity)
 					return self:getWalkableNeighbourTiles(tile.x, tile.y)
 				end,
 				distance = function(tileA, tileB)
-					return math.sqrt(
-						(tileB.x - tileA.x) ^ 2 +
-						(tileB.y - tileA.y) ^ 2
-					)
+					return self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
 				end
 			})
 			if result then
@@ -84,7 +81,7 @@ function game:getAIActions(entity)
 	if entity.targetEntity and self:entityCanSeeEntity(entity, entity.targetEntity) then
 		local fightAction
 		if entity.heldItem and entity.heldItem.itemType.isGun then
-			if math.sqrt((entity.targetEntity.x - entity.x) ^ 2 + (entity.targetEntity.y - entity.y) ^ 2) <= entity.heldItem.itemType.range then
+			if self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y) <= entity.heldItem.itemType.range then
 				fightAction = tryShootTargetEntity(self, entity)
 			end
 		end

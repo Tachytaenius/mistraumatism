@@ -260,10 +260,7 @@ function game:entityCanSeeTile(entity, x, y)
 		return false
 	end
 
-	local distance = math.sqrt(
-		(x - entity.x) ^ 2 +
-		(y - entity.y) ^ 2
-	)
+	local distance = self:distance(entity.x, entity.y, x, y)
 	if distance <= entity.creatureType.sightDistance then -- Uses <= like in visibility.lua's rangeLimit check
 		return self:hitscan(entity.x, entity.y, x, y)
 	end
