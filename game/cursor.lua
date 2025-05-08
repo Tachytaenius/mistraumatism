@@ -106,7 +106,9 @@ function game:updateCursor()
 		end
 	end
 
+	local moved
 	local function move(direction)
+		moved = true
 		if not state.cursor then
 			self:setCursor(cameraX, cameraY)
 		end -- else
@@ -163,7 +165,7 @@ function game:updateCursor()
 		if commands.checkCommand("scrollListForwards") then
 			movement = movement + 1
 		end
-		if not selectedEntity and movement ~= 0 then
+		if not selectedEntity and (moved or movement ~= 0) then
 			selectedEntity = entityList[1]
 			state.cursor.selectedEntity = selectedEntity
 			state.cursor.lockedOn = false
