@@ -2,14 +2,17 @@ local util = require("util")
 
 local game = {}
 
-function game:getDestinationTile(entity)
-	local action
+function game:getMovementAction(entity)
 	for _, listAction in ipairs(entity.actions) do
 		if listAction.type == "move" then
-			action = listAction
-			break
+			return listAction
 		end
 	end
+	return nil
+end
+
+function game:getDestinationTile(entity)
+	local action = self:getMovementAction(entity)
 	if not action then
 		return nil
 	end

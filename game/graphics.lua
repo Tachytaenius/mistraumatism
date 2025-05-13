@@ -105,7 +105,7 @@ function game:draw() -- After this function completes, the result is in currentF
 			cell.backgroundColour = backgroundColour
 		end
 	end
-	local function drawCharacterWorldToViewportVisibleOnly(worldX, worldY, character, foregroundColour, backgroundColour)
+	local function drawCharacterWorldToViewportVisibleOnly(worldX, worldY, character, foregroundColour, backgroundColour) -- Returns whether the character was drawn
 		local viewportX = worldX - topLeftX
 		local viewportY = worldY - topLeftY
 		if
@@ -114,13 +114,15 @@ function game:draw() -- After this function completes, the result is in currentF
 		then
 			local visibilityColumn = visibilityMap[viewportX]
 			if not (visibilityColumn and visibilityColumn[viewportY]) then
-				return
+				return false
 			end
 			local cell = framebuffer[viewportX + viewportScreenX][viewportY + viewportScreenY]
 			cell.character = character
 			cell.foregroundColour = foregroundColour
 			cell.backgroundColour = backgroundColour
+			return true
 		end
+		return false
 	end
 
 	for viewportSpaceX = 0, self.viewportWidth - 1 do
@@ -186,11 +188,73 @@ function game:draw() -- After this function completes, the result is in currentF
 		end
 	end
 
+	local indicatorTiles = {} -- To stop indicators from clashing
+	local drawMovementIndicators = self.realTime % 1.5 < 0.5
+	-- local drawMovementTime = self.realTime % 3 < 1.5 -- TEMP: Don't derive from time once we have same tile entity display switching 
+	local drawMovementTime = false
 	for _, entity in ipairs(state.entities) do
-		if entity.entityType == "creature" then
-			local background = entity.dead and "darkRed" or "black"
-			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
+		if entity.entityType ~= "creature" then
+			goto continue
 		end
+		local background = entity.dead and "darkRed" or "black"
+		local drawn = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
+		if not (drawMovementIndicators and drawn and entity ~= state.player) then
+			goto continue
+		end
+		local destX, destY = self:getDestinationTile(entity)
+		if not (destX and destY) then
+			goto continue
+		end
+		local dx, dy = destX - entity.x, destY - entity.y
+		local character
+		if drawMovementTime then
+			local action = self:getMovementAction(entity)
+			if not action then
+				goto continue
+			end
+			local time = action.timer
+			if time > 9 then
+				character = "#"
+			else
+				character = tostring(time):sub(1, 1)
+			end
+		else
+			if dx == -1 then
+				if dy == -1 then
+					character = "┌"
+				elseif dy == 0 then
+					character = "<"
+				elseif dy == 1 then
+					character = "└"
+				end
+			elseif dx == 0 then
+				if dy == -1 then
+					character = "^"
+				elseif dy == 0 then
+
+				elseif dy == 1 then
+					character = "v"
+				end
+			elseif dx == 1 then
+				if dy == -1 then
+					character = "┐"
+				elseif dy == 0 then
+					character = ">"
+				elseif dy == 1 then
+					character = "┘"
+				end
+			end
+		end
+		if not character then
+			goto continue
+		end
+		indicatorTiles[destX] = indicatorTiles[destX] or {}
+		if indicatorTiles[destX][destY] and indicatorTiles[destX][destY] ~= character then
+			character = "?"
+		end
+		indicatorTiles[destX][destY] = character
+		drawCharacterWorldToViewport(destX, destY, character, "green", "black")
+	    ::continue::
 	end
 
 	for _, projectile in ipairs(state.projectiles) do
