@@ -8,8 +8,10 @@ function game:loadActionTypes()
 	local actionTypes = {}
 	state.actionTypes = actionTypes
 
-	local function newActionType(name)
+	local function newActionType(name, displayName)
 		local new = {name = name}
+		assert(displayName, "New action type needs display name")
+		new.displayName = displayName
 		actionTypes[name] = new
 		actionTypes[#actionTypes+1] = new
 		return new
@@ -17,7 +19,7 @@ function game:loadActionTypes()
 
 	-- Within each function, self is the game instance
 
-	local move = newActionType("move")
+	local move = newActionType("move", "move")
 	function move.construct(self, entity, direction)
 		local moveTimerLength = entity.creatureType.moveTimerLength
 		if not moveTimerLength then
@@ -75,7 +77,7 @@ function game:loadActionTypes()
 		end
 	end
 
-	local shoot = newActionType("shoot")
+	local shoot = newActionType("shoot", "shoot")
 	function shoot.construct(self, entity, targetX, targetY, targetEntity)
 		local new = {type = "shoot"}
 		new.relativeX = targetX - entity.x
@@ -113,7 +115,7 @@ function game:loadActionTypes()
 		return actionTypes.shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity())
 	end
 
-	local melee = newActionType("melee")
+	local melee = newActionType("melee", "melee")
 	function melee.construct(self, entity, targetEntity, direction)
 		if not entity.creatureType.meleeTimerLength then
 			return

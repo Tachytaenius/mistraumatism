@@ -1,3 +1,5 @@
+local utf8 = require("utf8")
+
 local util = require("util")
 
 local consts = require("consts")
@@ -42,6 +44,8 @@ function game:draw() -- After this function completes, the result is in currentF
 	assert(visibilityMapHeight == self.viewportHeight)
 
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
+		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour")
+		assert(consts.colourCoords[backgroundColour], "Invalid background colour")
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
 			0 <= framebufferY and framebufferY < self.framebufferHeight
@@ -50,6 +54,14 @@ function game:draw() -- After this function completes, the result is in currentF
 			cell.character = character
 			cell.foregroundColour = foregroundColour
 			cell.backgroundColour = backgroundColour
+		end
+	end
+	local function drawStringFramebuffer(framebufferX, framebufferY, str, foregroundColour, backgroundColour)
+		local x = 0
+		for _, code in utf8.codes(str) do
+			local char = utf8.char(code)
+			drawCharacterFramebuffer(framebufferX + x, framebufferY, char, foregroundColour, backgroundColour)
+			x = x + 1
 		end
 	end
 
@@ -99,10 +111,7 @@ function game:draw() -- After this function completes, the result is in currentF
 			0 <= viewportX and viewportX < self.viewportWidth and
 			0 <= viewportY and viewportY < self.viewportHeight
 		then
-			local cell = framebuffer[viewportX + viewportScreenX][viewportY + viewportScreenY]
-			cell.character = character
-			cell.foregroundColour = foregroundColour
-			cell.backgroundColour = backgroundColour
+			drawCharacterFramebuffer(viewportX + viewportScreenX, viewportY + viewportScreenY, character, foregroundColour, backgroundColour)
 		end
 	end
 	local function drawCharacterWorldToViewportVisibleOnly(worldX, worldY, character, foregroundColour, backgroundColour) -- Returns whether the character was drawn
@@ -116,10 +125,7 @@ function game:draw() -- After this function completes, the result is in currentF
 			if not (visibilityColumn and visibilityColumn[viewportY]) then
 				return false
 			end
-			local cell = framebuffer[viewportX + viewportScreenX][viewportY + viewportScreenY]
-			cell.character = character
-			cell.foregroundColour = foregroundColour
-			cell.backgroundColour = backgroundColour
+			drawCharacterFramebuffer(viewportX + viewportScreenX, viewportY + viewportScreenY, character, foregroundColour, backgroundColour)
 			return true
 		end
 		return false
@@ -188,30 +194,89 @@ function game:draw() -- After this function completes, the result is in currentF
 		end
 	end
 
+	for _, projectile in ipairs(state.projectiles) do
+		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+	end
+
 	local indicatorTiles = {} -- To stop indicators from clashing
-	local drawMovementIndicators = self.realTime % 1.5 < 0.5
-	-- local drawMovementTime = self.realTime % 3 < 1.5 -- TEMP: Don't derive from time once we have same tile entity display switching 
-	local drawMovementTime = false
+	local drawActionIndicators = self.realTime % 1.5 < 0.5
+	local drawCursor = self.realTime % 0.5 < (commands.checkCommand("moveCursor") and 0.4 or 0.25)
+	local drawEnemyAim = self.realTime % 0.75 < 0.375
+	local drawEntityWarnings = (self.realTime + 0.1875) % 0.75 < 0.375
+	local drawActionTime = false
+	local function getOffsetSymbol(ox, oy)
+		if ox == -1 then
+			if oy == -1 then
+				return "┌"
+			elseif oy == 0 then
+				return "<" 
+			elseif oy == 1 then
+				return "└"
+			end
+		elseif ox == 0 then
+			if oy == -1 then
+				return "^"
+			elseif oy == 0 then
+				return "*"
+			elseif oy == 1 then
+				return "v"
+			end
+		elseif ox == 1 then
+			if oy == -1 then
+				return "┐"
+			elseif oy == 0 then
+				return ">"
+			elseif oy == 1 then
+				return "┘"
+			end
+		end
+	end
+	local function drawIndicator(destX, destY, character, foreground, background)
+		indicatorTiles[destX] = indicatorTiles[destX] or {}
+		local current = indicatorTiles[destX][destY]
+		local colour = foreground
+		if current and (current.character ~= character or current.colour ~= colour or current.clashed) then
+			character = "?"
+			colour = "darkGrey"
+			indicatorTiles[destX][destY] = {
+				clashed = true,
+				character = character,
+				colour = colour
+			}
+		else
+			indicatorTiles[destX][destY] = {
+				clashed = false,
+				character = character,
+				colour = colour
+			}
+		end
+		drawCharacterWorldToViewport(destX, destY, character, colour, "black")
+	end
+	local drawnEntities = {}
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType ~= "creature" then
 			goto continue
 		end
 		local background = entity.dead and "darkRed" or "black"
-		local drawn = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
-		if not (drawMovementIndicators and drawn and entity ~= state.player) then
+		drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
+		if drawEntityWarnings and entity.actions[1] and entity.actions[1].type == "shoot" then
+			drawIndicator(entity.x, entity.y, "!", "red", "black")
+		end
+	    ::continue::
+	end
+	for _, entity in ipairs(state.entities) do
+		if not (drawActionIndicators and drawnEntities[entity] and entity ~= state.player) then
 			goto continue
 		end
-		local destX, destY = self:getDestinationTile(entity)
-		if not (destX and destY) then
+		local character, colour
+		local action = entity.actions[1]
+		if not action or action.type ~= "move" and action.type ~= "melee" then
 			goto continue
 		end
-		local dx, dy = destX - entity.x, destY - entity.y
-		local character
-		if drawMovementTime then
-			local action = self:getMovementAction(entity)
-			if not action then
-				goto continue
-			end
+		local ox, oy = self:getDirectionOffset(action.direction)
+		local destX, destY = entity.x + ox, entity.y + oy
+		colour = action.type == "melee" and "red" or "green"
+		if drawActionTime then
 			local time = action.timer
 			if time > 9 then
 				character = "#"
@@ -219,50 +284,28 @@ function game:draw() -- After this function completes, the result is in currentF
 				character = tostring(time):sub(1, 1)
 			end
 		else
-			if dx == -1 then
-				if dy == -1 then
-					character = "┌"
-				elseif dy == 0 then
-					character = "<"
-				elseif dy == 1 then
-					character = "└"
-				end
-			elseif dx == 0 then
-				if dy == -1 then
-					character = "^"
-				elseif dy == 0 then
-
-				elseif dy == 1 then
-					character = "v"
-				end
-			elseif dx == 1 then
-				if dy == -1 then
-					character = "┐"
-				elseif dy == 0 then
-					character = ">"
-				elseif dy == 1 then
-					character = "┘"
-				end
-			end
+			character = getOffsetSymbol(ox, oy)
 		end
 		if not character then
 			goto continue
 		end
-		indicatorTiles[destX] = indicatorTiles[destX] or {}
-		if indicatorTiles[destX][destY] and indicatorTiles[destX][destY] ~= character then
-			character = "?"
-		end
-		indicatorTiles[destX][destY] = character
-		drawCharacterWorldToViewport(destX, destY, character, "green", "black")
+		drawIndicator(destX, destY, character, colour, "black")
 	    ::continue::
 	end
-
-	for _, projectile in ipairs(state.projectiles) do
-		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+	local cursorEntity = self:getCursorEntity()
+	if
+		drawEnemyAim and
+		cursorEntity and
+		cursorEntity.entityType == "creature" and
+		cursorEntity.actions[1] and
+		cursorEntity.actions[1].type == "shoot"
+	then
+		local action = cursorEntity.actions[1]
+		drawIndicator(action.relativeX + cursorEntity.x, action.relativeY + cursorEntity.y, "X", "red", "black")
 	end
 
 	if state.cursor then
-		if self.realTime % 0.5 < (commands.checkCommand("moveCursor") and 0.4 or 0.25) then
+		if drawCursor then
 			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, "X", (self:getCursorEntity() and state.cursor.lockedOn) and "cyan" or "yellow", "black")
 		end
 	end
@@ -289,12 +332,86 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	-- Status panel
-	local entity = self:getCursorEntity() -- TEMP
+
 	local statusX = self.viewportWidth + 2
 	local statusY = 1
-	if entity then
-		drawCharacterFramebuffer(statusX + 1, statusY + 1, entity.creatureType.tile, entity.creatureType.colour, "black")
+	local statusWidth = self.framebufferWidth - self.viewportWidth - 3
+	local statusHeight = self.framebufferHeight - self.consoleHeight - 3
+
+	local entityStatusHeight = 6
+	local function drawEntityStatus(entity, title, yShift)
+		local rectangles = {
+			{x = 0, y = yShift, w = statusWidth, h = 6},
+			{x = 0, y = yShift, w = 3, h = 3}
+		}
+		local function isBorder(x, y)
+			for _, rectangle in ipairs(rectangles) do
+				local dx, dy = x - rectangle.x, y - rectangle.y
+				if dx >= 0 and dy >= 0 and dx <= rectangle.w - 1 and dy <= rectangle.h - 1 then
+					if not (dx > 0 and dy > 0 and dx < rectangle.w - 1 and dy < rectangle.h - 1) then
+						return true
+					end
+				end
+			end
+			return false
+		end
+		local borderNum = 1
+		for x = 0, statusWidth - 1 do
+			for y = 0, statusHeight - 1 do
+				if not isBorder(x, y) then
+					goto continue
+				end
+				local character = util.getBoxDrawingCharacter(
+					isBorder(x + 1, y) and borderNum or 0,
+					isBorder(x, y - 1) and borderNum or 0,
+					isBorder(x - 1, y) and borderNum or 0,
+					isBorder(x, y + 1) and borderNum or 0
+				)
+				if character then
+					drawCharacterFramebuffer(statusX + x, statusY + y, character, "white", "black")
+				end
+				::continue::
+			end
+		end
+		local relation = state.player and entity and self:getTeamRelation(state.player.team, entity.team)
+		local titleColour = relation and (relation == "friendly" and "green" or relation == "neutral" and "yellow" or relation == "enemy" and "red") or "lightGrey"
+		-- titleColour = "lightGrey"
+		drawStringFramebuffer(statusX + 3, statusY + yShift, title, titleColour, "black")
+		if not entity then
+			return
+		end
+		drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.creatureType.tile, entity.creatureType.colour, "black")
+		drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
+		local healthInfo = entity.health .. "H"
+		if entity.blood then
+			healthInfo = healthInfo .. "·" .. entity.blood .. "B"
+		end
+		drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, healthInfo, "lightGrey", "black")
+		local actionInfo
+		local actionColour = "lightGrey"
+		local action = entity.actions[1]
+		if not action then
+			actionInfo = "No action"
+		else
+			if action.type == "shoot" or action.type == "melee" then
+				actionColour = "red"
+			else
+				actionColour = "darkCyan"
+			end
+			actionInfo = util.capitalise(state.actionTypes[action.type].displayName) .. "·" .. action.timer .. "T"
+			if action.type == "move" or action.type == "melee" then
+				local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
+				if symbol then
+					actionInfo = actionInfo .. "·" .. symbol
+				end
+			end
+		end
+		drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
 	end
+
+	drawEntityStatus(state.player and not state.player.dead and state.player or nil, "YOU", 0)
+	local entity = self:getCursorEntity()
+	drawEntityStatus(entity and entity.entityType == "creature" and entity or nil, "TARGET", entityStatusHeight + 1)
 end
 
 function game:newFramebuffer()

@@ -13,6 +13,10 @@ function game:isPlayerInControl()
 end
 
 function game:realtimeUpdate(dt)
+	if not self.state.player or self.state.player.dead then
+		self:setCursor()
+	end
+
 	if not self.state.player then
 		return
 	end

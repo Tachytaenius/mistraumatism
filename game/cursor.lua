@@ -81,6 +81,11 @@ end
 function game:updateCursor()
 	local state = self.state
 
+	if not state.player or state.player.dead then
+		self:setCursor()
+		return
+	end
+
 	if commands.checkCommand("clearCursor") then
 		self:setCursor()
 	end

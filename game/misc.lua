@@ -65,6 +65,10 @@ function game:getTeamRelation(teamAName, teamBName)
 	assert(teamA, "No team with name " .. teamAName)
 	assert(teamB, "No team with name " .. teamBName)
 
+	if teamA == teamB then
+		return "friendly"
+	end
+
 	assert(teamA.relations[teamB] == teamB.relations[teamA], "Mismatched relations between " .. teamAName .. " and " .. teamBName)
 
 	return teamA.relations[teamB]
