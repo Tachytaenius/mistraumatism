@@ -259,7 +259,7 @@ function game:draw() -- After this function completes, the result is in currentF
 		end
 		local background = entity.dead and "darkRed" or "black"
 		drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
-		if drawEntityWarnings and entity.actions[1] and entity.actions[1].type == "shoot" then
+		if drawEntityWarnings and entity ~= state.player and entity.actions[1] and entity.actions[1].type == "shoot" then
 			drawIndicator(entity.x, entity.y, "!", "red", "black")
 		end
 	    ::continue::
