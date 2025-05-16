@@ -420,7 +420,8 @@ function game:draw() -- After this function completes, the result is in currentF
 
 	drawEntityStatus(state.player and not state.player.dead and state.player or nil, "YOU", 0)
 	local entity = self:getCursorEntity()
-	drawEntityStatus(entity, "TARGET", entityStatusHeight + 1)
+	drawEntityStatus(state.player and state.player.heldItem and {entityType = "item", itemData = state.player.heldItem} or nil, "HANDS", entityStatusHeight + 1) -- HACK
+	drawEntityStatus(entity, "TARGET", 2 * (entityStatusHeight + 1))
 end
 
 function game:newFramebuffer()
