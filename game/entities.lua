@@ -94,12 +94,12 @@ function game:newCreatureEntity(parameters)
 	return new
 end
 
-function game:newItemEntity(x, y, itemDataParameters)
+function game:newItemEntity(x, y, itemData)
 	local state = self.state
 
 	local new = {}
 	new.entityType = "item"
-	new.itemData = self:newItemData(itemDataParameters)
+	new.itemData = itemData
 	new.x = x
 	new.y = y
 
@@ -228,6 +228,7 @@ function game:updateEntitiesAndProjectiles()
 	self:updateProjectiles()
 	processActions("move")
 	processActions("melee")
+	processActions("drop")
 	self.entityPickUps = {}
 	processActions("pickUp")
 	for _, itemPickup in ipairs(self.entityPickUps) do

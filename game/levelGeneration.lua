@@ -78,7 +78,7 @@ function game:generateLevel(parameters)
 		x = 28, y = 40
 	})
 
-	self:newItemEntity(24, 32, {itemTypeName = "shotgun", material = "steel"})
+	self:newItemEntity(24, 32, self:newItemData({itemTypeName = "shotgun", material = "steel"}))
 
 	local spawnX, spawnY = 22, 32
 

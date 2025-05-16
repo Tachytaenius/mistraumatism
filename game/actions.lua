@@ -4,9 +4,8 @@ local consts = require("consts")
 local game = {}
 
 function game:loadActionTypes()
-	local state = self.state
 	local actionTypes = {}
-	state.actionTypes = actionTypes
+	self.state.actionTypes = actionTypes
 
 	local function newActionType(name, displayName)
 		local new = {name = name}
@@ -209,6 +208,55 @@ function game:loadActionTypes()
 			return
 		end
 		return self.state.actionTypes.pickUp.construct(self, player, targetEntity)
+	end
+
+	local drop = newActionType("drop", "drop")
+	function drop.construct(self, entity, direction)
+		if not entity.heldItem then
+			return
+		end
+		local new = {type = "drop"}
+		new.direction = direction
+		new.timer = 1
+		return new
+	end
+	function drop.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			local ox, oy = self:getDirectionOffset(action.direction)
+			local targetX, targetY = entity.x + ox, entity.y + oy
+			if entity.heldItem and not self:tileBlocksAirMotion(targetX, targetY) then
+				self:newItemEntity(targetX, targetY, entity.heldItem)
+				entity.heldItem = nil
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
+	function drop.fromInput(self, player)
+		if not (commands.checkCommand("pickUpOrDrop") and commands.checkCommand("dropMode")) then
+			return
+		end
+		if not player.heldItem then
+			return
+		end
+		if not self.state.cursor then
+			return
+		end
+		local x, y = self.state.cursor.x, self.state.cursor.y
+		local dx, dy = x - player.x, y - player.y
+		if math.abs(dx) > 1 or math.abs(dy) > 1 then
+			return
+		end
+		local direction = self:getDirection(dx, dy)
+		if not direction then
+			return
+		end
+		if self:tileBlocksAirMotion(x, y) then
+			return
+		end
+		return self.state.actionTypes.drop.construct(self, player, direction)
 	end
 end
 

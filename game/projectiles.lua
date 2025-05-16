@@ -13,7 +13,7 @@ end
 
 local game = {}
 
-function game:tileBlocksProjectiles(x, y)
+function game:tileBlocksAirMotion(x, y)
 	local tile = self:getTile(x, y)
 	if not tile then
 		return true
@@ -103,7 +103,7 @@ function game:updateProjectiles()
 						local currentOctantX = projectile.currentOctantX or 0
 						local currentOctantY = projectile.currentOctantY or 0
 
-						local blockFunction = self.tileBlocksProjectiles
+						local blockFunction = self.tileBlocksAirMotion
 
 						local singleLineVisibilityMapInfo = {
 							singleLine = true,

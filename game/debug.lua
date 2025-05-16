@@ -22,8 +22,8 @@ function game:testProjectilePath(startX, startY, endX, endY, dummyEntity, range)
 		self:updateProjectiles()
 	end
 	local hit = dummyEntity.health ~= initialHealth
-	local startBlocksProjectiles = self:tileBlocksProjectiles(startX, startY)
-	local endBlocksProjectiles = self:tileBlocksProjectiles(endX, endY)
+	local startBlocksProjectiles = self:tileBlocksAirMotion(startX, startY)
+	local endBlocksProjectiles = self:tileBlocksAirMotion(endX, endY)
 	local sameTile = startX == endX and startY == endY
 	local hitscan = self:hitscan(startX, startY, endX, endY)
 	local visibleButUnreachable = not sameTile and endBlocksProjectiles
