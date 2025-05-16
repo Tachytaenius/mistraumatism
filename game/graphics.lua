@@ -254,17 +254,21 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 	local drawnEntities = {}
 	for _, entity in ipairs(state.entities) do
+		if entity.entityType == "creature" then
+			local background = entity.dead and (entity.creatureType.bloodMaterialName and state.materials[entity.creatureType.bloodMaterialName].colour or "darkRed") or "black"
+			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
+			if drawEntityWarnings and entity ~= state.player and entity.actions[1] and entity.actions[1].type == "shoot" then
+				drawIndicator(entity.x, entity.y, "!", "red", "black")
+			end
+		else
+			local background = "black"
+			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.itemData.itemType.tile, state.materials[entity.itemData.material].colour, background)
+		end
+	end
+	for _, entity in ipairs(state.entities) do
 		if entity.entityType ~= "creature" then
 			goto continue
 		end
-		local background = entity.dead and "darkRed" or "black"
-		drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
-		if drawEntityWarnings and entity ~= state.player and entity.actions[1] and entity.actions[1].type == "shoot" then
-			drawIndicator(entity.x, entity.y, "!", "red", "black")
-		end
-	    ::continue::
-	end
-	for _, entity in ipairs(state.entities) do
 		if not (drawActionIndicators and drawnEntities[entity] and entity ~= state.player) then
 			goto continue
 		end
@@ -375,43 +379,48 @@ function game:draw() -- After this function completes, the result is in currentF
 		end
 		local relation = state.player and entity and self:getTeamRelation(state.player.team, entity.team)
 		local titleColour = relation and (relation == "friendly" and "green" or relation == "neutral" and "yellow" or relation == "enemy" and "red") or "lightGrey"
-		-- titleColour = "lightGrey"
+		if entity and entity.entityType == "item" then
+			titleColour = "lightGrey"
+		end
 		drawStringFramebuffer(statusX + 3, statusY + yShift, title, titleColour, "black")
-		if not entity then
-			return
-		end
-		drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.creatureType.tile, entity.creatureType.colour, "black")
-		drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
-		local healthInfo = entity.health .. "H"
-		if entity.blood then
-			healthInfo = healthInfo .. "·" .. entity.blood .. "B"
-		end
-		drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, healthInfo, "lightGrey", "black")
-		local actionInfo
-		local actionColour = "lightGrey"
-		local action = entity.actions[1]
-		if not action then
-			actionInfo = "No action"
-		else
-			if action.type == "shoot" or action.type == "melee" then
-				actionColour = "red"
-			else
-				actionColour = "darkCyan"
+		if entity and entity.entityType == "creature" then
+			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.creatureType.tile, entity.creatureType.colour, "black")
+			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
+			local healthInfo = entity.health .. "H"
+			if entity.blood then
+				healthInfo = healthInfo .. "·" .. entity.blood .. "B"
 			end
-			actionInfo = util.capitalise(state.actionTypes[action.type].displayName) .. "·" .. action.timer .. "T"
-			if action.type == "move" or action.type == "melee" then
-				local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
-				if symbol then
-					actionInfo = actionInfo .. "·" .. symbol
+			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, healthInfo, "lightGrey", "black")
+			local actionInfo
+			local actionColour = "lightGrey"
+			local action = entity.actions[1]
+			if not action then
+				actionInfo = "No action"
+			else
+				if action.type == "shoot" or action.type == "melee" then
+					actionColour = "red"
+				else
+					actionColour = "darkCyan"
+				end
+				actionInfo = util.capitalise(state.actionTypes[action.type].displayName) .. "·" .. action.timer .. "T"
+				if action.type == "move" or action.type == "melee" then
+					local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
+					if symbol then
+						actionInfo = actionInfo .. "·" .. symbol
+					end
 				end
 			end
+			drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
+		elseif entity and entity.entityType == "item" then
+			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.itemData.itemType.tile, state.materials[entity.itemData.material].colour, "black")
+			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.itemData.itemType.displayName, false), "lightGrey", "black")
+			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, util.capitalise(state.materials[entity.itemData.material].displayName, false), "lightGrey", "black")
 		end
-		drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
 	end
 
 	drawEntityStatus(state.player and not state.player.dead and state.player or nil, "YOU", 0)
 	local entity = self:getCursorEntity()
-	drawEntityStatus(entity and entity.entityType == "creature" and entity or nil, "TARGET", entityStatusHeight + 1)
+	drawEntityStatus(entity, "TARGET", entityStatusHeight + 1)
 end
 
 function game:newFramebuffer()

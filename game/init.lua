@@ -42,10 +42,7 @@ function game:newState()
 	state.player = self:newCreatureEntity({
 		creatureTypeName = "human",
 		team = "player",
-		x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY,
-		heldItem = self:newItemData({
-			itemTypeName = "shotgun"
-		})
+		x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY
 	})
 
 	state.announcements = {}

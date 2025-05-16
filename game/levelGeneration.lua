@@ -63,7 +63,7 @@ function game:generateLevel(parameters)
 		end
 	end
 
-	self:carveRectangleRoom(20, 30, 20, 26, "steel")
+	self:carveRectangleRoom(20, 30, 20, 26, "stone")
 	self:placeCrate(24, 35, 3, 3, "crateBrown")
 	self:placeCrate(27, 34, 5, 5, "crateYellow")
 
@@ -77,6 +77,8 @@ function game:generateLevel(parameters)
 		team = "monster",
 		x = 28, y = 40
 	})
+
+	self:newItemEntity(24, 32, {itemTypeName = "shotgun", material = "steel"})
 
 	local spawnX, spawnY = 22, 32
 

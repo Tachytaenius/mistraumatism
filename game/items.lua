@@ -10,6 +10,8 @@ function game:loadItemTypes()
 
 	itemTypes.pistol = {
 		isGun = true,
+		tile = "¬",
+		displayName = "pistol",
 		bulletCount = 1,
 		bulletSpread = nil,
 		shotCooldownTimerLength = 4,
@@ -21,13 +23,15 @@ function game:loadItemTypes()
 
 	itemTypes.shotgun = {
 		isGun = true,
+		tile = "¬",
+		displayName = "shotgun",
 		bulletCount = 9,
 		bulletSpread = 0.1,
 		shotCooldownTimerLength = 14,
-		damage = 6, -- Per projectile
+		damage = 2, -- Per projectile
 		manual = true,
 		projectileSubtickMoveTimerLength = 20,
-		range = 16
+		range = 16,
 	}
 end
 
@@ -79,6 +83,22 @@ function game:shootGun(entity, action, gun, targetEntity)
 			end
 		end
 	end
+end
+
+function game:registerPickUp(entity, itemEntity)
+	assert(self.entityPickUps, "No entityPickUps table. Is this function being used in its intended place?")
+	local pickupTable
+	for _, t in ipairs(self.entityPickUps) do
+		if t.item == itemEntity then
+			pickupTable = t
+			break
+		end
+	end
+	if not pickupTable then
+		pickupTable = {item = itemEntity}
+		self.entityPickUps[#self.entityPickUps+1] = pickupTable
+	end
+	pickupTable[#pickupTable+1] = entity
 end
 
 return game

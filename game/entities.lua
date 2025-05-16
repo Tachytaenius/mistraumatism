@@ -94,6 +94,19 @@ function game:newCreatureEntity(parameters)
 	return new
 end
 
+function game:newItemEntity(x, y, itemDataParameters)
+	local state = self.state
+
+	local new = {}
+	new.entityType = "item"
+	new.itemData = self:newItemData(itemDataParameters)
+	new.x = x
+	new.y = y
+
+	state.entities[#state.entities+1] = new
+	return new
+end
+
 function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
@@ -122,12 +135,38 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end
 
-	-- Creatures
-	local creaturesToRemove = {}
+	local entitiesToRemove = {}
 	local function kill(entity)
 		entity.dead = true
 		entity.actions = {}
-		-- creaturesToRemove[entity] = true
+		-- entitiesToRemove[entity] = true
+	end
+	local function flushEntityRemoval()
+		local i = 1
+		while i <= #state.entities do
+			local entity = state.entities[i]
+			if entitiesToRemove[entity] then
+				entity.removed = true
+				table.remove(state.entities, i)
+
+				-- Remove links
+				for _, entity2 in ipairs(state.entities) do
+					if entity2.targetEntity == entity then
+						entity2.targetEntity = nil
+					end
+				end
+				if entity == state.player then
+					state.player = nil
+				end
+				if state.cursor and state.cursor.selectedEntity == entity then
+					state.cursor.selectedEntity = nil
+					state.cursor.lockedOn = false
+				end
+			else
+				i = i + 1
+			end
+		end
+		entitiesToRemove = {} -- New list
 	end
 
 	-- AI visibility etc
@@ -171,6 +210,9 @@ function game:updateEntitiesAndProjectiles()
 	end
 	-- AI actions (player input already happened)
 	for _, entity in ipairs(state.entities) do
+		if entity.entityType ~= "creature" then
+			goto continue
+		end
 		if #entity.actions > 0 or entity == state.player then
 			goto continue
 		end
@@ -186,6 +228,23 @@ function game:updateEntitiesAndProjectiles()
 	self:updateProjectiles()
 	processActions("move")
 	processActions("melee")
+	self.entityPickUps = {}
+	processActions("pickUp")
+	for _, itemPickup in ipairs(self.entityPickUps) do
+		if #itemPickup > 1 then
+			-- TODO: If one of the entities is the player, announce pickup clash
+			-- Only really needed if other entities can pick up items.
+		else
+			local entity = itemPickup[1]
+			if entity then
+				assert(not entity.heldItem, "Entity is already holding an item, shouldn't reach this point")
+				entity.heldItem = itemPickup.item.itemData
+				itemPickup.item.pickedUp = true
+				entitiesToRemove[itemPickup.item] = true
+			end
+		end
+	end
+	flushEntityRemoval()
 
 	-- Damage and bleeding
 	for _, entity in ipairs(state.entities) do
@@ -235,27 +294,7 @@ function game:updateEntitiesAndProjectiles()
 	    ::continue::
 	end
 
-	-- Entity removal
-	local i = 1
-	while i <= #state.entities do
-		local entity = state.entities[i]
-		if creaturesToRemove[entity] then
-			entity.removed = true
-			table.remove(state.entities, i)
-
-			-- Remove links
-			for _, entity2 in ipairs(state.entities) do
-				if entity2.targetEntity == entity then
-					entity2.targetEntity = nil
-				end
-			end
-			if entity == state.player then
-				state.player = nil
-			end
-		else
-			i = i + 1
-		end
-	end
+	flushEntityRemoval()
 end
 
 function game:entityCanSeeTile(entity, x, y)

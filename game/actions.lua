@@ -163,6 +163,53 @@ function game:loadActionTypes()
 		end
 		return self.state.actionTypes.melee.construct(self, player, targetEntity, direction)
 	end
+
+	local pickUp = newActionType("pickUp", "pick up")
+	function pickUp.construct(self, entity, targetEntity)
+		if entity.heldItem then
+			return
+		end
+		if entity.x ~= targetEntity.x or entity.y ~= targetEntity.y then
+			return
+		end
+		if not targetEntity then
+			return
+		end
+		if not (targetEntity.entityType == "item" and not targetEntity.itemData.itemType.noPickUp) then
+			return
+		end
+		local new = {type = "pickUp"}
+		new.timer = 4
+		new.targetEntity = targetEntity
+		return new
+	end
+	function pickUp.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if not entity.heldItem and action.targetEntity.x == entity.x and action.targetEntity.y == entity.y then
+				self:registerPickUp(entity, action.targetEntity)
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
+	function pickUp.fromInput(self, player)
+		if not (commands.checkCommand("pickUpOrDrop") and not commands.checkCommand("dropMode")) then
+			return
+		end
+		if player.heldItem then
+			return
+		end
+		local targetEntity = self:getCursorEntity()
+		if not targetEntity or targetEntity.entityType ~= "item" then
+			return
+		end
+		if not (targetEntity.x == player.x and targetEntity.y == player.y) then
+			return
+		end
+		return self.state.actionTypes.pickUp.construct(self, player, targetEntity)
+	end
 end
 
 return game

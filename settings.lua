@@ -28,16 +28,29 @@ return {
 		lockOn = "l",
 		clearCursor = "k",
 		deselectTarget = "#",
+
 		scrollListBackwards = "[",
 		scrollListForwards = "]",
+
 		shoot = "f",
 		melee = "v",
-		pickUp = "g",
 		wait = "h",
 		waitPrecise = "y",
 		reload = "r",
 		switchWeapons = "b",
 		interact = "t",
-		jump = "j"
+		jump = "j",
+
+		dropMode = "lshift",
+		pickUpOrDrop = "g",
+		handleInventorySlot1 = "1",
+		handleInventorySlot2 = "2",
+		handleInventorySlot3 = "3",
+		handleInventorySlot4 = "4",
+		handleInventorySlot5 = "5",
+		handleInventorySlot6 = "6",
+		handleInventorySlot7 = "7",
+		handleInventorySlot8 = "8",
+		handleInventorySlot9 = "9"
 	}
 }
