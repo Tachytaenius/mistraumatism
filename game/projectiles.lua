@@ -243,7 +243,7 @@ function game:newProjectile(parameters)
 	end
 
 	local targetX, targetY
-	if not (parameters.aimX == parameters.startX and parameters.aimY == parameters.startX) and parameters.bulletSpread then
+	if not (parameters.aimX == parameters.startX and parameters.aimY == parameters.startY) and parameters.bulletSpread then
 		local relativeX = parameters.aimX - parameters.startX
 		local relativeY = parameters.aimY - parameters.startY
 		local angle = math.atan2(relativeY, relativeX)
