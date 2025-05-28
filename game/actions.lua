@@ -3,6 +3,7 @@ local consts = require("consts")
 
 local game = {}
 
+-- TODO: Action validatation
 function game:loadActionTypes()
 	local actionTypes = {}
 	self.state.actionTypes = actionTypes
@@ -70,7 +71,7 @@ function game:loadActionTypes()
 			if direction then
 				local offsetX, offsetY = self:getDirectionOffset(direction)
 				if self:getWalkable(player.x + offsetX, player.y + offsetY) then
-					return actionTypes.move.construct(self, player, direction)
+					return move.construct(self, player, direction)
 				end
 			end
 		end
@@ -86,7 +87,7 @@ function game:loadActionTypes()
 		return new
 	end
 	function shoot.process(self, entity, action)
-		if not (entity.heldItem and entity.heldItem.itemType.isGun) then
+		if not (self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun) then
 			action.doneType = "cancelled"
 		else
 			action.timer = action.timer - 1
@@ -96,7 +97,7 @@ function game:loadActionTypes()
 				if action.targetEntity and action.relativeX + entity.x == action.targetEntity.x and action.relativeY + entity.y == action.targetEntity.y then
 					targetEntity = action.targetEntity
 				end
-				self:shootGun(entity, action, entity.heldItem, targetEntity)
+				self:shootGun(entity, action, self:getHeldItem(entity), targetEntity)
 			end
 		end
 	end
@@ -104,14 +105,14 @@ function game:loadActionTypes()
 		if not commands.checkCommand("shoot") then
 			return
 		end
-		if not (player.heldItem and player.heldItem.itemType.isGun) then
+		if not (self:getHeldItem(player) and self:getHeldItem(player).itemType.isGun) then
 			return
 		end
 		local cursor = self.state.cursor
 		if not cursor then
 			return
 		end
-		return actionTypes.shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity())
+		return shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity())
 	end
 
 	local melee = newActionType("melee", "melee")
@@ -160,12 +161,13 @@ function game:loadActionTypes()
 		if not direction then
 			return
 		end
-		return self.state.actionTypes.melee.construct(self, player, targetEntity, direction)
+		return melee.construct(self, player, targetEntity, direction)
 	end
 
 	local pickUp = newActionType("pickUp", "pick up")
 	function pickUp.construct(self, entity, targetEntity)
-		if entity.heldItem then
+		local freeSlot = self:getFirstFreeInventorySlot(entity)
+		if not freeSlot then
 			return
 		end
 		if entity.x ~= targetEntity.x or entity.y ~= targetEntity.y then
@@ -185,7 +187,7 @@ function game:loadActionTypes()
 	function pickUp.process(self, entity, action)
 		action.timer = action.timer - 1
 		if action.timer <= 0 then
-			if not entity.heldItem and action.targetEntity.x == entity.x and action.targetEntity.y == entity.y then
+			if self:getFirstFreeInventorySlot(entity) and action.targetEntity.x == entity.x and action.targetEntity.y == entity.y then
 				self:registerPickUp(entity, action.targetEntity)
 				action.doneType = "completed"
 			else
@@ -197,7 +199,7 @@ function game:loadActionTypes()
 		if not (commands.checkCommand("pickUpOrDrop") and not commands.checkCommand("dropMode")) then
 			return
 		end
-		if player.heldItem then
+		if not self:getFirstFreeInventorySlot(player) then
 			return
 		end
 		local targetEntity = self:getCursorEntity()
@@ -207,12 +209,12 @@ function game:loadActionTypes()
 		if not (targetEntity.x == player.x and targetEntity.y == player.y) then
 			return
 		end
-		return self.state.actionTypes.pickUp.construct(self, player, targetEntity)
+		return pickUp.construct(self, player, targetEntity)
 	end
 
 	local drop = newActionType("drop", "drop")
 	function drop.construct(self, entity, direction)
-		if not entity.heldItem then
+		if not self:getHeldItem(entity) then
 			return
 		end
 		local new = {type = "drop"}
@@ -225,9 +227,8 @@ function game:loadActionTypes()
 		if action.timer <= 0 then
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
-			if entity.heldItem and not self:tileBlocksAirMotion(targetX, targetY) then
-				self:newItemEntity(targetX, targetY, entity.heldItem)
-				entity.heldItem = nil
+			if entity.inventory and entity.inventory.selectedSlot and not self:tileBlocksAirMotion(targetX, targetY) then
+				self:dropItemFromSlot(entity, entity.inventory.selectedSlot, targetX, targetY)
 				action.doneType = "completed"
 			else
 				action.doneType = "cancelled"
@@ -238,7 +239,7 @@ function game:loadActionTypes()
 		if not (commands.checkCommand("pickUpOrDrop") and commands.checkCommand("dropMode")) then
 			return
 		end
-		if not player.heldItem then
+		if not self:getHeldItem(player) then
 			return
 		end
 		if not self.state.cursor then
@@ -256,7 +257,297 @@ function game:loadActionTypes()
 		if self:tileBlocksAirMotion(x, y) then
 			return
 		end
-		return self.state.actionTypes.drop.construct(self, player, direction)
+		return drop.construct(self, player, direction)
+	end
+
+	local useHeldItem = newActionType("useHeldItem", "use item")
+	function useHeldItem.construct(self, entity, item)
+		if not self:getHeldItem(entity) or item ~= self:getHeldItem(entity) then
+			return
+		end
+		if self:getHeldItem(entity).itemType.isGun then
+			-- Works on automatic too
+			local timer = self:getHeldItem(entity).itemType.operationTimerLength
+			if not timer then
+				return
+			end
+			if self:getHeldItem(entity).shotCooldownTimer then
+				return
+			end
+			local new = {type = "useHeldItem"}
+			new.item = self:getHeldItem(entity)
+			new.timer = timer
+			return new
+		-- elseif somethingElse then
+
+		end
+	end
+	function useHeldItem.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if not (self:getHeldItem(entity) and self:getHeldItem(entity) == action.item) then
+				action.doneType = "cancelled"
+				return
+			end
+			local itemType = self:getHeldItem(entity).itemType
+			if itemType.isGun then
+				self:cycleGun(self:getHeldItem(entity), entity.x, entity.y)
+				action.doneType = "completed"
+			-- elseif somethingElse then
+
+			else
+				-- Do nothing, I guess
+				action.doneType = "completed"
+			end
+		end
+	end
+	function useHeldItem.fromInput(self, player)
+		if commands.checkCommand("useHeldItem") then
+			return useHeldItem.construct(self, player, self:getHeldItem(player)) -- Can be nil
+		end
+	end
+
+	local swapInventorySlot = newActionType("swapInventorySlot", "swap slot")
+	function swapInventorySlot.construct(self, entity, slot)
+		if entity.inventory and (not slot or (#entity.inventory >= slot and entity.inventory[slot].item)) then
+			local new = {type = "swapInventorySlot"}
+			new.slot = slot
+			new.timer = 8
+			return new
+		end
+	end
+	function swapInventorySlot.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if entity.inventory and (not action.slot or (#entity.inventory >= action.slot and entity.inventory[action.slot].item)) then
+				entity.inventory.selectedSlot = action.slot
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
+	function swapInventorySlot.fromInput(self, player)
+		if not player.inventory then
+			return
+		end
+		if commands.checkCommand("unloadMode") then
+			return
+		end
+		if commands.checkCommand("deselectInventorySlot") then
+			return swapInventorySlot.construct(self, player, nil)
+		elseif not commands.checkCommand("reloadMode") then
+			for i = 1, 9 do
+				if i > #player.inventory then
+					break
+				end
+				if not player.inventory[i].item then
+					goto continue
+				end
+				if commands.checkCommand("handleInventorySlot" .. i) then
+					return swapInventorySlot.construct(self, player, i)
+				end
+			    ::continue::
+			end
+		end
+	end
+
+	local reload = newActionType("reload", "reload")
+	function reload.validate(self, entity, action)
+		if not entity.inventory then
+			return
+		end
+		local heldItem = self:getHeldItem(entity)
+		if not heldItem then
+			return
+		end
+		local reloadItem = entity.inventory[action.slot].item
+		if not reloadItem then
+			return
+		end
+		if action.reloadType == "replaceMagazine" then
+			if
+				not heldItem.insertedMagazine and
+				heldItem.itemType.magazineRequired and
+				reloadItem.itemType.magazine and not reloadItem.itemType.isGun and
+				heldItem.itemType.magazineClass == reloadItem.itemType.magazineClass
+			then
+				return true
+			end
+		elseif action.reloadType == "addRoundToMagazineData" then
+			if
+				heldItem.itemType.magazine and
+				reloadItem.itemType.isAmmo and
+				heldItem.itemType.ammoClass == reloadItem.itemType.ammoClass and
+				#heldItem.magazineData < heldItem.itemType.magazineCapacity
+			then
+				return true
+			end
+		end
+		return false
+	end
+	function reload.construct(self, entity, slot, reloadType, alt)
+		local new = {type = "reload"}
+		new.slot = slot
+		new.reloadType = reloadType
+		new.alt = alt -- For double barrel etc
+		new.timer = 12
+		if reload.validate(self, entity, new) then
+			return new
+		end
+	end
+	function reload.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if reload.validate(self, entity, action) then
+				-- TODO: Stacking
+				local heldItem = self:getHeldItem(entity)
+				local item = entity.inventory[action.slot].item
+				entity.inventory[action.slot].item = nil
+				if action.reloadType == "replaceMagazine" then
+					entity.inventory[action.slot].item = heldItem.insertedMagazine -- May be nil (actually, Should be nil, since there's a check for inserted magazine not being present now)
+					heldItem.insertedMagazine = item
+				elseif action.reloadType == "addRoundToMagazineData" then
+					table.insert(heldItem.magazineData, item)
+				end
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
+	function reload.fromInput(self, player)
+		local heldItem = self:getHeldItem(player)
+		if not heldItem then
+			return
+		end
+		if not commands.checkCommand("reloadMode") then
+			return
+		end
+		if not player.inventory then
+			return
+		end
+		local number
+		for i = 1, 9 do
+			if i > #player.inventory then
+				break
+			end
+			if commands.checkCommand("handleInventorySlot" .. i) then
+				number = i
+			end
+		end
+		if not number then
+			return
+		end
+
+		if heldItem.itemType.magazine then
+			return reload.construct(self, player, number, "addRoundToMagazineData") -- If valid
+		elseif heldItem.itemType.magazineRequired then
+			return reload.construct(self, player, number, "replaceMagazine") -- If valid
+		end
+	end
+
+	local unload = newActionType("unload", "unload")
+	function unload.validate(self, entity, action)
+		local heldItem = self:getHeldItem(entity)
+		if not heldItem then
+			return false
+		end
+		if not (heldItem.magazineData or heldItem.insertedMagazine) then
+			return false
+		end
+		if heldItem.magazineData then
+			if #heldItem.magazineData == 0 then
+				return false
+			end
+		end
+		if action.slot then
+			if not (entity.inventory and entity.inventory[action.slot] and not entity.inventory[action.slot].item) then
+				return false
+			end
+		else
+			local ox, oy = self:getDirectionOffset(action.direction)
+			local targetX, targetY = entity.x + ox, entity.y + oy
+			if self:tileBlocksAirMotion(targetX, targetY) then
+				return false
+			end
+		end
+		return true
+	end
+	function unload.construct(self, entity, slot, floorX, floorY)
+		local new = {type = "unload"}
+		if slot then
+			new.slot = slot
+		else
+			new.direction = self:getDirection(floorX - entity.x, floorY - entity.y)
+		end
+		new.timer = 9
+		if unload.validate(self, entity, new) then
+			return new
+		end
+	end
+	function unload.process(self, entity, action)
+		action.timer = action.timer - 1
+		if not unload.validate(self, entity, action) then
+			action.doneType = "cancelled"
+			return
+		end
+		if action.timer <= 0 then
+			local heldItem = self:getHeldItem(entity)
+			local unloadedItem
+			if heldItem.itemType.magazine then
+				unloadedItem = table.remove(heldItem.magazineData)
+			else
+				unloadedItem = heldItem.insertedMagazine
+				heldItem.insertedMagazine = nil
+			end
+			if action.slot then
+				entity.inventory[action.slot].item = unloadedItem
+			else
+				local ox, oy = self:getDirectionOffset(action.direction)
+				local targetX, targetY = entity.x + ox, entity.y + oy
+				self:newItemEntity(targetX, targetY, unloadedItem)
+			end
+			action.doneType = "completed"
+		end
+	end
+	function unload.fromInput(self, player)
+		if not commands.checkCommand("unloadMode") then
+			return
+		end
+		local heldItem = self:getHeldItem(player)
+		if not heldItem then
+			return
+		end
+		if not player.inventory then
+			return
+		end
+
+		if commands.checkCommand("deselectInventorySlot") then
+			if not self.state.cursor then
+				return
+			end
+			local x, y = self.state.cursor.x, self.state.cursor.y
+			local dx, dy = x - player.x, y - player.y
+			if math.abs(dx) > 1 or math.abs(dy) > 1 then
+				return
+			end
+			return unload.construct(self, player, nil, x, y)
+		end
+
+		local number
+		for i = 1, 9 do
+			if i > #player.inventory then
+				break
+			end
+			if commands.checkCommand("handleInventorySlot" .. i) then
+				number = i
+			end
+		end
+		if not number then
+			return
+		end
+		return unload.construct(self, player, number)
 	end
 end
 

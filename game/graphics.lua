@@ -58,10 +58,17 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 	local function drawStringFramebuffer(framebufferX, framebufferY, str, foregroundColour, backgroundColour)
 		local x = 0
+		local y = 0
 		for _, code in utf8.codes(str) do
 			local char = utf8.char(code)
-			drawCharacterFramebuffer(framebufferX + x, framebufferY, char, foregroundColour, backgroundColour)
+			if char == "\n" then
+				x = 0
+				y = y + 1
+				goto continue
+			end
+			drawCharacterFramebuffer(framebufferX + x, framebufferY + y, char, foregroundColour, backgroundColour)
 			x = x + 1
+		    ::continue::
 		end
 	end
 
@@ -388,7 +395,7 @@ function game:draw() -- After this function completes, the result is in currentF
 			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
 			local healthInfo = entity.health .. "H"
 			if entity.blood then
-				healthInfo = healthInfo .. "·" .. entity.blood .. "B"
+				healthInfo = healthInfo .. "∙" .. entity.blood .. "B"
 			end
 			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, healthInfo, "lightGrey", "black")
 			local actionInfo
@@ -402,26 +409,100 @@ function game:draw() -- After this function completes, the result is in currentF
 				else
 					actionColour = "darkCyan"
 				end
-				actionInfo = util.capitalise(state.actionTypes[action.type].displayName) .. "·" .. action.timer .. "T"
+				actionInfo = util.capitalise(state.actionTypes[action.type].displayName) .. "∙" .. action.timer .. "T"
 				if action.type == "move" or action.type == "melee" then
 					local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
 					if symbol then
-						actionInfo = actionInfo .. "·" .. symbol
+						actionInfo = actionInfo .. "∙" .. symbol
 					end
 				end
 			end
 			drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
+			if self:getHeldItem(entity) then
+				local itemName = util.capitalise(self:getHeldItem(entity).itemType.displayName, false)
+				drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, itemName, "lightGrey", "black")
+			end
 		elseif entity and entity.entityType == "item" then
 			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.itemData.itemType.tile, state.materials[entity.itemData.material].colour, "black")
 			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.itemData.itemType.displayName, false), "lightGrey", "black")
 			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, util.capitalise(state.materials[entity.itemData.material].displayName, false), "lightGrey", "black")
+			local item = entity.itemData
+			local itemType = item.itemType
+			if itemType.isGun then
+				local magazineItem = item.magazineData and item or item.insertedMagazine or nil -- The gun itself, an inserted magazine, or nothing
+				local gunStatus =
+					(item.chamberedRound and (item.chamberedRound.fired and "Fired" or "Live") or "Empty") ..
+					"∙" ..
+					(item.shotCooldownTimer and "Cycling" or (item.cocked and "Cocked" or "Uncocked")) ..
+					"\n" ..
+					-- (item.magazineData and (#item.magazineData > 0 and (#item.magazineData .. " in magazineData") or "magazineData empty") or "No magazineData")
+					-- (item.magazineData and (#item.magazineData .. "/" .. itemData.magazineCapacity .. " in magazineData") or "No magazineData") -- Not enough space for two double digit numbers
+					(magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine")
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, gunStatus, "lightGrey", "black")
+			elseif itemType.magazine then -- Would have gone into the block above if it was a gun with its own magazine data
+				local magazineStatus = "Magazine: " .. #item.magazineData .. "/" .. item.itemType.magazineCapacity
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, magazineStatus, "lightGrey", "black") 
+			elseif itemType.isAmmo then
+				local ammoStatus = item.fired and "Fired" or "Live"
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, ammoStatus, "lightGrey", "black")
+			end
+		end
+	end
+
+	local inventoryHeight = 7
+	local rectangles = {}
+	for x = 0, 2 do
+		for y = 0, 2 do
+			rectangles[#rectangles+1] = {x = x * 4 + 2, y = y * 2 + 2 * (entityStatusHeight + 1), w = 5, h = 3}
+		end
+	end
+	local function isBorder(x, y)
+		for _, rectangle in ipairs(rectangles) do
+			local dx, dy = x - rectangle.x, y - rectangle.y
+			if dx >= 0 and dy >= 0 and dx <= rectangle.w - 1 and dy <= rectangle.h - 1 then
+				if not (dx > 0 and dy > 0 and dx < rectangle.w - 1 and dy < rectangle.h - 1) then
+					return true
+				end
+			end
+		end
+		return false
+	end
+	local borderNum = 1
+	for x = 0, statusWidth - 1 do
+		for y = 0, statusHeight - 1 do
+			if not isBorder(x, y) then
+				goto continue
+			end
+			local character = util.getBoxDrawingCharacter(
+				isBorder(x + 1, y) and borderNum or 0,
+				isBorder(x, y - 1) and borderNum or 0,
+				isBorder(x - 1, y) and borderNum or 0,
+				isBorder(x, y + 1) and borderNum or 0
+			)
+			if character then
+				drawCharacterFramebuffer(statusX + x, statusY + y, character, "white", "black")
+			end
+			::continue::
+		end
+	end
+	drawStringFramebuffer(statusX + 4, 2 * (entityStatusHeight + 1) + 1, "INVENTORY", "lightGrey", "black")
+	if state.player and state.player.inventory then
+		for i, slot in ipairs(state.player.inventory) do
+			local x = statusX + (i - 1) % 3 * 4 + 4
+			local y = 2 * (entityStatusHeight + 1) + 2 + math.floor((i - 1) / 3) * 2
+			if i == state.player.inventory.selectedSlot then -- and self.realTime % 0.5 < 0.25 then
+				drawCharacterFramebuffer(x - 1, y, "►", "lightGrey", "black")
+			end
+			if slot.item then
+				drawCharacterFramebuffer(x, y, slot.item.itemType.tile, state.materials[slot.item.material].colour, "black")
+			end
 		end
 	end
 
 	drawEntityStatus(state.player and not state.player.dead and state.player or nil, "YOU", 0)
 	local entity = self:getCursorEntity()
-	drawEntityStatus(state.player and state.player.heldItem and {entityType = "item", itemData = state.player.heldItem} or nil, "HANDS", entityStatusHeight + 1) -- HACK
-	drawEntityStatus(entity, "TARGET", 2 * (entityStatusHeight + 1))
+	drawEntityStatus(state.player and self:getHeldItem(state.player) and {entityType = "item", itemData = self:getHeldItem(state.player)} or nil, "POSSESSION", inventoryHeight) -- HACK
+	drawEntityStatus(entity, "TARGET", inventoryHeight + 1 + 2 * (entityStatusHeight + 1))
 end
 
 function game:newFramebuffer()

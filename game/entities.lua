@@ -36,7 +36,9 @@ function game:loadCreatureTypes()
 		maxHealth = 14,
 		maxBlood = 14,
 		meleeTimerLength = 5,
-		meleeDamage = 5
+		meleeDamage = 5,
+
+		inventorySize = 9
 	}
 
 	creatureTypes.zombie = {
@@ -50,7 +52,9 @@ function game:loadCreatureTypes()
 		maxHealth = 6,
 		maxBlood = 7,
 		meleeTimerLength = 8,
-		meleeDamage = 2
+		meleeDamage = 2,
+
+		inventorySize = 2
 	}
 
 	creatureTypes.slug = {
@@ -89,6 +93,13 @@ function game:newCreatureEntity(parameters)
 	new.blood = creatureType.maxBlood
 	new.dead = false
 	new.actions = {}
+
+	if creatureType.inventorySize then
+		new.inventory = {}
+		for i = 1, creatureType.inventorySize do
+			new.inventory[i] = {}
+		end
+	end
 
 	state.entities[#state.entities+1] = new
 	return new
@@ -224,10 +235,14 @@ function game:updateEntitiesAndProjectiles()
 	end
 
 	-- Actions (and other things)
+	processActions("useHeldItem")
 	processActions("shoot")
 	self:updateProjectiles()
 	processActions("move")
 	processActions("melee")
+	processActions("swapInventorySlot")
+	processActions("reload")
+	processActions("unload")
 	processActions("drop")
 	self.entityPickUps = {}
 	processActions("pickUp")
@@ -238,8 +253,8 @@ function game:updateEntitiesAndProjectiles()
 		else
 			local entity = itemPickup[1]
 			if entity then
-				assert(not entity.heldItem, "Entity is already holding an item, shouldn't reach this point")
-				entity.heldItem = itemPickup.item.itemData
+				local slot = self:getFirstFreeInventorySlot(entity)
+				entity.inventory[slot].item = itemPickup.item.itemData
 				itemPickup.item.pickedUp = true
 				entitiesToRemove[itemPickup.item] = true
 			end
@@ -296,6 +311,42 @@ function game:updateEntitiesAndProjectiles()
 	end
 
 	flushEntityRemoval()
+
+	for _, entity in ipairs(state.entities) do
+		if not entity.inventory then
+			goto continue
+		end
+		if not entity.inventory.selectedSlot then
+			goto continue
+		end
+		if not entity.inventory[entity.inventory.selectedSlot].item then
+			entity.inventory.selectedSlot = nil
+		end
+	    ::continue::
+	end
+
+	local function tickItem(item, x, y)
+		if item.shotCooldownTimer then
+			item.shotCooldownTimer = item.shotCooldownTimer - 1
+			if item.shotCooldownTimer <= 0 then
+				item.shotCooldownTimer = nil
+				if not item.itemType.manual then
+					self:cycleGun(item, x, y)
+				end
+			end
+		end
+	end
+	for _, entity in ipairs(state.entities) do
+		if entity.inventory then
+			for _, slot in ipairs(entity.inventory) do
+				if slot.item then
+					tickItem(slot.item, entity.x, entity.y)
+				end
+			end
+		elseif entity.itemData then
+			tickItem(entity.itemData, entity.x, entity.y)
+		end
+	end
 end
 
 function game:entityCanSeeTile(entity, x, y)

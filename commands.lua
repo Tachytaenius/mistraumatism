@@ -31,12 +31,15 @@ local commandTypes = {
 
 	shoot = "pressed",
 	melee = "pressed",
+	useHeldItem = "pressed",
 
 	scrollListBackwards = "repeat",
 	scrollListForwards = "repeat",
 
 	dropMode = "hold",
 	pickUpOrDrop = "pressed",
+	reloadMode = "hold",
+	unloadMode = "hold",
 	handleInventorySlot1 = "pressed",
 	handleInventorySlot2 = "pressed",
 	handleInventorySlot3 = "pressed",
@@ -45,7 +48,8 @@ local commandTypes = {
 	handleInventorySlot6 = "pressed",
 	handleInventorySlot7 = "pressed",
 	handleInventorySlot8 = "pressed",
-	handleInventorySlot9 = "pressed"
+	handleInventorySlot9 = "pressed",
+	deselectInventorySlot = "pressed"
 }
 
 commands.previousTickRepeatKeys = {}

@@ -40,16 +40,16 @@ local function chaseTargetEntity(self, entity)
 	end
 end
 
-local function tryShootTargetEntity(self, entity)
-	local targetEntity = entity.targetEntity
-	if not targetEntity then
-		return
-	end
-	if not self:entityCanSeeEntity(entity, targetEntity) then
-		return
-	end
-	return self.state.actionTypes.shoot.construct(self, entity, targetEntity.x, targetEntity.y, targetEntity)
-end
+-- local function tryShootTargetEntity(self, entity)
+-- 	local targetEntity = entity.targetEntity
+-- 	if not targetEntity then
+-- 		return
+-- 	end
+-- 	if not self:entityCanSeeEntity(entity, targetEntity) then
+-- 		return
+-- 	end
+-- 	return self.state.actionTypes.shoot.construct(self, entity, targetEntity.x, targetEntity.y, targetEntity)
+-- end
 
 local function tryMeleeTargetEntity(self, entity)
 	local targetEntity = entity.targetEntity
@@ -80,11 +80,11 @@ function game:getAIActions(entity)
 
 	if entity.targetEntity and self:entityCanSeeEntity(entity, entity.targetEntity) then
 		local fightAction
-		if entity.heldItem and entity.heldItem.itemType.isGun then
-			if self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y) <= entity.heldItem.itemType.range then
-				fightAction = tryShootTargetEntity(self, entity)
-			end
-		end
+		-- if self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun then
+		-- 	if self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y) <= self:getHeldItem(entity).itemType.range then
+		-- 		fightAction = tryShootTargetEntity(self, entity)
+		-- 	end
+		-- end
 		if not fightAction and entity.creatureType.meleeDamage then
 			if math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1 then -- In range
 				fightAction = tryMeleeTargetEntity(self, entity)

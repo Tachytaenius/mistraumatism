@@ -78,7 +78,37 @@ function game:generateLevel(parameters)
 		x = 28, y = 40
 	})
 
-	self:newItemEntity(24, 32, self:newItemData({itemTypeName = "shotgun", material = "steel"}))
+	self:newItemEntity(24, 31, self:newItemData({
+		itemTypeName = "pumpShotgun", material = "steel",
+		cocked = false,
+		chamberedRound = nil,
+		magazineData = {}
+	}))
+	for _=1, 40 do
+		self:newItemEntity(25, 31, self:newItemData({
+			itemTypeName = "shotgunShell", material = "plasticRed"
+		}))
+	end
+	local pistolMagMagazineData = {}
+	for i = 1, self.state.itemTypes.pistolMagazine.magazineCapacity do
+		pistolMagMagazineData[i] = self:newItemData({
+			itemTypeName = "smallBullet", material = "brass"
+		})
+	end
+	self:newItemEntity(23, 32, self:newItemData({
+		itemTypeName = "pistolMagazine", material = "steel",
+		magazineData = pistolMagMagazineData
+	}))
+	for _=1, 40 do
+		self:newItemEntity(24, 32, self:newItemData({
+			itemTypeName = "smallBullet", material = "brass"
+		}))
+	end
+	self:newItemEntity(25, 32, self:newItemData({
+		itemTypeName = "pistol", material = "steel",
+		cocked = false,
+		chamberedRound = nil
+	}))
 
 	local spawnX, spawnY = 22, 32
 

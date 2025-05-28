@@ -22,6 +22,9 @@ function game:loadMaterials()
 
 	addMaterial("crateBrown", "brown crate", "darkYellow", "solid")
 	addMaterial("crateYellow", "yellow crate", "yellow", "solid")
+
+	addMaterial("plasticRed", "red plastic", "darkRed", "solid")
+	addMaterial("brass", "brass", "yellow", "solid")
 end
 
 return game

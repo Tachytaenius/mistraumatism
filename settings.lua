@@ -34,15 +34,16 @@ return {
 
 		shoot = "f",
 		melee = "v",
+		useHeldItem = "t",
 		wait = "h",
 		waitPrecise = "y",
-		reload = "r",
-		switchWeapons = "b",
-		interact = "t",
+		interact = "b",
 		jump = "j",
 
+		reloadMode = "r",
 		dropMode = "lshift",
 		pickUpOrDrop = "g",
+		unloadMode = "u",
 		handleInventorySlot1 = "1",
 		handleInventorySlot2 = "2",
 		handleInventorySlot3 = "3",
@@ -51,6 +52,7 @@ return {
 		handleInventorySlot6 = "6",
 		handleInventorySlot7 = "7",
 		handleInventorySlot8 = "8",
-		handleInventorySlot9 = "9"
+		handleInventorySlot9 = "9",
+		deselectInventorySlot = "0"
 	}
 }

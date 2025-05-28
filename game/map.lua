@@ -15,7 +15,7 @@ function game:loadTileTypes()
 		},
 		pit = {
 			solidity = "fall",
-			character = "·",
+			character = "∙",
 			ignoreSpatter = true,
 			darkenColour = true
 		}
