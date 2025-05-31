@@ -169,12 +169,14 @@ function game:updateCursor()
 		if commands.checkCommand("scrollListForwards") then
 			movement = movement + 1
 		end
+		local justGainedSelection = false
 		if not selectedEntity and (moved or movement ~= 0) then
 			selectedEntity = entityList[1]
 			state.cursor.selectedEntity = selectedEntity
 			state.cursor.lockedOn = false
+			justGainedSelection = true
 		end
-		if selectedEntity then
+		if selectedEntity and not justGainedSelection then
 			local i
 			for listI, entity in ipairs(entityList) do
 				if entity == selectedEntity then

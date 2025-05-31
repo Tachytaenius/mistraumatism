@@ -450,12 +450,68 @@ function game:draw() -- After this function completes, the result is in currentF
 	end
 
 	local inventoryHeight = 7
-	local rectangles = {}
-	for x = 0, 2 do
-		for y = 0, 2 do
-			rectangles[#rectangles+1] = {x = x * 4 + 2, y = y * 2 + 2 * (entityStatusHeight + 1), w = 5, h = 3}
+	local function drawInventory()
+		local rectangles = {}
+		for x = 0, 2 do
+			for y = 0, 2 do
+				rectangles[#rectangles+1] = {x = x * 4 + 2, y = y * 2 + 2 * (entityStatusHeight + 1), w = 5, h = 3}
+			end
+		end
+		local function isBorder(x, y)
+			for _, rectangle in ipairs(rectangles) do
+				local dx, dy = x - rectangle.x, y - rectangle.y
+				if dx >= 0 and dy >= 0 and dx <= rectangle.w - 1 and dy <= rectangle.h - 1 then
+					if not (dx > 0 and dy > 0 and dx < rectangle.w - 1 and dy < rectangle.h - 1) then
+						return true
+					end
+				end
+			end
+			return false
+		end
+		local borderNum = 1
+		for x = 0, statusWidth - 1 do
+			for y = 0, statusHeight - 1 do
+				if not isBorder(x, y) then
+					goto continue
+				end
+				local character = util.getBoxDrawingCharacter(
+					isBorder(x + 1, y) and borderNum or 0,
+					isBorder(x, y - 1) and borderNum or 0,
+					isBorder(x - 1, y) and borderNum or 0,
+					isBorder(x, y + 1) and borderNum or 0
+				)
+				if character then
+					drawCharacterFramebuffer(statusX + x, statusY + y, character, "white", "black")
+				end
+				::continue::
+			end
+		end
+		drawStringFramebuffer(statusX + 4, 2 * (entityStatusHeight + 1) + 1, "INVENTORY", "lightGrey", "black")
+		if state.player and state.player.inventory then
+			for i, slot in ipairs(state.player.inventory) do
+				local x = statusX + (i - 1) % 3 * 4 + 4
+				local y = 2 * (entityStatusHeight + 1) + 2 + math.floor((i - 1) / 3) * 2
+				if i == state.player.inventory.selectedSlot then -- and self.realTime % 0.5 < 0.25 then
+					drawCharacterFramebuffer(x - 1, y, "►", "lightGrey", "black")
+				end
+				if slot.item then
+					drawCharacterFramebuffer(x, y, slot.item.itemType.tile, state.materials[slot.item.material].colour, "black")
+				end
+			end
 		end
 	end
+
+	drawEntityStatus(state.player and not state.player.dead and state.player or nil, "YOU", 0)
+	local entity = self:getCursorEntity()
+	drawEntityStatus(state.player and self:getHeldItem(state.player) and {entityType = "item", itemData = self:getHeldItem(state.player)} or nil, "POSSESSION", inventoryHeight) -- HACK
+	drawInventory()
+	drawEntityStatus(entity, "TARGET", inventoryHeight + 1 + 2 * (entityStatusHeight + 1))
+
+	local yShift = inventoryHeight + 1 + 3 * (entityStatusHeight + 1)
+	local rectangles = {
+		{x = 0, y = yShift, w = statusWidth, h = 6},
+		{x = 0, y = yShift, w = 3, h = 3}
+	}
 	local function isBorder(x, y)
 		for _, rectangle in ipairs(rectangles) do
 			local dx, dy = x - rectangle.x, y - rectangle.y
@@ -485,24 +541,85 @@ function game:draw() -- After this function completes, the result is in currentF
 			::continue::
 		end
 	end
-	drawStringFramebuffer(statusX + 4, 2 * (entityStatusHeight + 1) + 1, "INVENTORY", "lightGrey", "black")
-	if state.player and state.player.inventory then
-		for i, slot in ipairs(state.player.inventory) do
-			local x = statusX + (i - 1) % 3 * 4 + 4
-			local y = 2 * (entityStatusHeight + 1) + 2 + math.floor((i - 1) / 3) * 2
-			if i == state.player.inventory.selectedSlot then -- and self.realTime % 0.5 < 0.25 then
-				drawCharacterFramebuffer(x - 1, y, "►", "lightGrey", "black")
-			end
-			if slot.item then
-				drawCharacterFramebuffer(x, y, slot.item.itemType.tile, state.materials[slot.item.material].colour, "black")
+	drawStringFramebuffer(statusX + 3, statusY + yShift, "TILE", "lightGrey", "black")
+	if state.cursor and state.player and self:entityCanSeeTile(state.player, state.cursor.x, state.cursor.y) then
+		local tile = state.cursor and self:getTile(state.cursor.x, state.cursor.y)
+		local material = state.materials[tile.material]
+		if tile.type then
+			drawStringFramebuffer(statusX + 3, statusY + yShift + 1, util.capitalise(state.tileTypes[tile.type].displayName, false), "lightGrey", "black")
+		end
+		if material then
+			drawStringFramebuffer(statusX + 3, statusY + yShift + 2, util.capitalise(material.displayName, false), "lightGrey", "black")
+		end
+		if tile.type and material then
+			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, self:getTileCharacter(tile.x, tile.y), material.colour, "black")
+		end
+		local largestSpatter
+		if tile.spatter then
+			for _, spatter in ipairs(tile.spatter) do
+				if not largestSpatter or spatter.amount >= largestSpatter.amount then
+					largestSpatter = spatter
+				end
 			end
 		end
-	end
+		local entityList = self:getCursorEntitySelectionList()
+		if entityList and #entityList > 0 then
+			local selectedEntityIndex
+			local selectedEntity = self:getCursorEntity()
+			if selectedEntity then
+				local function drawEntitySymbol(entity, x, y)
+					local character, colour
+					if entity.entityType == "creature" then
+						character = entity.creatureType.tile
+						colour = entity.creatureType.colour
+					elseif entity.entityType == "item" then
+						character = entity.itemData.itemType.tile
+						colour = state.materials[entity.itemData.material].colour
+					end
+					drawCharacterFramebuffer(x, y, character, colour, "black")
+				end
 
-	drawEntityStatus(state.player and not state.player.dead and state.player or nil, "YOU", 0)
-	local entity = self:getCursorEntity()
-	drawEntityStatus(state.player and self:getHeldItem(state.player) and {entityType = "item", itemData = self:getHeldItem(state.player)} or nil, "POSSESSION", inventoryHeight) -- HACK
-	drawEntityStatus(entity, "TARGET", inventoryHeight + 1 + 2 * (entityStatusHeight + 1))
+				for i, entity in ipairs(entityList) do
+					if entity == selectedEntity then
+						selectedEntityIndex = i
+						break
+					end
+				end
+				assert(selectedEntityIndex, "Selected cursor entity is not in the list of currently selectable entities")
+
+				drawCharacterFramebuffer(statusX + 5, statusY + yShift + 3, "►", state.cursor.lockedOn and "cyan" or "yellow", "black")
+				local zeroX = statusX + 6
+				for i, entity in ipairs(entityList) do
+					local relative =  i - selectedEntityIndex
+					local separation = relative < 0 and -2 or relative > 0 and 1 or 0
+					local drawX = zeroX + relative + separation
+					if drawX > statusX + 1 and drawX < statusX + 10 then
+						drawEntitySymbol(entity, drawX, statusY + yShift + 3)
+					end
+				end
+			else
+
+			end
+			drawCharacterFramebuffer(statusX + 1, statusY + yShift + 3, "[", "darkGrey", "black")
+			drawCharacterFramebuffer(statusX + 10, statusY + yShift + 3, "]", "darkGrey", "black")
+			drawStringFramebuffer(statusX + 12, statusY + yShift + 3, (selectedEntityIndex and (
+				string.format("%2s", selectedEntityIndex)
+			) or "--"), "lightGrey", "black")
+			drawStringFramebuffer(statusX + 14, statusY + yShift + 3, "/" .. #entityList, "lightGrey", "black")
+		else
+			drawStringFramebuffer(statusX + 1, statusY + yShift + 3, "No targets", "lightGrey", "black")
+		end
+		if largestSpatter then
+			local material = state.materials[largestSpatter.materialName]
+			local str = material.displayName .. "∙" .. largestSpatter.amount
+			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, str, "lightGrey", "black")
+			if #tile.spatter > 1 then
+				drawCharacterFramebuffer(statusX + statusWidth - 2, statusY + yShift + 4, "+", "white", "black")
+			end
+		else
+			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, "No spatter", "lightGrey", "black")
+		end
+	end
 end
 
 function game:newFramebuffer()
