@@ -47,6 +47,10 @@ function game:newState()
 
 	state.announcements = {}
 	state.splitAnnouncements = {}
+
+	state.incrementEntityDisplaysTimerLength = 0.8
+	state.incrementEntityDisplaysSwitchIndicatorTime = 0.04
+	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimerLength
 end
 
 function game:init()
@@ -63,6 +67,9 @@ function game:init()
 	self.realTime = 0
 
 	self:newState()
+
+	self.state.tileEntityLists = self:getTileEntityLists()
+	self.state.previousTileEntityLists = nil
 end
 
 return game

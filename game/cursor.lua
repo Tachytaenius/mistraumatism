@@ -2,7 +2,7 @@ local commands = require("commands")
 
 local game = {}
 
-function game:getCursorEntitySelectionList()
+function game:getCursorEntitySelectionList(forceIncludeEntityInList)
 	local state = self.state
 	local cursor = state.cursor
 	if not cursor then
@@ -10,7 +10,7 @@ function game:getCursorEntitySelectionList()
 	end
 	local list = {}
 	for _, entity in ipairs(state.entities) do
-		if self:cursorCanSelectEntity(entity, true) then
+		if self:cursorCanSelectEntity(entity, true, entity == forceIncludeEntityInList) then
 			list[#list+1] = entity
 		end
 	end
@@ -30,7 +30,7 @@ function game:setCursor(x, y)
 	end
 end
 
-function game:cursorCanSelectEntity(entity, checkPosition)
+function game:cursorCanSelectEntity(entity, checkPosition, dontCheckAnythingButPositionAndPlayer)
 	local state = self.state
 	if not state.player then
 		return false
@@ -38,16 +38,34 @@ function game:cursorCanSelectEntity(entity, checkPosition)
 	if entity == state.player then
 		return false
 	end
-	if not self:entityCanSeeEntity(state.player, entity) then
-		return false
+	if not dontCheckAnythingButPositionAndPlayer then
+		if not self:entityCanSeeEntity(state.player, entity) then
+			return false
+		end
+		if entity.dead then
+			return false
+		end
 	end
 	if checkPosition and (not state.cursor or not (state.cursor.x == entity.x and state.cursor.y == entity.y)) then
 		return false
 	end
-	if entity.dead then
-		return false
-	end
 	return true
+end
+
+function game:getSelectedEntityListIndex(forceIncludeEntityInList)
+	if not (self.state.cursor and self.state.cursor.selectedEntity) then
+		return
+	end
+	local list = self:getCursorEntitySelectionList(forceIncludeEntityInList)
+	if not list then
+		return
+	end
+	for listI, entity in ipairs(list) do
+		if entity == self.state.cursor.selectedEntity then
+			return listI
+		end
+	end
+	return nil
 end
 
 -- Called after a game tick
@@ -62,13 +80,11 @@ function game:autoUpdateCursorEntity()
 			if canSelectSelectedEntity then
 				self:setCursor(state.cursor.selectedEntity.x, state.cursor.selectedEntity.y)
 			else
-				state.cursor.selectedEntity = nil
-				state.cursor.lockedOn = false
+				self:forceDeselectCursorEntity(self:getSelectedEntityListIndex(state.cursor and state.cursor.selectedEntity))
 			end
 		else
 			if not canSelectSelectedEntity then
-				state.cursor.selectedEntity = nil
-				state.cursor.lockedOn = false
+				self:forceDeselectCursorEntity(self:getSelectedEntityListIndex(state.cursor and state.cursor.selectedEntity))
 			end
 		end
 	else
@@ -155,8 +171,7 @@ function game:updateCursor()
 	end
 
 	if state.cursor and commands.checkCommand("deselectTarget") then
-		state.cursor.selectedEntity = nil
-		state.cursor.lockedOn = false
+		self:forceDeselectCursorEntity(nil)
 	end
 
 	local entityList = self:getCursorEntitySelectionList()
@@ -170,6 +185,7 @@ function game:updateCursor()
 			movement = movement + 1
 		end
 		local justGainedSelection = false
+		-- if not selectedEntity and (moved or movement ~= 0 or self:entityListChanged(state.cursor.x, state.cursor.y, "selectable")) then
 		if not selectedEntity and (moved or movement ~= 0) then
 			selectedEntity = entityList[1]
 			state.cursor.selectedEntity = selectedEntity
@@ -177,13 +193,7 @@ function game:updateCursor()
 			justGainedSelection = true
 		end
 		if selectedEntity and not justGainedSelection then
-			local i
-			for listI, entity in ipairs(entityList) do
-				if entity == selectedEntity then
-					i = listI
-					break
-				end
-			end
+			local i = self:getSelectedEntityListIndex()
 			assert(i, "Selected cursor entity is not in the list of currently selectable entities")
 			if movement ~= 0 then
 				i = i + movement
@@ -209,6 +219,22 @@ function game:getCursorEntity() -- Doesn't return selectedEntity if it shouldn't
 		return nil
 	end
 	return self:cursorCanSelectEntity(state.cursor.selectedEntity, true) and state.cursor.selectedEntity or nil
+end
+
+function game:forceDeselectCursorEntity(reselectIndex)
+	local state = self.state
+	if not state.cursor then
+		return
+	end
+	state.cursor.selectedEntity = nil
+	state.cursor.lockedOn = false
+	if not reselectIndex then
+		return
+	end
+	local entityList = self:getCursorEntitySelectionList()
+	if entityList then
+		state.cursor.selectedEntity = entityList[math.min(reselectIndex, #entityList)]
+	end
 end
 
 return game

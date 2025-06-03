@@ -157,6 +157,8 @@ function game:updateEntitiesAndProjectiles()
 		while i <= #state.entities do
 			local entity = state.entities[i]
 			if entitiesToRemove[entity] then
+				local selectedEntityIndex = self:getSelectedEntityListIndex(self.state.cursor and self.state.cursor.selectedEntity or nil)
+
 				entity.removed = true
 				table.remove(state.entities, i)
 
@@ -170,8 +172,7 @@ function game:updateEntitiesAndProjectiles()
 					state.player = nil
 				end
 				if state.cursor and state.cursor.selectedEntity == entity then
-					state.cursor.selectedEntity = nil
-					state.cursor.lockedOn = false
+					self:forceDeselectCursorEntity(selectedEntityIndex)
 				end
 			else
 				i = i + 1
@@ -408,6 +409,101 @@ function game:damageEntity(entity, damage, sourceEntity)
 		dealtDamageList[#dealtDamageList+1] = damageReceiverInfo
 	end
 	damageReceiverInfo.total = damageReceiverInfo.total + damage
+end
+
+function game:getTileEntityLists()
+	local lists = {}
+	for _, entity in ipairs(self.state.entities) do
+		local x, y = entity.x, entity.y
+		if not lists[x] then
+			lists[x] = {}
+		end
+		if not lists[x][y] then
+			lists[x][y] = {
+				selectable = {},
+				all = {}
+			}
+		end
+		local tileList = lists[x][y]
+		if self:cursorCanSelectEntity(entity, false) then
+			tileList.selectable[#tileList.selectable+1] = entity
+		end
+		tileList.all[#tileList.all+1] = entity
+	end
+	return lists
+end
+
+function game:entityListChanged(x, y, listType)
+	local previous
+	if self.state.previousTileEntityLists then
+		if self.state.previousTileEntityLists[x] then
+			previous = self.state.previousTileEntityLists[x][y]
+		end
+	end
+
+	local current
+	if self.state.tileEntityLists then
+		if self.state.tileEntityLists[x] then
+			current = self.state.tileEntityLists[x][y]
+		end
+	end
+
+	current = current and current[listType] or {}
+	previous = previous and previous[listType] or {}
+	return not util.arraysEqual(current, previous)
+end
+
+function game:updateEntitiesToDraw(dt)
+	local state = self.state
+
+	local incrementEntityDisplays = false
+	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimer - dt
+	if state.incrementEntityDisplaysTimer <= 0 then
+		state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimerLength
+		incrementEntityDisplays = true
+	end
+	state.incrementingEntityDisplays = incrementEntityDisplays -- Just so that we can guarantee at least one frame of switching indicator
+
+	local previousEntityListDrawsByTile = state.entityListDrawsByTile or {}
+	state.entityListDrawsByTile = nil
+	local entityListDrawsByTile = {}
+	local entitiesToDraw = {}
+
+	for x, column in pairs(state.tileEntityLists) do
+		for y, listSet in pairs(column) do
+			local list = listSet.all
+			local prevEntity = previousEntityListDrawsByTile[x] and previousEntityListDrawsByTile[x][y]
+			if #list > 0 then
+				local prevEntityIndex
+				for i, entity in ipairs(list) do
+					if entity == prevEntity then
+						prevEntityIndex = i
+						break
+					end
+				end
+
+				local currentIndex
+				if prevEntityIndex then
+					if incrementEntityDisplays then
+						currentIndex = prevEntityIndex + 1
+						currentIndex = (currentIndex - 1) % #list + 1
+					else
+						currentIndex = prevEntityIndex
+					end
+				else
+					currentIndex = 1
+				end
+				local entityToDraw = list[currentIndex]
+
+				entityListDrawsByTile[x] = entityListDrawsByTile[x] or {}
+				entityListDrawsByTile[x][y] = entityToDraw
+				entitiesToDraw[#entitiesToDraw+1] = entityToDraw
+			end
+		end
+	end
+
+	state.entitiesToDraw = entitiesToDraw
+	state.entityListDrawsByTile = entityListDrawsByTile
 end
 
 return game

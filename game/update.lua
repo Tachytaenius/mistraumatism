@@ -13,31 +13,36 @@ function game:isPlayerInControl()
 end
 
 function game:realtimeUpdate(dt)
-	if not self.state.player or self.state.player.dead then
-		self:setCursor()
-	end
+	local function inner()
+		if not self.state.player or self.state.player.dead then
+			self:setCursor()
+		end
 
-	if not self.state.player then
-		return
-	end
-
-	if self:isPlayerInControl() then
-		self:updateCursor()
-		self.updateTimer = 0
-		local result = self:getPlayerInput()
-		if result and result.wait then
-			self.state.waiting = true
-		else
+		if not self.state.player then
 			return
 		end
-	end
 
-	self.updateTimer = self.updateTimer + dt
-	if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
-		self.updateTimer = 0
-		self:update()
-		self:autoUpdateCursorEntity()
+		if self:isPlayerInControl() then
+			self:updateCursor()
+			self.updateTimer = 0
+			local result = self:getPlayerInput()
+			if result and result.wait then
+				self.state.waiting = true
+			else
+				return
+			end
+		end
+
+		self.updateTimer = self.updateTimer + dt
+		if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
+			self.updateTimer = 0
+			self:update()
+			self:autoUpdateCursorEntity()
+		end
 	end
+	inner() -- Didn't want to refactor around the returns
+	self:updateEntitiesToDraw(dt)
+	self.realTime = self.realTime + dt
 end
 
 function game:getPlayerInput()
@@ -78,6 +83,9 @@ function game:update()
 	if state.player then
 		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = state.player.x, state.player.y, state.player.creatureType.sightDistance
 	end
+
+	self.state.previousTileEntityLists, self.state.tileEntityLists = self.state.tileEntityLists, nil
+	self.state.tileEntityLists = self:getTileEntityLists()
 
 	state.tick = state.tick + 1
 end

@@ -259,8 +259,26 @@ function game:draw() -- After this function completes, the result is in currentF
 		end
 		drawCharacterWorldToViewport(destX, destY, character, colour, "black")
 	end
+	local function shouldReplaceWithSwitchIndicator(entity)
+		local x, y = entity.x, entity.y
+		if state.tileEntityLists[x] and state.tileEntityLists[x][y] then
+			if #state.tileEntityLists[x][y].all <= 1 then
+				return false
+			end
+		end
+		if state.incrementingEntityDisplays then
+			return true
+		end
+		if state.incrementEntityDisplaysTimerLength - state.incrementEntityDisplaysTimer < state.incrementEntityDisplaysSwitchIndicatorTime then
+			return true
+		end
+	end
 	local drawnEntities = {}
-	for _, entity in ipairs(state.entities) do
+	for _, entity in ipairs(state.entitiesToDraw) do
+		if shouldReplaceWithSwitchIndicator(entity) then
+			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, "&", "red", "black")
+			goto continue
+		end
 		if entity.entityType == "creature" then
 			local background = entity.dead and (entity.creatureType.bloodMaterialName and state.materials[entity.creatureType.bloodMaterialName].colour or "darkRed") or "black"
 			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
@@ -271,8 +289,12 @@ function game:draw() -- After this function completes, the result is in currentF
 			local background = "black"
 			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.itemData.itemType.tile, state.materials[entity.itemData.material].colour, background)
 		end
+	    ::continue::
 	end
-	for _, entity in ipairs(state.entities) do
+	for _, entity in ipairs(state.entitiesToDraw) do
+		if shouldReplaceWithSwitchIndicator(entity) then
+			-- goto continue
+		end
 		if entity.entityType ~= "creature" then
 			goto continue
 		end
@@ -579,12 +601,7 @@ function game:draw() -- After this function completes, the result is in currentF
 					drawCharacterFramebuffer(x, y, character, colour, "black")
 				end
 
-				for i, entity in ipairs(entityList) do
-					if entity == selectedEntity then
-						selectedEntityIndex = i
-						break
-					end
-				end
+				selectedEntityIndex = self:getSelectedEntityListIndex()
 				assert(selectedEntityIndex, "Selected cursor entity is not in the list of currently selectable entities")
 
 				drawCharacterFramebuffer(statusX + 5, statusY + yShift + 3, "►", state.cursor.lockedOn and "cyan" or "yellow", "black")
@@ -614,7 +631,7 @@ function game:draw() -- After this function completes, the result is in currentF
 			local str = material.displayName .. "∙" .. largestSpatter.amount
 			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, str, "lightGrey", "black")
 			if #tile.spatter > 1 then
-				drawCharacterFramebuffer(statusX + statusWidth - 2, statusY + yShift + 4, "+", "white", "black")
+				drawCharacterFramebuffer(statusX + statusWidth - 2, statusY + yShift + 4, "+", "lightGrey", "black")
 			end
 		else
 			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, "No spatter", "lightGrey", "black")
