@@ -151,6 +151,11 @@ function game:updateEntitiesAndProjectiles()
 		entity.dead = true
 		entity.deathTick = state.tick
 		entity.actions = {}
+		if entity.inventory then
+			for i = 1, #entity.inventory do
+				self:dropItemFromSlot(entity, i, entity.x, entity.y)
+			end
+		end
 		-- entitiesToRemove[entity] = true
 	end
 	local function flushEntityRemoval()
