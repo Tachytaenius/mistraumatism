@@ -21,7 +21,11 @@ function game:announceDamages()
 			elseif entity == player then
 				self:announce("The " .. self:getEntityDisplayName(sourceEntity) .. " hits you for " .. damage .. " damage!", "red")
 			elseif sourceEntity == player then
-				self:announce("You hit the " .. self:getEntityDisplayName(entity) .. " for " .. damage .. " damage.", "cyan")
+				if not entity.dead or entity.deathTick == self.state.tick then
+					self:announce("You hit the " .. self:getEntityDisplayName(entity) .. " for " .. damage .. " damage.", "cyan")
+				else
+					self:announce("You hit the dead " .. self:getEntityDisplayName(entity) .. " for " .. damage .. " damage.", "darkGrey")
+				end
 			end
 		end
 	end

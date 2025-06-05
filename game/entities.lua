@@ -149,6 +149,7 @@ function game:updateEntitiesAndProjectiles()
 	local entitiesToRemove = {}
 	local function kill(entity)
 		entity.dead = true
+		entity.deathTick = state.tick
 		entity.actions = {}
 		-- entitiesToRemove[entity] = true
 	end
@@ -379,7 +380,7 @@ function game:damageEntity(entity, damage, sourceEntity)
 
 	local state = self.state
 	entity.health = entity.health - damage
-	entity.blood = entity.blood - damage
+	entity.blood = math.max(0, entity.blood - damage)
 
 	-- Record
 

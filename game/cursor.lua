@@ -42,9 +42,9 @@ function game:cursorCanSelectEntity(entity, checkPosition, dontCheckAnythingButP
 		if not self:entityCanSeeEntity(state.player, entity) then
 			return false
 		end
-		if entity.dead then
-			return false
-		end
+		-- if entity.dead then
+		-- 	return false
+		-- end
 	end
 	if checkPosition and (not state.cursor or not (state.cursor.x == entity.x and state.cursor.y == entity.y)) then
 		return false

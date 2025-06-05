@@ -52,7 +52,7 @@ function game:updateProjectiles()
 				end
 			end
 			if not hitEntity then
-				local randomIndex = projectile.entityHitRandomSeed and (projectile.entityHitRandomSeed % (#potentialHits - 1) + 1) or love.math.random(#potentialHits)
+				local randomIndex = projectile.entityHitRandomSeed and (projectile.entityHitRandomSeed % #potentialHits + 1) or love.math.random(#potentialHits)
 				hitEntity = potentialHits[randomIndex]
 			end
 			local damage = projectile.damage

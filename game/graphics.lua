@@ -416,6 +416,9 @@ function game:draw() -- After this function completes, the result is in currentF
 			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.creatureType.tile, entity.creatureType.colour, "black")
 			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
 			local healthInfo = entity.health .. "H"
+			if entity.dead then
+				healthInfo = "Dead"
+			end
 			if entity.blood then
 				healthInfo = healthInfo .. "∙" .. entity.blood .. "B"
 			end
