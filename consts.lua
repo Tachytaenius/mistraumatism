@@ -81,4 +81,6 @@ consts.spreadRetargetDistance = 128
 consts.initialKeyRepeatTimerLength = 0.2
 consts.keyRepeatTimerLength = 0.05
 
+consts.entityPathfindingOccupiedCostMultiplier = 16
+
 return consts

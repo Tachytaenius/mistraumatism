@@ -1,10 +1,14 @@
 local pathfind = require("lib.batteries.pathfind")
 
+local consts = require("consts")
+
 local game = {}
 
 -- self is game instance
 
 local function chaseTargetEntity(self, entity)
+	local state = self.state
+
 	local targetLocationX, targetLocationY, dontWalkInto
 	if entity.targetEntity then
 		targetLocationX, targetLocationY = entity.targetEntity.x, entity.targetEntity.y
@@ -15,6 +19,13 @@ local function chaseTargetEntity(self, entity)
 		local startTile = self:getTile(entity.x, entity.y)
 		local endTile = self:getTile(targetLocationX, targetLocationY)
 		if startTile and endTile then
+			local function tileHasEntity(tile)
+				local list = state.tileEntityLists[tile.x] and state.tileEntityLists[tile.x][tile.y] and state.tileEntityLists[tile.x][tile.y].all
+				if list and #list > 0 then
+					return true
+				end
+				return false
+			end
 			local result = pathfind({
 				start = startTile,
 				goal = function(tile)
@@ -24,7 +35,11 @@ local function chaseTargetEntity(self, entity)
 					return self:getWalkableNeighbourTiles(tile.x, tile.y)
 				end,
 				distance = function(tileA, tileB)
-					return self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
+					local cost = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
+					if tileHasEntity(tileA) or tileHasEntity(tileB) then
+						cost = cost * consts.entityPathfindingOccupiedCostMultiplier
+					end
+					return cost
 				end
 			})
 			if result then
