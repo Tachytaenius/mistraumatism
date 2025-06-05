@@ -122,6 +122,7 @@ function game:shootGun(entity, action, gun, targetEntity)
 		gun.shotCooldownTimer = gunType.shotCooldownTimerLength
 		local roundType = gun.chamberedRound.itemType
 		local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
+		local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single shotgun blast
 		for _=1, roundType.bulletCount or 1 do
 			local spread = (roundType.spread or 0) + (gunType.extraSpread or 0)
 			spread = spread ~= 0 and spread or nil
@@ -134,6 +135,7 @@ function game:shootGun(entity, action, gun, targetEntity)
 				subtickMoveTimerLength = roundType.projectileSubtickMoveTimerLength,
 				damage = roundType.damage + (gunType.extraDamage or 0),
 				range = roundType.range,
+				entityHitRandomSeed = entityHitRandomSeed,
 
 				aimX = aimX,
 				aimY = aimY,
