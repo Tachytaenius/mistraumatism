@@ -78,25 +78,57 @@ function game:loadActionTypes()
 	end
 
 	local shoot = newActionType("shoot", "shoot")
-	function shoot.construct(self, entity, targetX, targetY, targetEntity)
+	function shoot.construct(self, entity, targetX, targetY, targetEntity, shotType, abilityName)
 		local new = {type = "shoot"}
 		new.relativeX = targetX - entity.x
 		new.relativeY = targetY - entity.y
-		new.timer = 1
+		local ability
+		if shotType == "ability" then
+			if entity.creatureType.projectileAbilities then
+				for _, v in ipairs(entity.creatureType.projectileAbilities) do
+					if v.name == abilityName then
+						ability = v
+						break
+					end
+				end
+			end
+		end
+		new.timer = ability and ability.shootTime or 1
 		new.targetEntity = targetEntity
+		new.shotType = shotType
+		new.abilityName = abilityName
 		return new
 	end
 	function shoot.process(self, entity, action)
-		if not (self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun) then
-			action.doneType = "cancelled"
-		else
-			action.timer = action.timer - 1
-			if action.timer <= 0 then
-				action.doneType = "completed"
-				local targetEntity
-				if action.targetEntity and action.relativeX + entity.x == action.targetEntity.x and action.relativeY + entity.y == action.targetEntity.y then
-					targetEntity = action.targetEntity
+		if action.shotType == "heldItem" then
+			if not (self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun) then
+				action.doneType = "cancelled"
+				return
+			end
+		end
+
+		local ability
+		if action.shotType == "ability" then
+			if entity.creatureType.projectileAbilities then
+				for _, v in ipairs(entity.creatureType.projectileAbilities) do
+					if v.name == action.abilityName then
+						ability = v
+						break
+					end
 				end
+			end
+		end
+
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			action.doneType = "completed"
+			local targetEntity
+			if action.targetEntity and action.relativeX + entity.x == action.targetEntity.x and action.relativeY + entity.y == action.targetEntity.y then
+				targetEntity = action.targetEntity
+			end
+			if ability then
+				self:abilityShoot(entity, action, ability, targetEntity)
+			else
 				self:shootGun(entity, action, self:getHeldItem(entity), targetEntity)
 			end
 		end

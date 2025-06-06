@@ -1,5 +1,7 @@
 local util = require("util")
 
+local consts = require("consts")
+
 local game = {}
 
 function game:getMovementAction(entity)
@@ -53,6 +55,7 @@ function game:loadCreatureTypes()
 		maxBlood = 7,
 		meleeTimerLength = 8,
 		meleeDamage = 2,
+		shootAggressiveness = 0.5,
 
 		inventorySize = 2
 	}
@@ -68,7 +71,31 @@ function game:loadCreatureTypes()
 		maxHealth = 10,
 		maxBlood = 5,
 		meleeTimerLength = 1,
-		meleeDamage = 1
+		meleeDamage = 1,
+		shootAggressiveness = 0.85,
+
+		projectileAbilities = {
+			{
+				name = "acidSingle",
+				shootTime = 10,
+				projectileTile = "•",
+				projectileColour = "green",
+				projectileSubtickMoveTimerLength = 256,
+				damage = 6,
+				range = 5
+			},
+			{
+				name = "acidSpread",
+				shootTime = 6,
+				shotCount = 3,
+				spread = consts.tau / 8,
+				projectileTile = "•",
+				projectileColour = "darkGreen",
+				projectileSubtickMoveTimerLength = 768,
+				damage = 2,
+				range = 5
+			}
+		}
 	}
 end
 
@@ -510,6 +537,32 @@ function game:updateEntitiesToDraw(dt)
 
 	state.entitiesToDraw = entitiesToDraw
 	state.entityListDrawsByTile = entityListDrawsByTile
+end
+
+function game:abilityShoot(entity, action, ability, targetEntity)
+	local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
+	local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single spread
+	for _=1, ability.shotCount or 1 do
+		local spread = ability.spread or 0
+		spread = spread ~= 0 and spread or nil
+		self:newProjectile({
+			shooter = entity,
+			startX = entity.x,
+			startY = entity.y,
+			tile = ability.projectileTile,
+			colour = ability.projectileColour,
+			subtickMoveTimerLength = ability.projectileSubtickMoveTimerLength,
+			damage = ability.damage,
+			range = ability.range,
+			entityHitRandomSeed = entityHitRandomSeed,
+
+			aimX = aimX,
+			aimY = aimY,
+			bulletSpread = spread,
+
+			targetEntity = targetEntity -- Can be nil
+		})
+	end
 end
 
 return game

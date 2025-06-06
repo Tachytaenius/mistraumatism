@@ -19,10 +19,14 @@ local function chaseTargetEntity(self, entity)
 		local startTile = self:getTile(entity.x, entity.y)
 		local endTile = self:getTile(targetLocationX, targetLocationY)
 		if startTile and endTile then
-			local function tileHasEntity(tile)
+			local function tileHasEntityToAvoid(tile)
 				local list = state.tileEntityLists[tile.x] and state.tileEntityLists[tile.x][tile.y] and state.tileEntityLists[tile.x][tile.y].all
-				if list and #list > 0 then
-					return true
+				if list then
+					for _, entity in ipairs(list) do
+						if entity.entityType == "creature" and not entity.dead then
+							return true
+						end
+					end
 				end
 				return false
 			end
@@ -36,7 +40,7 @@ local function chaseTargetEntity(self, entity)
 				end,
 				distance = function(tileA, tileB)
 					local cost = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
-					if tileHasEntity(tileA) or tileHasEntity(tileB) then
+					if tileHasEntityToAvoid(tileA) or tileHasEntityToAvoid(tileB) then
 						cost = cost * consts.entityPathfindingOccupiedCostMultiplier
 					end
 					return cost
@@ -55,16 +59,16 @@ local function chaseTargetEntity(self, entity)
 	end
 end
 
--- local function tryShootTargetEntity(self, entity)
--- 	local targetEntity = entity.targetEntity
--- 	if not targetEntity then
--- 		return
--- 	end
--- 	if not self:entityCanSeeEntity(entity, targetEntity) then
--- 		return
--- 	end
--- 	return self.state.actionTypes.shoot.construct(self, entity, targetEntity.x, targetEntity.y, targetEntity)
--- end
+local function tryShootTargetEntity(self, entity, shotType, abilityName)
+	local targetEntity = entity.targetEntity
+	if not targetEntity then
+		return
+	end
+	if not self:entityCanSeeEntity(entity, targetEntity) then
+		return
+	end
+	return self.state.actionTypes.shoot.construct(self, entity, targetEntity.x, targetEntity.y, targetEntity, shotType, abilityName)
+end
 
 local function tryMeleeTargetEntity(self, entity)
 	local targetEntity = entity.targetEntity
@@ -95,11 +99,32 @@ function game:getAIActions(entity)
 
 	if entity.targetEntity and self:entityCanSeeEntity(entity, entity.targetEntity) then
 		local fightAction
-		-- if self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun then
-		-- 	if self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y) <= self:getHeldItem(entity).itemType.range then
-		-- 		fightAction = tryShootTargetEntity(self, entity)
-		-- 	end
-		-- end
+		local shootType = self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun and "gun" or entity.creatureType.projectileAbilities and #entity.creatureType.projectileAbilities > 0 and "ability" or nil
+		-- Random chance (per tick) to not choose to shoot
+		if love.math.random() >= (entity.creatureType.shootAggressiveness or 1) then
+			shootType = nil
+		end
+		if shootType then
+			local range
+			local distance = self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y)
+			if shootType == "gun" then
+				range = self:getHeldItem(entity).itemType.range
+				if distance <= range then
+					fightAction = tryShootTargetEntity(self, entity, "heldItem")
+				end
+			elseif shootType == "ability" then
+				local choosableAbilities = {}
+				for _, ability in ipairs(entity.creatureType.projectileAbilities) do
+					if distance <= ability.range then
+						choosableAbilities[#choosableAbilities+1] = ability
+					end
+				end
+				if #choosableAbilities > 0 then
+					local chosenAbility = choosableAbilities[love.math.random(#choosableAbilities)]
+					fightAction = tryShootTargetEntity(self, entity, "ability", chosenAbility.name)
+				end
+			end
+		end
 		if not fightAction and entity.creatureType.meleeDamage then
 			if math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1 then -- In range
 				fightAction = tryMeleeTargetEntity(self, entity)
