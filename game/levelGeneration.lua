@@ -36,13 +36,34 @@ function game:placeCrate(x, y, w, h, material)
 	self.state.nextAutotileGroup = self.state.nextAutotileGroup + 1
 end
 
-function game:carveRectangleRoom(x, y, w, h, material)
+function game:carveRectangleRoom(x, y, w, h, material, floorMaterial)
 	if not self:isRectangleType(x, y, w, h, "wall") then
 		self:logError("Tried to carve a room but it wasn't all wall")
 		return
 	end
 	self:placeRectangle(x, y, w, h, "wall", material)
-	self:placeRectangle(x + 1, y + 1, w - 2, h - 2, "floor", material)
+	self:placeRectangle(x + 1, y + 1, w - 2, h - 2, "floor", floorMaterial or material)
+end
+
+function game:placeItem(x, y, itemTypeName, material)
+	self:newItemEntity(x, y, self:newItemData({
+		itemTypeName = itemTypeName,
+		material = material
+	}))
+end
+
+function game:randomSpatterRectangleDistribute(x, y, w, h, material, amount)
+	for _=1, amount do
+		self:addSpatter(love.math.random(x, x + w - 1), love.math.random(y, y + h - 1), material, 1)
+	end
+end
+
+function game:randomSpatterRectangleChoose(x, y, w, h, material, maxAmount)
+	for x = x, x + w - 1 do
+		for y = y, y + h - 1 do
+			self:addSpatter(x, y, material, love.math.random(0, maxAmount))
+		end
+	end
 end
 
 function game:generateLevel(parameters)
@@ -63,54 +84,24 @@ function game:generateLevel(parameters)
 		end
 	end
 
-	self:carveRectangleRoom(20, 30, 20, 26, "stone")
-	self:placeCrate(24, 35, 3, 3, "crateBrown")
-	self:placeCrate(27, 34, 5, 5, "crateYellow")
+	local spawnX, spawnY = 34, 34
+	self:carveRectangleRoom(30, 30, 9, 9, "labTiles", "concrete")
+	self:randomSpatterRectangleDistribute(30, 30, 9, 9, "bloodRed", 32)
 
-	self:newCreatureEntity({
-		creatureTypeName = "zombie",
-		team = "monster",
-		x = 30, y = 40
-	})
-	self:newCreatureEntity({
-		creatureTypeName = "slug",
-		team = "monster",
-		x = 28, y = 40
-	})
+	self:placeItem(32, 32, "labTable", "steel")
+	self:placeItem(32, 33, "labTable", "steel")
+	self:placeItem(32, 35, "labTable", "steel")
+	self:placeItem(32, 36, "labTable", "steel")
 
-	self:newItemEntity(24, 31, self:newItemData({
-		itemTypeName = "pumpShotgun", material = "steel",
-		cocked = false,
-		chamberedRound = nil,
-		magazineData = {}
-	}))
-	for _=1, 40 do
-		self:newItemEntity(25, 31, self:newItemData({
-			itemTypeName = "shotgunShell", material = "plasticRed"
-		}))
-	end
-	local pistolMagMagazineData = {}
-	for i = 1, self.state.itemTypes.pistolMagazine.magazineCapacity do
-		pistolMagMagazineData[i] = self:newItemData({
-			itemTypeName = "smallBullet", material = "brass"
-		})
-	end
-	self:newItemEntity(23, 32, self:newItemData({
-		itemTypeName = "pistolMagazine", material = "steel",
-		magazineData = pistolMagMagazineData
-	}))
-	for _=1, 40 do
-		self:newItemEntity(24, 32, self:newItemData({
-			itemTypeName = "smallBullet", material = "brass"
-		}))
-	end
-	self:newItemEntity(25, 32, self:newItemData({
-		itemTypeName = "pistol", material = "steel",
-		cocked = false,
-		chamberedRound = nil
-	}))
+	self:placeItem(34, 32, "labTable", "steel")
+	self:placeItem(34, 33, "labTable", "steel")
+	self:placeItem(34, 35, "labTable", "steel")
+	self:placeItem(34, 36, "labTable", "steel")
 
-	local spawnX, spawnY = 22, 32
+	self:placeItem(36, 32, "labTable", "steel")
+	self:placeItem(36, 33, "labTable", "steel")
+	self:placeItem(36, 35, "labTable", "steel")
+	self:placeItem(36, 36, "labTable", "steel")
 
 	return {
 		spawnX = spawnX,

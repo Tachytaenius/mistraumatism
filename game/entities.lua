@@ -35,8 +35,8 @@ function game:loadCreatureTypes()
 
 		moveTimerLength = 6,
 		sightDistance = 17,
-		maxHealth = 14,
-		maxBlood = 14,
+		maxHealth = 16,
+		maxBlood = 16,
 		meleeTimerLength = 5,
 		meleeDamage = 5,
 
@@ -51,8 +51,8 @@ function game:loadCreatureTypes()
 
 		moveTimerLength = 12,
 		sightDistance = 10,
-		maxHealth = 6,
-		maxBlood = 7,
+		maxHealth = 10,
+		maxBlood = 12,
 		meleeTimerLength = 8,
 		meleeDamage = 2,
 		shootAggressiveness = 0.5,
@@ -68,8 +68,8 @@ function game:loadCreatureTypes()
 
 		moveTimerLength = 16,
 		sightDistance = 6,
-		maxHealth = 10,
-		maxBlood = 5,
+		maxHealth = 20,
+		maxBlood = 10,
 		meleeTimerLength = 1,
 		meleeDamage = 1,
 		shootAggressiveness = 0.85,
@@ -94,6 +94,60 @@ function game:loadCreatureTypes()
 				projectileSubtickMoveTimerLength = 768,
 				damage = 2,
 				range = 5
+			}
+		}
+	}
+
+	creatureTypes.imp = {
+		displayName = "imp",
+		tile = "I",
+		colour = "darkYellow",
+		bloodMaterialName = "bloodRed",
+
+		moveTimerLength = 4,
+		sightDistance = 15,
+		maxHealth = 24,
+		maxBlood = 24,
+		meleeTimerLength = 4,
+		meleeDamage = 4,
+		shootAggressiveness = 0.5,
+
+		projectileAbilities = {
+			{
+				name = "fireball",
+				shootTime = 6,
+				projectileTile = "☼",
+				projectileColour = "yellow",
+				projectileSubtickMoveTimerLength = 128,
+				damage = 4,
+				range = 12
+			}
+		}
+	}
+
+	creatureTypes.hellNoble = {
+		displayName = "Hell noble",
+		tile = "N",
+		colour = "darkRed",
+		bloodMaterialName = "bloodGreen",
+
+		moveTimerLength = 5,
+		sightDistance = 12,
+		maxHealth = 100,
+		maxBlood = 100,
+		meleeTimerLength = 5,
+		meleeDamage = 15,
+		shootAggressiveness = 0.2,
+
+		projectileAbilities = {
+			{
+				name = "fireball",
+				shootTime = 12,
+				projectileTile = "☼",
+				projectileColour = "green",
+				projectileSubtickMoveTimerLength = 64,
+				damage = 10,
+				range = 20
 			}
 		}
 	}

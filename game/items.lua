@@ -70,6 +70,12 @@ function game:loadItemTypes()
 		projectileSubtickMoveTimerLength = 20,
 		range = 16
 	}
+
+	itemTypes.labTable = {
+		noPickUp = true,
+		tile = "╥",
+		displayName = "lab table"
+	}
 end
 
 local uncopiedParameters = util.arrayToSet({

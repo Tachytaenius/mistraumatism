@@ -56,6 +56,9 @@ function game:getWalkableNeighbourTiles(x, y)
 end
 
 function game:addSpatter(x, y, materialName, amount)
+	if amount == 0 then
+		return
+	end
 	local tile = self:getTile(x, y)
 	if not tile then
 		return
