@@ -109,6 +109,10 @@ function game:generateLevel(parameters)
 	end
 
 	local spawnX, spawnY = 43, 34
+	for _=1, 5 do
+		self:placeItem(45, 34, "shotgunShell", "plasticRed")
+	end
+	self:placeItem(45, 33, "pumpShotgun", "steel")
 	self:carveRectangleRoom(30, 30, 9, 9, "labTiles", "concrete")
 	self:carveRectangleRoom(40, 31, 7, 7, "labTiles", "concrete")
 	self:carveRectangleRoom(38, 33, 3, 3, "labTiles", "concrete")
@@ -133,8 +137,6 @@ function game:generateLevel(parameters)
 	self:placeItem(36, 36, "labTable", "steel")
 
 	self:placeMonster(34, 34, "imp")
-	self:placeMonster(34, 33, "imp")
-	self:placeMonster(34, 35, "imp")
 
 	return {
 		spawnX = spawnX,

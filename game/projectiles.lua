@@ -1,16 +1,6 @@
 local consts = require("consts")
 local util = require("util")
 
-local function progressTimeWithTimer(curTime, timer, age)
-	local usableTime = consts.projectileSubticks - curTime
-	local timer2 = math.max(timer - usableTime, 0) -- use usableTime to progress/increase timer, stopping at 0
-	local usableTime2 = usableTime - (timer - timer2) -- get new used usable time using change in timer
-	local timeUsed = usableTime - usableTime2
-	local curTime2 = curTime + timeUsed
-	local age2 = age + timeUsed
-	return curTime2, timer2, age2
-end
-
 local game = {}
 
 function game:tileBlocksAirMotion(x, y)
@@ -63,7 +53,7 @@ function game:updateProjectiles()
 				hitEntity = potentialHits[randomIndex]
 			end
 			local damage = projectile.damage
-			self:damageEntity(hitEntity, damage, projectile.shooter)
+			self:damageEntity(hitEntity, damage, projectile.shooter, projectile.bleedRateAdd, projectile.instantBloodLoss)
 			return true
 		end
 		if checkForEntityHit() then -- Initial check before moving in case something walked into it
@@ -75,7 +65,7 @@ function game:updateProjectiles()
 					projectilesToStop[projectile] = true
 					break
 				else
-					currentTime, projectile.moveTimer, projectile.subtickAge = progressTimeWithTimer(currentTime, projectile.moveTimer, projectile.subtickAge)
+					currentTime, projectile.moveTimer, projectile.subtickAge = util.progressSubtickTimeAndTimer(currentTime, projectile.moveTimer, projectile.subtickAge, consts.projectileSubticks)
 					if projectile.moveTimer <= 0 then
 						local startX, startY = projectile.startX, projectile.startY
 						local endX, endY = projectile.targetX, projectile.targetY

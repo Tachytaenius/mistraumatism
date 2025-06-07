@@ -83,4 +83,8 @@ consts.keyRepeatTimerLength = 0.05
 
 consts.entityPathfindingOccupiedCostMultiplier = 16
 
+consts.bleedTimerLength = 1024
+consts.bleedHealTimerLength = 256
+consts.maxBleedingAmount = 900
+
 return consts

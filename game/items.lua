@@ -40,6 +40,8 @@ function game:loadItemTypes()
 		displayName = "small bullet",
 		spread = 0,
 		damage = 12,
+		bleedRateAdd = 10,
+		instantBloodLoss = 2,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 18,
 		range = 17
@@ -67,6 +69,8 @@ function game:loadItemTypes()
 		spread = 0.1,
 		damage = 3,
 		bulletCount = 9,
+		bleedRateAdd = 4,
+		instantBloodLoss = 1,
 		projectileSubtickMoveTimerLength = 20,
 		range = 16
 	}
@@ -161,6 +165,8 @@ function game:shootGun(entity, action, gun, targetEntity)
 				colour = "darkGrey",
 				subtickMoveTimerLength = roundType.projectileSubtickMoveTimerLength,
 				damage = roundType.damage + (gunType.extraDamage or 0),
+				bleedRateAdd = roundType.bleedRateAdd,
+				instantBloodLoss = roundType.instantBloodLoss,
 				range = roundType.range,
 				entityHitRandomSeed = entityHitRandomSeed,
 

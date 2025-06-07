@@ -37,8 +37,10 @@ function game:loadCreatureTypes()
 		sightDistance = 17,
 		maxHealth = 16,
 		maxBlood = 16,
+		bleedHealRate = 16,
 		meleeTimerLength = 5,
 		meleeDamage = 5,
+		meleeBleedRateAdd = 4,
 
 		canOpenDoors = true,
 		inventorySize = 9
@@ -56,6 +58,7 @@ function game:loadCreatureTypes()
 		maxBlood = 12,
 		meleeTimerLength = 8,
 		meleeDamage = 2,
+		meleeBleedRateAdd = 3,
 		shootAggressiveness = 0.5,
 
 		inventorySize = 2
@@ -71,8 +74,10 @@ function game:loadCreatureTypes()
 		sightDistance = 6,
 		maxHealth = 20,
 		maxBlood = 10,
+		bleedHealRate = 64,
 		meleeTimerLength = 1,
 		meleeDamage = 1,
+		meleeBleedRateAdd = 5,
 		shootAggressiveness = 0.85,
 
 		projectileAbilities = {
@@ -83,6 +88,7 @@ function game:loadCreatureTypes()
 				projectileColour = "green",
 				projectileSubtickMoveTimerLength = 256,
 				damage = 6,
+				bleedRateAdd = 15,
 				range = 5
 			},
 			{
@@ -94,6 +100,7 @@ function game:loadCreatureTypes()
 				projectileColour = "darkGreen",
 				projectileSubtickMoveTimerLength = 768,
 				damage = 2,
+				bleedRateAdd = 5,
 				range = 5
 			}
 		}
@@ -109,9 +116,12 @@ function game:loadCreatureTypes()
 		sightDistance = 15,
 		maxHealth = 24,
 		maxBlood = 24,
+		bleedHealRate = 32,
 		meleeTimerLength = 4,
 		meleeDamage = 4,
-		shootAggressiveness = 1,
+		meleeBleedRateAdd = 16,
+		meleeInstantBloodLoss = 1,
+		shootAggressiveness = 0.25,
 
 		canOpenDoors = true,
 
@@ -123,6 +133,7 @@ function game:loadCreatureTypes()
 				projectileColour = "yellow",
 				projectileSubtickMoveTimerLength = 128,
 				damage = 4,
+				bleedRateAdd = 4,
 				range = 12
 			}
 		}
@@ -138,8 +149,11 @@ function game:loadCreatureTypes()
 		sightDistance = 12,
 		maxHealth = 100,
 		maxBlood = 100,
+		bleedHealRate = 32,
 		meleeTimerLength = 5,
 		meleeDamage = 15,
+		meleeBleedRateAdd = 64,
+		meleeInstantBloodLoss = 5,
 		shootAggressiveness = 0.2,
 
 		canOpenDoors = true,
@@ -152,6 +166,7 @@ function game:loadCreatureTypes()
 				projectileColour = "green",
 				projectileSubtickMoveTimerLength = 64,
 				damage = 10,
+				bleedRateAdd = 40,
 				range = 20
 			}
 		}
@@ -176,7 +191,12 @@ function game:newCreatureEntity(parameters)
 	new.creatureType = creatureType
 
 	new.health = creatureType.maxHealth
-	new.blood = creatureType.maxBlood
+	if creatureType.maxBlood then
+		new.blood = creatureType.maxBlood
+		new.bleedingAmount = 0
+		new.bleedTimer = 0
+		new.bleedHealTimer = 0
+	end
 	new.dead = false
 	new.actions = {}
 
@@ -382,6 +402,25 @@ function game:updateEntitiesAndProjectiles()
 			goto continue
 		end
 		if entity.blood then -- Bleed even if dead
+			-- Lose blood to bleeding
+			local bled = math.floor((entity.bleedTimer + entity.bleedingAmount) / consts.bleedTimerLength)
+			entity.bleedTimer = (entity.bleedTimer + entity.bleedingAmount) % consts.bleedTimerLength
+			entity.blood = math.max(0, entity.blood - bled)
+			if not entity.dead then
+				local healRate = (entity.creatureType.bleedHealRate or 0) -- The effect of bandages etc could go here
+				local healed
+				if healRate > 0 then
+					healed = math.floor((entity.bleedHealTimer + healRate) / consts.bleedHealTimerLength)
+					entity.bleedHealTimer = (entity.bleedHealTimer + healRate) % consts.bleedHealTimerLength
+				end
+				entity.bleedingAmount = math.max(0, entity.bleedingAmount - (healed or 0))
+
+				if entity.bleedingAmount <= 0 then
+					entity.bleedTimer = 0
+				end
+			end
+
+			-- Spatter blood lost this tick to the floor
 			local lossPerSpatter = 8
 			local sameTileSpatterThreshold = 4
 
@@ -495,12 +534,13 @@ function game:getEntityDisplayName(entity)
 	end
 end
 
-function game:damageEntity(entity, damage, sourceEntity)
+function game:damageEntity(entity, damage, sourceEntity, bleedRateAdd, instantBloodLoss)
 	-- Deal
 
 	local state = self.state
 	entity.health = entity.health - damage
-	entity.blood = math.max(0, entity.blood - damage)
+	entity.blood = math.max(0, entity.blood - (instantBloodLoss or 0))
+	entity.bleedingAmount = math.min(consts.maxBleedingAmount, entity.bleedingAmount + (bleedRateAdd or 0))
 
 	-- Record
 
@@ -641,6 +681,8 @@ function game:abilityShoot(entity, action, ability, targetEntity)
 			colour = ability.projectileColour,
 			subtickMoveTimerLength = ability.projectileSubtickMoveTimerLength,
 			damage = ability.damage,
+			bleedRateAdd = ability.bleedRateAdd,
+			instantBloodLoss = ability.instantBloodLoss,
 			range = ability.range,
 			entityHitRandomSeed = entityHitRandomSeed,
 

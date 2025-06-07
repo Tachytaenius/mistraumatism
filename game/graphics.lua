@@ -438,7 +438,7 @@ function game:draw() -- After this function completes, the result is in currentF
 				healthInfo = "Dead"
 			end
 			if entity.blood then
-				healthInfo = healthInfo .. "∙" .. entity.blood .. "B"
+				healthInfo = healthInfo .. "∙" .. entity.blood .. "B" .. "∙-" .. entity.bleedingAmount
 			end
 			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, healthInfo, "lightGrey", "black")
 			local actionInfo

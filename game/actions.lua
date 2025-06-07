@@ -167,7 +167,7 @@ function game:loadActionTypes()
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
 			if entity.creatureType.meleeDamage and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
-				self:damageEntity(action.targetEntity, entity.creatureType.meleeDamage, entity)
+				self:damageEntity(action.targetEntity, entity.creatureType.meleeDamage, entity, entity.creatureType.meleeBleedRateAdd, entity.creatureType.meleeInstantBloodLoss)
 				action.doneType = "completed"
 			else
 				action.doneType = "cancelled"
