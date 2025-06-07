@@ -581,6 +581,54 @@ function game:loadActionTypes()
 		end
 		return unload.construct(self, player, number)
 	end
+
+	local interact = newActionType("interact", "interact")
+	function interact.construct(self, entity, targetEntity, direction)
+		if not targetEntity then
+			return
+		end
+		if not (targetEntity.entityType == "item" and targetEntity.itemData.itemType.interactable) then
+			return
+		end
+		local new = {type = "interact"}
+		new.direction = direction
+		new.timer, new.interactionIntent = targetEntity.itemData.itemType.interactionType.startInfo(self, entity, targetEntity)
+		new.targetEntity = targetEntity
+		return new
+	end
+	function interact.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			local ox, oy = self:getDirectionOffset(action.direction)
+			local targetX, targetY = entity.x + ox, entity.y + oy
+			if action.targetEntity.x == targetX and action.targetEntity.y == targetY then
+				if action.targetEntity.itemData.itemType.interactionType then
+					action.targetEntity.itemData.itemType.interactionType.result(self, entity, action.targetEntity, action.interactionIntent)
+				end
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
+	function interact.fromInput(self, player)
+		if not commands.checkCommand("interact") then
+			return
+		end
+		local targetEntity = self:getCursorEntity()
+		if not targetEntity or targetEntity.entityType ~= "item" or not targetEntity.itemData.itemType.interactable then
+			return
+		end
+		local dx, dy = targetEntity.x - player.x, targetEntity.y - player.y
+		if math.abs(dx) > 1 or math.abs(dy) > 1 then
+			return
+		end
+		local direction = self:getDirection(dx, dy)
+		if not direction then
+			return
+		end
+		return interact.construct(self, player, targetEntity, direction)
+	end
 end
 
 return game

@@ -6,13 +6,17 @@ local game = {}
 
 -- self is game instance
 
-local function chaseTargetEntity(self, entity)
+local function chaseTargetEntityLastKnownPosition(self, entity)
 	local state = self.state
 
 	local targetLocationX, targetLocationY, dontWalkInto
 	if entity.targetEntity then
-		targetLocationX, targetLocationY = entity.targetEntity.x, entity.targetEntity.y
-		dontWalkInto = true
+		if self:entityCanSeeEntity(entity, entity.targetEntity) then
+			targetLocationX, targetLocationY = entity.targetEntity.x, entity.targetEntity.y
+			dontWalkInto = true
+		elseif entity.lastKnownTargetLocation then
+			targetLocationX, targetLocationY = entity.lastKnownTargetLocation.x, entity.lastKnownTargetLocation.y
+		end
 	end
 
 	if targetLocationX and targetLocationY then
@@ -30,13 +34,25 @@ local function chaseTargetEntity(self, entity)
 				end
 				return false
 			end
+			local function checkFunction(tileX, tileY)
+				local tile = self:getTile(tileX, tileY)
+				if not tile then
+					return false
+				end
+				if tile.doorData then
+					if not tile.doorData.open and not entity.creatureType.canOpenDoors then
+						return false
+					end
+				end
+				return self:getWalkable(tileX, tileY, true)
+			end
 			local result = pathfind({
 				start = startTile,
 				goal = function(tile)
 					return tile == endTile
 				end,
 				neighbours = function(tile)
-					return self:getWalkableNeighbourTiles(tile.x, tile.y)
+					return self:getCheckedNeighbourTiles(tile.x, tile.y, checkFunction)
 				end,
 				distance = function(tileA, tileB)
 					local cost = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
@@ -49,9 +65,13 @@ local function chaseTargetEntity(self, entity)
 			if result then
 				local nextTile = result[2]
 				if nextTile and not (dontWalkInto and nextTile.x == targetLocationX and nextTile.y == targetLocationY) then
-					local moveDirection = self:getDirection(nextTile.x - startTile.x, nextTile.y - startTile.y)
-					if moveDirection and moveDirection ~= "zero" then
-						return self.state.actionTypes.move.construct(self, entity, moveDirection)
+					local direction = self:getDirection(nextTile.x - startTile.x, nextTile.y - startTile.y)
+					if direction then
+						if nextTile.doorData and not nextTile.doorData.open then
+							return self.state.actionTypes.interact.construct(self, entity, nextTile.doorData.entity, direction)
+						elseif direction ~= "zero" then
+							return self.state.actionTypes.move.construct(self, entity, direction)
+						end
 					end
 				end
 			end
@@ -97,41 +117,44 @@ function game:getAIActions(entity)
 
 	local newAction
 
-	if entity.targetEntity and self:entityCanSeeEntity(entity, entity.targetEntity) then
+	if entity.targetEntity then
+		local canSee = self:entityCanSeeEntity(entity, entity.targetEntity)
 		local fightAction
-		local shootType = self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun and "gun" or entity.creatureType.projectileAbilities and #entity.creatureType.projectileAbilities > 0 and "ability" or nil
-		-- Random chance (per tick) to not choose to shoot
-		if love.math.random() >= (entity.creatureType.shootAggressiveness or 1) then
-			shootType = nil
-		end
-		if shootType then
-			local range
-			local distance = self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y)
-			if shootType == "gun" then
-				range = self:getHeldItem(entity).itemType.range
-				if distance <= range then
-					fightAction = tryShootTargetEntity(self, entity, "heldItem")
-				end
-			elseif shootType == "ability" then
-				local choosableAbilities = {}
-				for _, ability in ipairs(entity.creatureType.projectileAbilities) do
-					if distance <= ability.range then
-						choosableAbilities[#choosableAbilities+1] = ability
+		if canSee then
+			local shootType = self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun and "gun" or entity.creatureType.projectileAbilities and #entity.creatureType.projectileAbilities > 0 and "ability" or nil
+			-- Random chance (per tick) to not choose to shoot
+			if love.math.random() >= (entity.creatureType.shootAggressiveness or 1) then
+				shootType = nil
+			end
+			if shootType then
+				local range
+				local distance = self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y)
+				if shootType == "gun" then
+					range = self:getHeldItem(entity).itemType.range
+					if distance <= range then
+						fightAction = tryShootTargetEntity(self, entity, "heldItem")
+					end
+				elseif shootType == "ability" then
+					local choosableAbilities = {}
+					for _, ability in ipairs(entity.creatureType.projectileAbilities) do
+						if distance <= ability.range then
+							choosableAbilities[#choosableAbilities+1] = ability
+						end
+					end
+					if #choosableAbilities > 0 then
+						local chosenAbility = choosableAbilities[love.math.random(#choosableAbilities)]
+						fightAction = tryShootTargetEntity(self, entity, "ability", chosenAbility.name)
 					end
 				end
-				if #choosableAbilities > 0 then
-					local chosenAbility = choosableAbilities[love.math.random(#choosableAbilities)]
-					fightAction = tryShootTargetEntity(self, entity, "ability", chosenAbility.name)
-				end
 			end
-		end
-		if not fightAction and entity.creatureType.meleeDamage then
-			if math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1 then -- In range
-				fightAction = tryMeleeTargetEntity(self, entity)
+			if not fightAction and entity.creatureType.meleeDamage then
+				if math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1 then -- In range
+					fightAction = tryMeleeTargetEntity(self, entity)
+				end
 			end
 		end
 		if not fightAction then
-			fightAction = chaseTargetEntity(self, entity)
+			fightAction = chaseTargetEntityLastKnownPosition(self, entity)
 		end
 
 		if fightAction then

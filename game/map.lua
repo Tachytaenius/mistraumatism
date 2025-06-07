@@ -33,12 +33,20 @@ function game:getTile(x, y)
 	return column[y]
 end
 
-function game:getWalkable(x, y)
+function game:getWalkable(x, y, ignoreDoors)
 	local tile = self:getTile(x, y)
-	return tile and self.state.tileTypes[tile.type].solidity == "passable"
+	if not tile then
+		return false
+	end
+	if not ignoreDoors then
+		if tile.doorData and not tile.doorData.open then
+			return false
+		end
+	end
+	return self.state.tileTypes[tile.type].solidity == "passable"
 end
 
-function game:getWalkableNeighbourTiles(x, y)
+function game:getCheckedNeighbourTiles(x, y, checkFunction) -- Used to, for example, get all walkable neighbour tiles
 	local list = {}
 	for ox = -1, 1 do
 		for oy = -1, 1 do
@@ -46,7 +54,7 @@ function game:getWalkableNeighbourTiles(x, y)
 				goto continue
 			end
 			local tileX, tileY = x + ox, y + oy
-			if self:getWalkable(tileX, tileY) then
+			if checkFunction(x, y) then
 				list[#list+1] = self:getTile(tileX, tileY)
 			end
 		    ::continue::

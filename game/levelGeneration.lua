@@ -52,6 +52,30 @@ function game:placeItem(x, y, itemTypeName, material)
 	}))
 end
 
+function game:placeMonster(x, y, creatureTypeName)
+	self:newCreatureEntity({
+		creatureTypeName = creatureTypeName,
+		team = "monster",
+		x = x, y = y
+	})
+end
+
+function game:placeDoorItem(x, y, itemTypeName, material, open)
+	local tile = self:getTile(x, y)
+	if not tile then
+		return
+	end
+	if tile.doorItem then
+		return
+	end
+	local doorItem = self:newItemData({
+		itemTypeName = itemTypeName,
+		material = material
+	})
+	local doorEntity = self:newItemEntity(x, y, doorItem, {doorTile = tile})
+	tile.doorData = {entity = doorEntity, open = open}
+end
+
 function game:randomSpatterRectangleDistribute(x, y, w, h, material, amount)
 	for _=1, amount do
 		self:addSpatter(love.math.random(x, x + w - 1), love.math.random(y, y + h - 1), material, 1)
@@ -84,9 +108,14 @@ function game:generateLevel(parameters)
 		end
 	end
 
-	local spawnX, spawnY = 34, 34
+	local spawnX, spawnY = 43, 34
 	self:carveRectangleRoom(30, 30, 9, 9, "labTiles", "concrete")
+	self:carveRectangleRoom(40, 31, 7, 7, "labTiles", "concrete")
+	self:carveRectangleRoom(38, 33, 3, 3, "labTiles", "concrete")
+	self:placeRectangle(38, 34, 3, 1, "floor", "concrete")
 	self:randomSpatterRectangleDistribute(30, 30, 9, 9, "bloodRed", 32)
+
+	self:placeDoorItem(39, 34, "door", "steel", false)
 
 	self:placeItem(32, 32, "labTable", "steel")
 	self:placeItem(32, 33, "labTable", "steel")
@@ -102,6 +131,10 @@ function game:generateLevel(parameters)
 	self:placeItem(36, 33, "labTable", "steel")
 	self:placeItem(36, 35, "labTable", "steel")
 	self:placeItem(36, 36, "labTable", "steel")
+
+	self:placeMonster(34, 34, "imp")
+	self:placeMonster(34, 33, "imp")
+	self:placeMonster(34, 35, "imp")
 
 	return {
 		spawnX = spawnX,

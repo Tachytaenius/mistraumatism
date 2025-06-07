@@ -273,12 +273,29 @@ function game:draw() -- After this function completes, the result is in currentF
 			return true
 		end
 	end
-	local drawnEntities = {}
+	local entitiesToDrawVisible = {}
 	for _, entity in ipairs(state.entitiesToDraw) do
+		local viewportX = entity.x - topLeftX
+		local viewportY = entity.y - topLeftY
+		if
+			0 <= viewportX and viewportX < self.viewportWidth and
+			0 <= viewportY and viewportY < self.viewportHeight
+		then
+			local visibilityColumn = visibilityMap[viewportX]
+			if not (visibilityColumn and visibilityColumn[viewportY]) then
+				goto continue
+			end
+			entitiesToDrawVisible[#entitiesToDrawVisible+1] = entity
+		end
+	    ::continue::
+	end
+	local drawnEntities = {}
+	for _, entity in ipairs(entitiesToDrawVisible) do
 		if shouldReplaceWithSwitchIndicator(entity) then
 			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, "&", "red", "black")
 			goto continue
 		end
+
 		if entity.entityType == "creature" then
 			local background = entity.dead and (entity.creatureType.bloodMaterialName and state.materials[entity.creatureType.bloodMaterialName].colour or "darkRed") or "black"
 			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
@@ -287,14 +304,15 @@ function game:draw() -- After this function completes, the result is in currentF
 			end
 		else
 			local background = "black"
-			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.itemData.itemType.tile, state.materials[entity.itemData.material].colour, background)
+			local tile = entity.itemData.itemType.tile
+			if entity.doorTile and entity.doorTile.doorData.open then
+				tile = entity.itemData.itemType.openTile
+			end
+			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, tile, state.materials[entity.itemData.material].colour, background)
 		end
 	    ::continue::
 	end
-	for _, entity in ipairs(state.entitiesToDraw) do
-		if shouldReplaceWithSwitchIndicator(entity) then
-			-- goto continue
-		end
+	for _, entity in ipairs(entitiesToDrawVisible) do
 		if entity.entityType ~= "creature" then
 			goto continue
 		end

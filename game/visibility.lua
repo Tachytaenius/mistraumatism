@@ -8,6 +8,9 @@ function game:tileBlocksLight(x, y)
 	if not tile then
 		return true
 	end
+	if tile.doorData and not tile.doorData.open and not tile.doorData.entity.itemData.itemType.doorWindow then
+		return true
+	end
 	return self.state.tileTypes[tile.type].blocksLight
 end
 

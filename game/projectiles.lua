@@ -18,6 +18,9 @@ function game:tileBlocksAirMotion(x, y)
 	if not tile then
 		return true
 	end
+	if tile.doorData and not tile.doorData.open then
+		return true
+	end
 	return self.state.tileTypes[tile.type].solidity == "solid"
 end
 

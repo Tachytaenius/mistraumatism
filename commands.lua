@@ -32,6 +32,7 @@ local commandTypes = {
 	shoot = "pressed",
 	melee = "pressed",
 	useHeldItem = "pressed",
+	interact = "pressed",
 
 	scrollListBackwards = "repeat",
 	scrollListForwards = "repeat",

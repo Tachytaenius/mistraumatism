@@ -40,6 +40,7 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 5,
 		meleeDamage = 5,
 
+		canOpenDoors = true,
 		inventorySize = 9
 	}
 
@@ -112,6 +113,8 @@ function game:loadCreatureTypes()
 		meleeDamage = 4,
 		shootAggressiveness = 0.5,
 
+		canOpenDoors = true,
+
 		projectileAbilities = {
 			{
 				name = "fireball",
@@ -138,6 +141,8 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 5,
 		meleeDamage = 15,
 		shootAggressiveness = 0.2,
+
+		canOpenDoors = true,
 
 		projectileAbilities = {
 			{
@@ -186,7 +191,7 @@ function game:newCreatureEntity(parameters)
 	return new
 end
 
-function game:newItemEntity(x, y, itemData)
+function game:newItemEntity(x, y, itemData, extras)
 	local state = self.state
 
 	local new = {}
@@ -195,6 +200,12 @@ function game:newItemEntity(x, y, itemData)
 	new.x = x
 	new.y = y
 
+	if extras then
+		for k, v in pairs(extras) do
+			new[k] = v
+		end
+	end
+
 	state.entities[#state.entities+1] = new
 	return new
 end
@@ -202,7 +213,12 @@ end
 function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
+	local processedActions = {}
 	local function processActions(actionTypeName)
+		if processedActions[actionTypeName] then
+			error("Duplicate processing of action type " .. actionTypeName)
+		end
+		processedActions[actionTypeName] = true
 		local processFunction = state.actionTypes[actionTypeName].process
 		for _, entity in ipairs(state.entities) do
 			if entity.entityType ~= "creature" or entity.dead then
@@ -278,16 +294,21 @@ function game:updateEntitiesAndProjectiles()
 
 		if entity.targetEntity and entity.targetEntity.dead then
 			entity.targetEntity = nil
+			entity.lastKnownTargetLocation = nil
 		end
 
 		if entity.targetEntity then
-			if not (
-				self:getTeamRelation(entity.team, entity.targetEntity.team) == "enemy" and
-				self:entityCanSeeEntity(entity, entity.targetEntity)
-			) then
-				entity.targetEntity = nil
-				goto continue
+			if self:entityCanSeeEntity(entity, entity.targetEntity) then
+				entity.lastKnownTargetLocation = {
+					x = entity.targetEntity.x,
+					y = entity.targetEntity.y
+				}
 			end
+			if not self:getTeamRelation(entity.team, entity.targetEntity.team) == "enemy" then
+				entity.targetEntity = nil
+				entity.lastKnownTargetLocation = nil
+			end
+			goto continue
 		end
 
 		-- No target
@@ -302,6 +323,10 @@ function game:updateEntitiesAndProjectiles()
 			then
 				-- TODO: Announce monster wakeup etc?
 				entity.targetEntity = potentialTarget
+				entity.lastKnownTargetLocation = {
+					x = entity.targetEntity.x,
+					y = entity.targetEntity.y
+				}
 			end
 		end
 
@@ -334,6 +359,7 @@ function game:updateEntitiesAndProjectiles()
 	processActions("drop")
 	self.entityPickUps = {}
 	processActions("pickUp")
+	processActions("interact")
 	for _, itemPickup in ipairs(self.entityPickUps) do
 		if #itemPickup > 1 then
 			-- TODO: If one of the entities is the player, announce pickup clash
@@ -434,6 +460,10 @@ function game:updateEntitiesAndProjectiles()
 		elseif entity.itemData then
 			tickItem(entity.itemData, entity.x, entity.y)
 		end
+	end
+
+	for _, actionType in ipairs(state.actionTypes) do
+		assert(processedActions[actionType.name], "Did not process action type " .. actionType.name)
 	end
 end
 

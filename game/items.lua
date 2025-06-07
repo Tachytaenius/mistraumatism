@@ -76,6 +76,27 @@ function game:loadItemTypes()
 		tile = "╥",
 		displayName = "lab table"
 	}
+
+	itemTypes.door = {
+		isDoor = true,
+		interactable = true,
+		interactionType = state.interactionTypes.door,
+		noPickUp = true,
+		doorWindow = false,
+		tile = "│",
+		openTile = "╟",
+		displayName = "door"
+	}
+	itemTypes.doorWindow = {
+		isDoor = true,
+		interactable = true,
+		interactionType = state.interactionTypes.door,
+		noPickUp = true,
+		doorWindow = true,
+		tile = "│",
+		openTile = "╟",
+		displayName = "windowed door"
+	}
 end
 
 local uncopiedParameters = util.arrayToSet({
