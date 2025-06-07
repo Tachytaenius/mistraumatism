@@ -319,7 +319,7 @@ end
 -- - octant
 -- - hitTiles
 -- - collidedX
-function game:hitscan(startX, startY, endX, endY)
+function game:hitscan(startX, startY, endX, endY, blockFunction)
 	if startX == endX and startY == endY then
 		return true, {sameTile = true}
 	end
@@ -400,6 +400,7 @@ function game:hitscan(startX, startY, endX, endY)
 			globalEndX = endX,
 			globalEndY = endY,
 			hitTiles = {}, -- Contains info on whether it was a full hit (corresponding to setVisible or just the code looking at that tile)
+			blockFunction = blockFunction, -- If present
 			endTileVisible = false
 		}
 

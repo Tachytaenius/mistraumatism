@@ -84,7 +84,7 @@ local function tryShootTargetEntity(self, entity, shotType, abilityName)
 	if not targetEntity then
 		return
 	end
-	if not self:entityCanSeeEntity(entity, targetEntity) then
+	if not (self:entityCanSeeEntity(entity, targetEntity) and self:projectileCanPathFromEntityToEntity(entity, targetEntity)) then
 		return
 	end
 	return self.state.actionTypes.shoot.construct(self, entity, targetEntity.x, targetEntity.y, targetEntity, shotType, abilityName)

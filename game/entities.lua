@@ -111,7 +111,7 @@ function game:loadCreatureTypes()
 		maxBlood = 24,
 		meleeTimerLength = 4,
 		meleeDamage = 4,
-		shootAggressiveness = 0.5,
+		shootAggressiveness = 1,
 
 		canOpenDoors = true,
 
@@ -481,6 +481,10 @@ end
 
 function game:entityCanSeeEntity(seer, seen)
 	return self:entityCanSeeTile(seer, seen.x, seen.y)
+end
+
+function game:projectileCanPathFromEntityToEntity(source, destination)
+	return self:hitscan(source.x, source.y, destination.x, destination.y, self.tileBlocksAirMotion)
 end
 
 function game:getEntityDisplayName(entity)

@@ -39,7 +39,11 @@ function game:updateProjectiles()
 				if not (entity.x == projectile.currentX and entity.y == projectile.currentY) then
 					goto continue
 				end
-				if not (entity == projectile.shooter and not projectile.moved) then -- Safety
+				local wouldHitFriendly
+				if projectile.shooter then
+					wouldHitFriendly = entity == projectile.shooter or self:getTeamRelation(projectile.shooter.team, entity.team) == "friendly"
+				end
+				if not (wouldHitFriendly and not projectile.moved) then -- Safety
 					potentialHits[#potentialHits+1] = entity
 				end
 			    ::continue::
@@ -271,7 +275,8 @@ function game:newProjectile(parameters)
 	if newProjectile.startX == newProjectile.targetX and newProjectile.startY == newProjectile.targetY then
 		-- No trajectory
 	else
-		local hitscanResult, info = self:hitscan(newProjectile.startX, newProjectile.startY, newProjectile.targetX, newProjectile.targetY)
+		local blockFunction = self.tileBlocksAirMotion
+		local hitscanResult, info = self:hitscan(newProjectile.startX, newProjectile.startY, newProjectile.targetX, newProjectile.targetY, blockFunction)
 		local trajectoryOctant
 		if hitscanResult then
 			-- An octant actually hit the end result, so pick it as the trajectory octant for the projectile
