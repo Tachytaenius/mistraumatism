@@ -1,11 +1,27 @@
 local game = {}
 
+function game:replaceTileInfo(x, y, info)
+	local tile = self:getTile(x, y)
+	if not tile then
+		return
+	end
+	for k in pairs(tile) do -- Preserve links
+		tile[k] = nil
+	end
+	tile.x = x
+	tile.y = y
+	for k, v in pairs(info) do
+		tile[k] = v
+	end
+end
+
 function game:placeRectangle(x, y, w, h, tileType, tileMaterial)
 	for x = x, x + w - 1 do
 		for y = y, y + h - 1 do
-			local tile = self.state.map[x][y]
-			tile.type = tileType
-			tile.material = tileMaterial
+			self:replaceTileInfo(x, y, {
+				type = tileType,
+				material = tileMaterial
+			})
 		end
 	end
 end
@@ -30,6 +46,7 @@ function game:placeCrate(x, y, w, h, material)
 	self:placeRectangle(x + 1, y + 1, w - 2, h - 2, "floor", material)
 	for x = x, x + w - 1 do
 		for y = y, y + h - 1 do
+			-- Not replacing
 			self.state.map[x][y].autotileGroup = self.state.nextAutotileGroup
 		end
 	end
@@ -46,14 +63,15 @@ function game:carveRectangleRoom(x, y, w, h, material, floorMaterial)
 end
 
 function game:placeItem(x, y, itemTypeName, material)
-	self:newItemEntity(x, y, self:newItemData({
+	local entity = self:newItemEntity(x, y, self:newItemData({
 		itemTypeName = itemTypeName,
 		material = material
 	}))
+	return entity.itemData, entity
 end
 
 function game:placeMonster(x, y, creatureTypeName)
-	self:newCreatureEntity({
+	return self:newCreatureEntity({
 		creatureTypeName = creatureTypeName,
 		team = "monster",
 		x = x, y = y
@@ -88,6 +106,12 @@ function game:randomSpatterRectangleChoose(x, y, w, h, material, maxAmount)
 			self:addSpatter(x, y, material, love.math.random(0, maxAmount))
 		end
 	end
+end
+
+function game:placeNote(x, y, text, startLineBreak)
+	local item, entity = self:placeItem(x, y, "note", "paper")
+	item.writtenText = text
+	item.writtenTextStartLineBreak = startLineBreak
 end
 
 function game:generateLevel(parameters)
@@ -135,8 +159,6 @@ function game:generateLevel(parameters)
 	self:placeItem(36, 33, "labTable", "steel")
 	self:placeItem(36, 35, "labTable", "steel")
 	self:placeItem(36, 36, "labTable", "steel")
-
-	self:placeMonster(34, 34, "imp")
 
 	return {
 		spawnX = spawnX,

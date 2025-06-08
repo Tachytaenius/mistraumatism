@@ -1,3 +1,5 @@
+local util = require("util")
+
 local game = {}
 
 function game:announce(text, colour)
@@ -5,8 +7,10 @@ function game:announce(text, colour)
 	local state = self.state
 	local announcement = {text = text, colour = colour, tick = state.tick, osTime = os.time()}
 	state.announcements[#state.announcements+1] = announcement
-	-- TODO: Split announcements with word wrap
-	state.splitAnnouncements[#state.splitAnnouncements+1] = {text = text, announcement = announcement}
+	-- TODO: Split announcements with word wrap. For now just split at line breaks
+	for line in util.iterateLines(text) do
+		state.splitAnnouncements[#state.splitAnnouncements+1] = {text = line, announcement = announcement}
+	end
 end
 
 function game:announceDamages()

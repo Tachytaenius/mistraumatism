@@ -71,6 +71,13 @@ function game:loadItemTypes()
 		range = 16
 	}
 
+	itemTypes.note = {
+		tile = "■",
+		displayName = "note",
+		interactable = true,
+		interactionType = state.interactionTypes.readable
+	}
+
 	itemTypes.labTable = {
 		noPickUp = true,
 		tile = "╥",

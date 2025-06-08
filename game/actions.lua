@@ -297,7 +297,16 @@ function game:loadActionTypes()
 		if not self:getHeldItem(entity) or item ~= self:getHeldItem(entity) then
 			return
 		end
-		if self:getHeldItem(entity).itemType.isGun then
+		local itemType = self:getHeldItem(entity).itemType
+		if itemType.interactionType then
+			local new = {type = "useHeldItem"}
+			new.item = self:getHeldItem(entity)
+			new.timer, new.useInfo = itemType.interactionType.startInfoHeld(self, entity, "held", new.item)
+			if not new.timer then
+				return
+			end
+			return new
+		elseif self:getHeldItem(entity).itemType.isGun then
 			-- Works on automatic too
 			local timer = self:getHeldItem(entity).itemType.operationTimerLength
 			if not timer then
@@ -310,8 +319,6 @@ function game:loadActionTypes()
 			new.item = self:getHeldItem(entity)
 			new.timer = timer
 			return new
-		-- elseif somethingElse then
-
 		end
 	end
 	function useHeldItem.process(self, entity, action)
@@ -321,12 +328,14 @@ function game:loadActionTypes()
 				action.doneType = "cancelled"
 				return
 			end
-			local itemType = self:getHeldItem(entity).itemType
-			if itemType.isGun then
-				self:cycleGun(self:getHeldItem(entity), entity.x, entity.y)
+			local heldItem = self:getHeldItem(entity)
+			local itemType = heldItem.itemType
+			if itemType.interactionType then
+				itemType.interactionType.resultHeld(self, entity, "held", heldItem, action.useInfo)
 				action.doneType = "completed"
-			-- elseif somethingElse then
-
+			elseif itemType.isGun then
+				self:cycleGun(heldItem, entity.x, entity.y)
+				action.doneType = "completed"
 			else
 				-- Do nothing, I guess
 				action.doneType = "completed"
@@ -592,7 +601,10 @@ function game:loadActionTypes()
 		end
 		local new = {type = "interact"}
 		new.direction = direction
-		new.timer, new.interactionIntent = targetEntity.itemData.itemType.interactionType.startInfo(self, entity, targetEntity)
+		new.timer, new.interactionIntent = targetEntity.itemData.itemType.interactionType.startInfoWorld(self, entity, "world", targetEntity)
+		if not new.timer then
+			return
+		end
 		new.targetEntity = targetEntity
 		return new
 	end
@@ -603,7 +615,7 @@ function game:loadActionTypes()
 			local targetX, targetY = entity.x + ox, entity.y + oy
 			if action.targetEntity.x == targetX and action.targetEntity.y == targetY then
 				if action.targetEntity.itemData.itemType.interactionType then
-					action.targetEntity.itemData.itemType.interactionType.result(self, entity, action.targetEntity, action.interactionIntent)
+					action.targetEntity.itemData.itemType.interactionType.resultWorld(self, entity, "world", action.targetEntity, action.interactionIntent)
 				end
 				action.doneType = "completed"
 			else

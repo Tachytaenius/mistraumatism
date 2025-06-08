@@ -13,7 +13,10 @@ function game:loadInteractionTypes()
 		end
 		return tile.doorData
 	end
-	function interactionTypes.door:startInfo(interactor, interactee)
+	function interactionTypes.door:startInfoWorld(interactor, interactionType, interactee)
+		if interactionType ~= "world" then
+			return
+		end
 		local timerLength = 7
 		local doorData = getDoorTileDoorData(interactee)
 		local info = {
@@ -21,7 +24,10 @@ function game:loadInteractionTypes()
 		}
 		return timerLength, info
 	end
-	function interactionTypes.door:result(interactor, interactee, info)
+	function interactionTypes.door:resultWorld(interactor, interactionType, interactee, info)
+		if interactionType ~= "world" then
+			return
+		end
 		if not interactor.creatureType.canOpenDoors then
 			return
 		end
@@ -43,6 +49,31 @@ function game:loadInteractionTypes()
 		end
 		doorData.open = info.doneDoorOpenState
 	end
+
+	interactionTypes.readable = {}
+	function interactionTypes.readable:startInfoWorld(interactor, interactionType, interactee)
+		return 3
+	end
+	function interactionTypes.readable:startInfoHeld(interactor, interactionType, interactee)
+		return 2
+	end
+	function interactionTypes.readable:resultWorld(interactor, interactionType, interactee, info)
+		if not self.state.player or interactor ~= self.state.player then
+			return
+		end
+		local item = interactionType == "world" and interactee.itemData or interactee
+		local name = item.itemType.displayName
+		if item.writtenText then
+			local text = item.writtenText
+			if item.writtenTextStartLineBreak then
+				text = "\n" .. text
+			end
+			self:announce("The " .. name .. " reads: " .. text, "lightGrey")
+		else
+			self:announce("The " .. name .. " is blank.", "lightGrey")
+		end
+	end
+	interactionTypes.readable.resultHeld = interactionTypes.readable.resultWorld
 
 	self.state.interactionTypes = interactionTypes
 end

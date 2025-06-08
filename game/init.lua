@@ -82,7 +82,11 @@ function game:init(args)
 	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
-	if args[1] == "skipIntro" then -- TEMP, change as needed
+	-- TEMP, change as needed
+	local skipIntro = args[1] == "skipIntro"
+	local flickerIntro = args[1] == "enableFlickerIntro"
+
+	if skipIntro then
 		self:newState()
 		self.mode = "gameplay"
 	else
@@ -104,19 +108,21 @@ function game:init(args)
 				local stages = {"black", "darkGrey", "lightGrey", "white"}
 
 				-- Too flickery for some
-				-- function self.textInfo.getColour(x, y)
-				-- 	local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
-				-- 	local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.perlinNoise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
-				-- 	local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
-				-- 	local stage = proportionModified * (#stages - 1)
-				-- 	local incrementChance = stage % 1
-				-- 	local stageInt = math.floor(stage) + (love.math.random() < incrementChance and 1 or 0)
-				-- 	return stages[stageInt + 1] or "white", "black"
-				-- end
-
-				function self.textInfo.getColour(x, y)
-					local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
-					return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
+				if flickerIntro then
+					function self.textInfo.getColour(x, y)
+						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+						local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.perlinNoise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
+						local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
+						local stage = proportionModified * (#stages - 1)
+						local incrementChance = stage % 1
+						local stageInt = math.floor(stage) + (love.math.random() < incrementChance and 1 or 0)
+						return stages[stageInt + 1] or "white", "black"
+					end
+				else
+					function self.textInfo.getColour(x, y)
+						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+						return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
+					end
 				end
 			end
 		}
