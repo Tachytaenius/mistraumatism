@@ -50,7 +50,9 @@ local commandTypes = {
 	handleInventorySlot7 = "pressed",
 	handleInventorySlot8 = "pressed",
 	handleInventorySlot9 = "pressed",
-	deselectInventorySlot = "pressed"
+	deselectInventorySlot = "pressed",
+
+	confirm = "pressed"
 }
 
 commands.previousTickRepeatKeys = {}

@@ -13,35 +13,44 @@ function game:isPlayerInControl()
 end
 
 function game:realtimeUpdate(dt)
-	local function inner()
-		if not self.state.player or self.state.player.dead then
-			self:setCursor()
-		end
+	if self.mode == "gameplay" then
+		local function inner()
+			if not self.state.player or self.state.player.dead then
+				self:setCursor()
+			end
 
-		if not self.state.player then
-			return
-		end
-
-		if self:isPlayerInControl() then
-			self:updateCursor()
-			self.updateTimer = 0
-			local result = self:getPlayerInput()
-			if result and result.wait then
-				self.state.waiting = true
-			else
+			if not self.state.player then
 				return
 			end
-		end
 
-		self.updateTimer = self.updateTimer + dt
-		if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
-			self.updateTimer = 0
-			self:update()
-			self:autoUpdateCursorEntity()
+			if self:isPlayerInControl() then
+				self:updateCursor()
+				self.updateTimer = 0
+				local result = self:getPlayerInput()
+				if result and result.wait then
+					self.state.waiting = true
+				else
+					return
+				end
+			end
+
+			self.updateTimer = self.updateTimer + dt
+			if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
+				self.updateTimer = 0
+				self:update()
+				self:autoUpdateCursorEntity()
+			end
 		end
+		inner() -- Didn't want to refactor around the returns
+		self:updateEntitiesToDraw(dt)
+	elseif self.mode == "text" then
+		if not self.textInfo.text then
+			local text = love.filesystem.read(self.textInfo.path)
+			text = text:gsub("—", "─") -- Em dash to single-line horizontal box drawing
+			self.textInfo.text = text
+		end
+		return self.textInfo.updateFunction(self, dt)
 	end
-	inner() -- Didn't want to refactor around the returns
-	self:updateEntitiesToDraw(dt)
 	self.realTime = self.realTime + dt
 end
 

@@ -1,5 +1,7 @@
 local util = require("util")
 util.load()
+local consts = require("consts")
+local commands = require("commands")
 
 local game = {}
 
@@ -52,9 +54,12 @@ function game:newState()
 	state.incrementEntityDisplaysTimerLength = 0.8
 	state.incrementEntityDisplaysSwitchIndicatorTime = 0.04
 	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimerLength
+
+	state.tileEntityLists = self:getTileEntityLists()
+	state.previousTileEntityLists = nil
 end
 
-function game:init()
+function game:init(args)
 	self.framebufferWidth, self.framebufferHeight = 56, 48
 
 	self.viewportWidth, self.viewportHeight = 35, 35
@@ -67,10 +72,55 @@ function game:init()
 	self.updateTimer = 0 -- Used when player is not in control, "spent" on fixed updates
 	self.realTime = 0
 
-	self:newState()
+	local fontLocation = "fonts/modifiedKelora.png"
+	local fontImageData = love.image.newImageData(fontLocation)
+	local characterWidth = fontImageData:getWidth() / consts.fontWidthCharacters
+	local characterHeight = fontImageData:getHeight() / consts.fontHeightCharacters
+	util.remakeWindow(game, characterWidth, characterHeight)
+	self.fontImage = love.graphics.newImage(fontLocation)
+	self.paletteImage = love.graphics.newImage("palettes/main.png")
+	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values
+	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
-	self.state.tileEntityLists = self:getTileEntityLists()
-	self.state.previousTileEntityLists = nil
+	if args[1] == "skipIntro" then -- TEMP, change as needed
+		self:newState()
+		self.mode = "gameplay"
+	else
+		self.mode = "text"
+		self.textInfo = {
+			path = "text/and-in-mistraumatism.txt",
+			timer = 0,
+			fullTime = 5,
+			releaseTime = 5,
+			updateFunction = function(self, dt)
+				if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+					self.updateFunction = nil
+					self:newState()
+					self.mode = "gameplay"
+					return true -- To allow initial realtimeUpdate to fully set up new state
+				end
+				self.textInfo.timer = self.textInfo.timer + dt
+
+				local stages = {"black", "darkGrey", "lightGrey", "white"}
+
+				-- Too flickery for some
+				-- function self.textInfo.getColour(x, y)
+				-- 	local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+				-- 	local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.perlinNoise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
+				-- 	local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
+				-- 	local stage = proportionModified * (#stages - 1)
+				-- 	local incrementChance = stage % 1
+				-- 	local stageInt = math.floor(stage) + (love.math.random() < incrementChance and 1 or 0)
+				-- 	return stages[stageInt + 1] or "white", "black"
+				-- end
+
+				function self.textInfo.getColour(x, y)
+					local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+					return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
+				end
+			end
+		}
+	end
 end
 
 return game

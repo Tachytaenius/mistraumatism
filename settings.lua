@@ -53,6 +53,8 @@ return {
 		handleInventorySlot7 = "7",
 		handleInventorySlot8 = "8",
 		handleInventorySlot9 = "9",
-		deselectInventorySlot = "0"
+		deselectInventorySlot = "0",
+
+		confirm = "space"
 	}
 }

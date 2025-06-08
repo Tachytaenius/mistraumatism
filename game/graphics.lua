@@ -20,11 +20,48 @@ function game:clearFramebuffer()
 	end
 end
 
-function game:draw() -- After this function completes, the result is in currentFramebuffer
+function game:draw()
 	self.currentFramebuffer, self.otherFramebuffer = self.otherFramebuffer, self.currentFramebuffer
 	local framebuffer = self.currentFramebuffer
-	local state = self.state
 	self:clearFramebuffer()
+
+	if self.mode == "gameplay" then
+		self:drawFramebufferGameplay(framebuffer)
+	elseif self.mode == "text" then
+		self:drawFramebufferText(framebuffer)
+	end
+
+	local fontImage = self.fontImage
+	local paletteImage = self.paletteImage
+	local characterQuad = self.characterQuad
+	local characterColoursShader = self.characterColoursShader
+
+	local characterWidth = fontImage:getWidth() / consts.fontWidthCharacters
+	local characterHeight = fontImage:getHeight() / consts.fontHeightCharacters
+	love.graphics.setShader(characterColoursShader)
+	characterColoursShader:send("palette", paletteImage)
+	for x = 0, self.framebufferWidth - 1 do
+		local column = self.currentFramebuffer[x]
+		for y = 0, self.framebufferHeight - 1 do
+			local cell = column[y]
+			local characterId = consts.cp437Map[cell.character]
+			local fontX = characterId % consts.fontWidthCharacters
+			local fontY = math.floor(characterId / consts.fontWidthCharacters)
+			characterQuad:setViewport(
+				fontX * characterWidth, fontY * characterHeight,
+				characterWidth, characterHeight,
+				fontImage:getDimensions()
+			)
+			characterColoursShader:send("backgroundColourPosition", consts.colourCoords[cell.backgroundColour])
+			characterColoursShader:send("foregroundColourPosition", consts.colourCoords[cell.foregroundColour])
+			love.graphics.draw(fontImage, characterQuad, x * characterWidth, y * characterHeight)
+		end
+	end
+	love.graphics.setShader()
+end
+
+function game:drawFramebufferGameplay(framebuffer) -- After this function completes, the result is in currentFramebuffer
+	local state = self.state
 
 	local cameraX, cameraY, cameraSightDistance
 	if state.player then
@@ -44,8 +81,9 @@ function game:draw() -- After this function completes, the result is in currentF
 	assert(visibilityMapHeight == self.viewportHeight)
 
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
-		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour")
-		assert(consts.colourCoords[backgroundColour], "Invalid background colour")
+		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
+		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
 			0 <= framebufferY and framebufferY < self.framebufferHeight
@@ -766,6 +804,41 @@ function game:getTileCharacter(x, y)
 	else
 		return tileType.character
 	end
+end
+
+function game:drawFramebufferText(framebuffer)
+	-- Copied
+	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
+		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
+		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		if
+			0 <= framebufferX and framebufferX < self.framebufferWidth and
+			0 <= framebufferY and framebufferY < self.framebufferHeight
+		then
+			local cell = framebuffer[framebufferX][framebufferY]
+			cell.character = character
+			cell.foregroundColour = foregroundColour
+			cell.backgroundColour = backgroundColour
+		end
+	end
+	local function drawStringFramebufferColourMapFunction(framebufferX, framebufferY, str)
+		local x = 0
+		local y = 0
+		for _, code in utf8.codes(str) do
+			local char = utf8.char(code)
+			if char == "\n" then
+				x = 0
+				y = y + 1
+				goto continue
+			end
+			drawCharacterFramebuffer(framebufferX + x, framebufferY + y, char, self.textInfo.getColour(framebufferX + x, framebufferY + y))
+			x = x + 1
+		    ::continue::
+		end
+	end
+
+	drawStringFramebufferColourMapFunction(0, 0, self.textInfo.text)
 end
 
 return game
