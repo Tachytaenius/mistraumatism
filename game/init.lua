@@ -41,7 +41,7 @@ function game:newState()
 	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
 
 	state.entities = {}
-	local levelGenerationResult = self:generateLevel()
+	local levelGenerationResult = self:generateLevel({levelName = "start"})
 	state.player = self:newCreatureEntity({
 		creatureTypeName = "human",
 		team = "player",

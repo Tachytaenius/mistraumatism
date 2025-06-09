@@ -37,6 +37,12 @@ function game:isRectangleType(x, y, w, h, type)
 	return true
 end
 
+function game:getAutotileGroupId()
+	local ret = self.state.nextAutotileGroup
+	self.state.nextAutotileGroup = self.state.nextAutotileGroup + 1
+	return ret
+end
+
 function game:placeCrate(x, y, w, h, material)
 	if not self:isRectangleType(x, y, w, h, "floor") then
 		self:logError("Tried to place a crate but it wasn't all floor")
@@ -47,10 +53,9 @@ function game:placeCrate(x, y, w, h, material)
 	for x = x, x + w - 1 do
 		for y = y, y + h - 1 do
 			-- Not replacing
-			self.state.map[x][y].autotileGroup = self.state.nextAutotileGroup
+			self.state.map[x][y].autotileGroup = self:getAutotileGroupId()
 		end
 	end
-	self.state.nextAutotileGroup = self.state.nextAutotileGroup + 1
 end
 
 function game:carveRectangleRoom(x, y, w, h, material, floorMaterial)
@@ -114,12 +119,13 @@ function game:placeNote(x, y, text, startLineBreak)
 	item.writtenTextStartLineBreak = startLineBreak
 end
 
-function game:generateLevel(parameters)
+function game:initialiseMap(width, height)
+	local group = self:getAutotileGroupId()
 	local state = self.state
 	local map = {}
 	state.map = map
-	map.width = 128
-	map.height = 128
+	map.width = width
+	map.height = height
 	for x = 0, map.width - 1 do
 		map[x] = {}
 		for y = 0, map.height - 1 do
@@ -128,42 +134,15 @@ function game:generateLevel(parameters)
 			newTile.y = y
 			newTile.type = "wall"
 			newTile.material = "stone"
+			newTile.autotileGroup = group
 			map[x][y] = newTile
 		end
 	end
+end
 
-	local spawnX, spawnY = 43, 34
-	for _=1, 5 do
-		self:placeItem(45, 34, "shotgunShell", "plasticRed")
-	end
-	self:placeItem(45, 33, "pumpShotgun", "steel")
-	self:carveRectangleRoom(30, 30, 9, 9, "labTiles", "concrete")
-	self:carveRectangleRoom(40, 31, 7, 7, "labTiles", "concrete")
-	self:carveRectangleRoom(38, 33, 3, 3, "labTiles", "concrete")
-	self:placeRectangle(38, 34, 3, 1, "floor", "concrete")
-	self:randomSpatterRectangleDistribute(30, 30, 9, 9, "bloodRed", 32)
-
-	self:placeDoorItem(39, 34, "door", "steel", false)
-
-	self:placeItem(32, 32, "labTable", "steel")
-	self:placeItem(32, 33, "labTable", "steel")
-	self:placeItem(32, 35, "labTable", "steel")
-	self:placeItem(32, 36, "labTable", "steel")
-
-	self:placeItem(34, 32, "labTable", "steel")
-	self:placeItem(34, 33, "labTable", "steel")
-	self:placeItem(34, 35, "labTable", "steel")
-	self:placeItem(34, 36, "labTable", "steel")
-
-	self:placeItem(36, 32, "labTable", "steel")
-	self:placeItem(36, 33, "labTable", "steel")
-	self:placeItem(36, 35, "labTable", "steel")
-	self:placeItem(36, 36, "labTable", "steel")
-
-	return {
-		spawnX = spawnX,
-		spawnY = spawnY
-	}
+function game:generateLevel(parameters)
+	local info = require("levels." .. parameters.levelName)
+	return info.createLevel(self)
 end
 
 return game
