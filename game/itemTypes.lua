@@ -84,6 +84,22 @@ function game:loadItemTypes()
 		displayName = "lab table"
 	}
 
+	itemTypes.bedsideTable = {
+		noPickUp = true,
+		tile = "╥",
+		displayName = "bedside table"
+	}
+	itemTypes.bed = {
+		noPickUp = true,
+		tile = "Θ",
+		displayName = "bed"
+	}
+	itemTypes.toilet = {
+		noPickUp = true,
+		tile = "Ω",
+		displayName = "toilet"
+	}
+
 	itemTypes.door = {
 		isDoor = true,
 		interactable = true,

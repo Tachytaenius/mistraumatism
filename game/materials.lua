@@ -22,6 +22,10 @@ function game:loadMaterials()
 	addMaterial("concrete", "concrete", "lightGrey", "solid")
 	addMaterial("labTiles", "lab tiles", "white", "solid")
 
+	addMaterial("porcelain", "porcelain", "white", "solid")
+	addMaterial("plywood", "plywood", "darkYellow", "solid")
+	addMaterial("lino", "lino", "darkGrey", "solid")
+
 	addMaterial("crateBrown", "brown crate", "darkYellow", "solid")
 	addMaterial("crateYellow", "yellow crate", "yellow", "solid")
 

@@ -58,6 +58,83 @@ function game:draw()
 		end
 	end
 	love.graphics.setShader()
+
+	love.graphics.setColor(1, 0, 0)
+	for x, c in pairs(evm.horizontal) do
+		for y, v in pairs(c) do
+			if not v then
+				goto continue
+			end
+			local x = x - (self.state.player.x - math.floor(self.viewportWidth / 2)) + 1
+			local y = y - (self.state.player.y - math.floor(self.viewportHeight / 2)) + 1
+			love.graphics.line(x * 16, y * 16 + 16, x * 16 + 16, y * 16 + 16)
+		    ::continue::
+		end
+	end
+	love.graphics.setColor(1, 1, 0)
+	for x, c in pairs(evm.vertical) do
+		for y, v in pairs(c) do
+			if not v then
+				goto continue
+			end
+			local x = x - (self.state.player.x - math.floor(self.viewportWidth / 2)) + 1
+			local y = y - (self.state.player.y - math.floor(self.viewportHeight / 2)) + 1
+			love.graphics.line(x * 16 + 16, y * 16, x * 16 + 16, y * 16 + 16)
+			::continue::
+		end
+	end
+	for x, xTable in pairs(sns) do
+		love.graphics.setLineStyle("rough")
+		for _, sectorSlice in ipairs(xTable) do
+			local top = sectorSlice.slopeTopY / sectorSlice.slopeTopX
+			local bottom = sectorSlice.slopeBottomY / sectorSlice.slopeBottomX
+			local X = math.floor(self.viewportWidth / 2) + 1
+			local Y = math.floor(self.viewportHeight / 2) + 1
+			love.graphics.setPointSize(4)
+			local function l(a, b, c, d)
+				-- love.graphics.push()
+				if sectorSlice.octant == 1 then
+					a, b = -b, -a
+					c, d = -d, -c
+				elseif sectorSlice.octant == 2 then
+					a, b = b, -a
+					c, d = d, -c
+				elseif sectorSlice.octant == 3 then
+					a, c = -a, -c
+				elseif sectorSlice.octant == 4 then
+					a, c = -a, -c
+					b, d = -b, -d
+				elseif sectorSlice.octant == 5 then
+					a, b = b, a
+					c, d = d, c
+				elseif sectorSlice.octant == 6 then
+					a, b = -b, a
+					c, d = -d, c
+				elseif sectorSlice.octant == 7 then
+					b = -b
+					d = -d
+				end
+				love.graphics.line(
+					(a + X + 0.5) * 16,
+					(b + Y + 0.5) * 16,
+					(c + X + 0.5) * 16,
+					(d + Y + 0.5) * 16
+				)
+				-- love.graphics.pop()
+			end
+			love.graphics.setColor(0, 1, 0)
+			l(
+				(x - 1), -bottom * (x - 1),
+				(x + 0), -bottom * (x + 0)
+			)
+			love.graphics.setColor(0, 1, 1)
+			l(
+				(x - 1), -top * (x - 1),
+				(x + 0), -top * (x + 0)
+			)
+		end
+	end
+	love.graphics.setColor(1, 1, 1)
 end
 
 function game:drawFramebufferGameplay(framebuffer) -- After this function completes, the result is in currentFramebuffer
@@ -74,11 +151,222 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local topLeftX = cameraX - math.floor(self.viewportWidth / 2)
 	local topLeftY = cameraY - math.floor(self.viewportHeight / 2)
 
-	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight = self:computeVisibilityMap(cameraX, cameraY, cameraSightDistance)
+	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight, edgeVisibilityMap = self:computeVisibilityMap(cameraX, cameraY, cameraSightDistance, nil, nil, true)
+	evm = edgeVisibilityMap -- TEMP
+	print("global!")
 	assert(visibilityMapTopLeftX == topLeftX)
 	assert(visibilityMapTopLeftY == topLeftY)
 	assert(visibilityMapWidth == self.viewportWidth)
 	assert(visibilityMapHeight == self.viewportHeight)
+
+	local function isTileVisible(x, y)
+		local viewportX = x - topLeftX
+		local viewportY = y - topLeftY
+		if
+			0 <= viewportX and viewportX < self.viewportWidth and
+			0 <= viewportY and viewportY < self.viewportHeight
+		then
+			local visibilityColumn = visibilityMap[viewportX]
+			return visibilityColumn and visibilityColumn[viewportY]
+		end
+		return false
+	end
+	local function isEdgeVisible(x, y, type)
+		return edgeVisibilityMap[type][x] and edgeVisibilityMap[type][x][y]
+	end
+
+	local function getWallConnections(neighbours)
+		-- Returns right, up, left, down
+	
+		if neighbours.right and neighbours.up and neighbours.left and neighbours.down then
+			if neighbours.upRight and neighbours.upLeft and neighbours.downLeft and neighbours.downRight then
+				return true, true, true, true
+			end
+	
+			if neighbours.upRight and neighbours.downLeft and neighbours.downRight then
+				return false, true, true, false
+			end
+			if neighbours.upLeft and neighbours.downLeft and neighbours.downRight then
+				return true, true, false, false
+			end
+			if neighbours.upLeft and neighbours.upRight and neighbours.downRight then
+				return false, false, true, true
+			end
+			if neighbours.upLeft and neighbours.upRight and neighbours.downLeft then
+				return true, false, false, true
+			end
+			return true, true, true, true
+		end
+	
+		if neighbours.up and neighbours.down and neighbours.left then
+			if neighbours.upLeft and neighbours.downLeft then
+				return false, true, false, true
+			end
+			return false, true, true, true
+		end
+		if neighbours.up and neighbours.down and neighbours.right then
+			if neighbours.upRight and neighbours.downRight then
+				return false, true, false, true
+			end
+			return true, true, false, true
+		end
+		if neighbours.up and neighbours.left and neighbours.right then
+			if neighbours.upLeft and neighbours.upRight then
+				return true, false, true, false
+			end
+			return true, true, true, false
+		end
+		if neighbours.down and neighbours.left and neighbours.right then
+			if neighbours.downLeft and neighbours.downRight then
+				return true, false, true, false
+			end
+			return true, false, true, true
+		end
+	
+		return neighbours.right, neighbours.up, neighbours.left, neighbours.down
+	end
+	
+	local function getTileCharacter(x, y)
+		local state = self.state
+		local tile = self:getTile(x, y)
+		local tileType = state.tileTypes[tile.type]
+		if tileType.boxDrawingNumber then
+			local neighbours = {}
+			for ox = -1, 1 do
+				for oy = -1, 1 do
+					if ox == 0 and oy == 0 then
+						goto continue
+					end
+					local direction = self:getDirection(ox, oy)
+					local tileX, tileY = x + ox, y + oy
+					local otherTile = self:getTile(tileX, tileY)
+					if not otherTile then
+						goto continue
+					end
+					local sameType = otherTile.type == tile.type
+					local groupedAutotiling = tile.autotileGroup or otherTile.autotileGroup
+					local sameGroup = tile.autotileGroup == otherTile.autotileGroup
+					neighbours[direction] = otherTile and sameType and (not groupedAutotiling or sameGroup)
+					::continue::
+				end
+			end
+	
+			local right, up, left, down = getWallConnections(neighbours)
+	
+			-- Sever any connections that don't have the right visibility
+			local rightMask, upMask, leftMask, downMask = false, false, false, false
+
+			local rightEdge = isEdgeVisible(x, y, "vertical")
+			if rightEdge then
+				rightMask = true
+				if not self:tileBlocksLight(x + 1, y) then
+					upMask = true
+					downMask = true
+				end
+				-- if not self:tileBlocksLight(x + 1, y - 1) then
+				-- 	upMask = true
+				-- end
+				-- if not self:tileBlocksLight(x + 1, y + 1) then
+				-- 	downMask = true
+				-- end
+			end
+	
+			local upEdge = isEdgeVisible(x, y - 1, "horizontal")
+			if upEdge then
+				upMask = true
+				if not self:tileBlocksLight(x, y - 1) then
+					rightMask = true
+					leftMask = true
+				end
+				-- if not self:tileBlocksLight(x - 1, y - 1) then
+				-- 	leftMask = true
+				-- end
+				-- if not self:tileBlocksLight(x + 1, y - 1) then
+				-- 	rightMask = true
+				-- end
+			end
+	
+			local leftEdge = isEdgeVisible(x - 1, y, "vertical")
+			if leftEdge then
+				leftMask = true
+				if not self:tileBlocksLight(x - 1, y) then
+					upMask = true
+					downMask = true
+				end
+				-- if not self:tileBlocksLight(x - 1, y - 1) then
+				-- 	upMask = true
+				-- end
+				-- if not self:tileBlocksLight(x - 1, y + 1) then
+				-- 	downMask = true
+				-- end
+			end
+	
+			local downEdge = isEdgeVisible(x, y, "horizontal")
+			if downEdge then
+				downMask = true
+				if not self:tileBlocksLight(x, y + 1) then
+					rightMask = true
+					leftMask = true
+				end
+				-- if not self:tileBlocksLight(x - 1, y + 1) then
+				-- 	leftMask = true
+				-- end
+				-- if not self:tileBlocksLight(x + 1, y + 1) then
+				-- 	rightMask = true
+				-- end
+			end
+
+
+			-- local function checkCorner(ox, oy)
+			-- 	local tx, ty = x + ox, y + oy
+			-- 	return isTileVisible(tx, ty) and not self:tileBlocksLight(tx, ty)
+			-- end
+
+			-- local upLeftCorner = checkCorner(-1, -1)
+			-- leftMask = upLeftCorner or leftMask
+			-- upMask = upLeftCorner or upMask
+
+			-- local upRightCorner = checkCorner(1, -1)
+			-- rightMask = upRightCorner or rightMask
+			-- upMask = upRightCorner or upMask
+
+			-- local downLeftCorner = checkCorner(-1, 1)
+			-- leftMask = downLeftCorner or leftMask
+			-- downMask = downLeftCorner or downMask
+
+			-- local downRightCorner = checkCorner(1, 1)
+			-- rightMask = downRightCorner or rightMask
+			-- downMask = downRightCorner or downMask
+
+
+			-- local rightEdge = isEdgeVisible(x, y, "vertical")
+			-- local upEdge = isEdgeVisible(x, y - 1, "horizontal")
+			-- local leftEdge = isEdgeVisible(x - 1, y, "vertical")
+			-- local downEdge = isEdgeVisible(x, y, "horizontal")
+
+			-- rightMask = rightMask or rightEdge
+			-- upMask = upMask or upEdge
+			-- leftMask = leftMask or leftEdge
+			-- downMask = downMask or downEdge
+	
+			local right = right and rightMask
+			local up = up and upMask
+			local left = left and leftMask
+			local down = down and downMask
+	
+			local num = tileType.boxDrawingNumber
+			local boxCharacter = util.getBoxDrawingCharacter(
+				right and num or 0,
+				up and num or 0,
+				left and num or 0,
+				down and num or 0
+			)
+
+			return boxCharacter or tileType.character
+		else
+			return tileType.character
+		end
+	end
 
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
 		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
@@ -207,7 +495,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					cell.foregroundColour = darker
 				end
 			end
-			cell.character = self:getTileCharacter(tileX, tileY)
+			cell.character = getTileCharacter(tileX, tileY)
 
 			if not tileType.ignoreSpatter then
 				local largestSpatter
@@ -633,7 +921,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			drawStringFramebuffer(statusX + 3, statusY + yShift + 2, util.capitalise(material.displayName, false), "lightGrey", "black")
 		end
 		if tile.type and material then
-			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, self:getTileCharacter(tile.x, tile.y), material.colour, "black")
+			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, getTileCharacter(tile.x, tile.y), material.colour, "black")
 		end
 		local largestSpatter
 		if tile.spatter then
@@ -713,97 +1001,6 @@ function game:newFramebuffer()
 		end
 	end
 	return framebuffer
-end
-
-local function getWallConnections(neighbours)
-	-- Returns right, up, left, down
-
-	if neighbours.right and neighbours.up and neighbours.left and neighbours.down then
-		if neighbours.upRight and neighbours.upLeft and neighbours.downLeft and neighbours.downRight then
-			return true, true, true, true
-		end
-
-		if neighbours.upRight and neighbours.downLeft and neighbours.downRight then
-			return false, true, true, false
-		end
-		if neighbours.upLeft and neighbours.downLeft and neighbours.downRight then
-			return true, true, false, false
-		end
-		if neighbours.upLeft and neighbours.upRight and neighbours.downRight then
-			return false, false, true, true
-		end
-		if neighbours.upLeft and neighbours.upRight and neighbours.downLeft then
-			return true, false, false, true
-		end
-		return true, true, true, true
-	end
-
-	if neighbours.up and neighbours.down and neighbours.left then
-		if neighbours.upLeft and neighbours.downLeft then
-			return false, true, false, true
-		end
-		return false, true, true, true
-	end
-	if neighbours.up and neighbours.down and neighbours.right then
-		if neighbours.upRight and neighbours.downRight then
-			return false, true, false, true
-		end
-		return true, true, false, true
-	end
-	if neighbours.up and neighbours.left and neighbours.right then
-		if neighbours.upLeft and neighbours.upRight then
-			return true, false, true, false
-		end
-		return true, true, true, false
-	end
-	if neighbours.down and neighbours.left and neighbours.right then
-		if neighbours.downLeft and neighbours.downRight then
-			return true, false, true, false
-		end
-		return true, false, true, true
-	end
-
-	return neighbours.right, neighbours.up, neighbours.left, neighbours.down
-end
-
-function game:getTileCharacter(x, y)
-	local state = self.state
-	local tile = self:getTile(x, y)
-	local tileType = state.tileTypes[tile.type]
-	if tileType.boxDrawingNumber then
-		local neighbours = {}
-		for ox = -1, 1 do
-			for oy = -1, 1 do
-				if ox == 0 and oy == 0 then
-					goto continue
-				end
-				local direction = self:getDirection(ox, oy)
-				local tileX, tileY = x + ox, y + oy
-				local otherTile = self:getTile(tileX, tileY)
-				if not otherTile then
-					goto continue
-				end
-				local sameType = otherTile.type == tile.type
-				local groupedAutotiling = tile.autotileGroup or otherTile.autotileGroup
-				local sameGroup = tile.autotileGroup == otherTile.autotileGroup
-				neighbours[direction] = otherTile and sameType and (not groupedAutotiling or sameGroup)
-				::continue::
-			end
-		end
-
-		local right, up, left, down = getWallConnections(neighbours)
-
-		local num = tileType.boxDrawingNumber
-		local boxCharacter = util.getBoxDrawingCharacter(
-			right and num or 0,
-			up and num or 0,
-			left and num or 0,
-			down and num or 0
-		)
-		return boxCharacter or tileType.character
-	else
-		return tileType.character
-	end
 end
 
 function game:drawFramebufferText(framebuffer)

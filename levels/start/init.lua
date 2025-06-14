@@ -13,7 +13,8 @@ function info:createLevel() -- name should be the name of the directory containi
 	}
 	local materials = {
 		[0x00] = "concrete",
-		[0x55] = "labTiles"
+		[0x55] = "labTiles",
+		[0xaa] = "lino"
 	}
 	local spawnX, spawnY
 	local function decodeExtra(x, y, r, g, value, a)
@@ -48,10 +49,25 @@ function info:createLevel() -- name should be the name of the directory containi
 	end)
 	assert(spawnX and spawnY, "No spawn location")
 
-	self:placeItem(spawnX, spawnY, "pumpShotgun", "steel")
-	for _=1, 6 do
-		self:placeItem(spawnX, spawnY, "shotgunShell", "plasticRed")
+	local function wardRoom(doorX, doorY, xOffsetMultiply, yOffsetMultiply)
+		xOffsetMultiply = xOffsetMultiply or 1
+		yOffsetMultiply = yOffsetMultiply or 1
+		self:placeItem(doorX + xOffsetMultiply * 2, doorY + yOffsetMultiply * 5, "toilet", "porcelain")
+		self:placeItem(doorX, doorY + yOffsetMultiply * 4, "bed", "plywood")
+		self:placeItem(doorX, doorY + yOffsetMultiply * 3, "bedsideTable", "plywood")
 	end
+
+	wardRoom(59, 54)
+	wardRoom(54, 54)
+	wardRoom(46, 54, -1)
+	wardRoom(41, 54, -1)
+	wardRoom(59, 51, 1, -1)
+	wardRoom(54, 51, 1, -1)
+	wardRoom(46, 51, -1, -1)
+	wardRoom(41, 51, -1, -1)
+
+	self:placeItem(47, 61, "toilet", "porcelain")
+	self:placeItem(53, 61, "toilet", "porcelain")
 
 	return {
 		spawnX = spawnX,
