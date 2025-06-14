@@ -31,7 +31,9 @@ function game:loadMaterials()
 
 	addMaterial("paper", "paper", "white", "solid")
 	addMaterial("plasticRed", "red plastic", "darkRed", "solid")
+	addMaterial("plasticBlack", "black plastic", "darkGrey", "solid")
 	addMaterial("brass", "brass", "yellow", "solid")
+	addMaterial("aluminium", "aluminium", "lightGrey", "solid")
 end
 
 return game

@@ -3,13 +3,16 @@ local game = {}
 -- Not my algorithm, it's:
 -- http://www.adammil.net/blog/view.php?id=125
 
-function game:tileBlocksLight(x, y)
+function game:tileBlocksLight(x, y, allowSlipPast)
 	local tile = self:getTile(x, y)
 	if not tile then
 		return true
 	end
 	if tile.doorData and not tile.doorData.open and not tile.doorData.entity.itemData.itemType.doorWindow then
 		return true
+	end
+	if allowSlipPast and self.state.tileTypes[tile.type].lightSlipPast then
+		return false
 	end
 	return self.state.tileTypes[tile.type].blocksLight
 end

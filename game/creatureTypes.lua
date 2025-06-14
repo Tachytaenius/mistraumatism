@@ -19,7 +19,7 @@ function game:loadCreatureTypes()
 		maxBlood = 16,
 		bleedHealRate = 16,
 		meleeTimerLength = 5,
-		meleeDamage = 5,
+		meleeDamage = 3,
 		meleeBleedRateAdd = 4,
 
 		canOpenDoors = true,

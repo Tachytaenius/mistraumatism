@@ -66,8 +66,23 @@ function info:createLevel() -- name should be the name of the directory containi
 	wardRoom(46, 51, -1, -1)
 	wardRoom(41, 51, -1, -1)
 
-	self:placeItem(47, 61, "toilet", "porcelain")
+	self:placeItem(45, 61, "penKnife", "steel")
+	self:placeNote(46, 62, "MEDICATION INVENTORY")
+
 	self:placeItem(53, 61, "toilet", "porcelain")
+
+	self:placeCrate(46, 61, 1, 1, "crateBrown")
+	self:placeCrate(47, 62, 1, 1, "crateYellow")
+	self:placeCrate(51, 58, 2, 2, "crateBrown")
+	self:placeCrate(52, 57, 1, 1, "crateBrown")
+
+	for y = 55, 56 do
+		self:placeItem(48, y, "computer", "plasticBlack")
+		self:placeItem(48, y, "desk", "aluminium")
+		self:placeItem(49, y, "officeChair", "steel")
+	end
+	self:placeItem(48, 57, "filingCabinet", "steel")
+	self:placeItem(48, 58, "filingCabinet", "steel")
 
 	return {
 		spawnX = spawnX,

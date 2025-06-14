@@ -181,7 +181,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local rightEdge = isEdgeVisible(x, y, "vertical")
 			if rightEdge then
 				rightMask = true
-				if not self:tileBlocksLight(x + 1, y) then
+				if not self:tileBlocksLight(x + 1, y, true) then
 					upMask = true
 					downMask = true
 				end
@@ -190,7 +190,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local upEdge = isEdgeVisible(x, y - 1, "horizontal")
 			if upEdge then
 				upMask = true
-				if not self:tileBlocksLight(x, y - 1) then
+				if not self:tileBlocksLight(x, y - 1, true) then
 					rightMask = true
 					leftMask = true
 				end
@@ -199,7 +199,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local leftEdge = isEdgeVisible(x - 1, y, "vertical")
 			if leftEdge then
 				leftMask = true
-				if not self:tileBlocksLight(x - 1, y) then
+				if not self:tileBlocksLight(x - 1, y, true) then
 					upMask = true
 					downMask = true
 				end
@@ -208,7 +208,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local downEdge = isEdgeVisible(x, y, "horizontal")
 			if downEdge then
 				downMask = true
-				if not self:tileBlocksLight(x, y + 1) then
+				if not self:tileBlocksLight(x, y + 1, true) then
 					rightMask = true
 					leftMask = true
 				end
@@ -360,6 +360,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					cell.foregroundColour = darker
 				end
 			end
+			if tileType.swapColours then
+				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
+			end
 			cell.character = getTileCharacter(tileX, tileY)
 
 			if not tileType.ignoreSpatter then
@@ -495,11 +498,15 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			end
 		else
 			local background = "black"
+			local foreground = state.materials[entity.itemData.material].colour
+			if entity.itemData.itemType.swapColours then
+				foreground, background = background, foreground
+			end
 			local tile = entity.itemData.itemType.tile
 			if entity.doorTile and entity.doorTile.doorData.open then
 				tile = entity.itemData.itemType.openTile
 			end
-			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, tile, state.materials[entity.itemData.material].colour, background)
+			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, tile, foreground, background)
 		end
 	    ::continue::
 	end
@@ -657,7 +664,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, itemName, "lightGrey", "black")
 			end
 		elseif entity and entity.entityType == "item" then
-			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.itemData.itemType.tile, state.materials[entity.itemData.material].colour, "black")
+			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.itemData.itemType.tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, "black", entity.itemData.itemType.swapColours))
 			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.itemData.itemType.displayName, false), "lightGrey", "black")
 			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, util.capitalise(state.materials[entity.itemData.material].displayName, false), "lightGrey", "black")
 			local item = entity.itemData
@@ -729,7 +736,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					drawCharacterFramebuffer(x - 1, y, "►", "lightGrey", "black")
 				end
 				if slot.item then
-					drawCharacterFramebuffer(x, y, slot.item.itemType.tile, state.materials[slot.item.material].colour, "black")
+					drawCharacterFramebuffer(x, y, slot.item.itemType.tile, util.conditionalSwap(state.materials[slot.item.material].colour, "black", slot.item.itemType.swapColours))
 				end
 			end
 		end
@@ -786,7 +793,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			drawStringFramebuffer(statusX + 3, statusY + yShift + 2, util.capitalise(material.displayName, false), "lightGrey", "black")
 		end
 		if tile.type and material then
-			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, getTileCharacter(tile.x, tile.y), material.colour, "black")
+			local foreground, background = material.colour, "black"
+			if state.tileTypes[tile.type].swapColours then
+				foreground, background = background, foreground
+			end
+			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, getTileCharacter(tile.x, tile.y), foreground, background)
 		end
 		local largestSpatter
 		if tile.spatter then
@@ -802,15 +813,16 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local selectedEntity = self:getCursorEntity()
 			if selectedEntity then
 				local function drawEntitySymbol(entity, x, y)
-					local character, colour
+					local character, colour, swap
 					if entity.entityType == "creature" then
 						character = entity.creatureType.tile
 						colour = entity.creatureType.colour
 					elseif entity.entityType == "item" then
 						character = entity.itemData.itemType.tile
 						colour = state.materials[entity.itemData.material].colour
+						swap = entity.itemData.itemType.swapColours
 					end
-					drawCharacterFramebuffer(x, y, character, colour, "black")
+					drawCharacterFramebuffer(x, y, character, util.conditionalSwap(colour, "black", swap))
 				end
 
 				selectedEntityIndex = self:getSelectedEntityListIndex()

@@ -71,6 +71,14 @@ function game:loadItemTypes()
 		range = 16
 	}
 
+	itemTypes.penKnife = {
+		tile = "`",
+		displayName = "pen-knife",
+		isMeleeWeapon = true,
+		meleeDamage = 5,
+		meleeBleedRateAdd = 25
+	}
+
 	itemTypes.note = {
 		tile = "■",
 		displayName = "note",
@@ -83,7 +91,16 @@ function game:loadItemTypes()
 		tile = "╥",
 		displayName = "lab table"
 	}
-
+	itemTypes.desk = {
+		noPickUp = true,
+		tile = "╥",
+		displayName = "desk"
+	}
+	itemTypes.officeChair = {
+		noPickUp = true,
+		tile = "h",
+		displayName = "office chair"
+	}
 	itemTypes.bedsideTable = {
 		noPickUp = true,
 		tile = "╥",
@@ -96,8 +113,21 @@ function game:loadItemTypes()
 	}
 	itemTypes.toilet = {
 		noPickUp = true,
-		tile = "Ω",
+		-- tile = "Ω",
+		tile = "º",
 		displayName = "toilet"
+	}
+	itemTypes.computer = {
+		noPickUp = true,
+		tile = "■",
+		swapColours = true,
+		displayName = "computer"
+	}
+	itemTypes.filingCabinet = {
+		noPickUp = true,
+		tile = "≡",
+		swapColours = true,
+		displayName = "filing cabinet"
 	}
 
 	itemTypes.door = {

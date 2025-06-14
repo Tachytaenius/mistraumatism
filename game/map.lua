@@ -21,6 +21,15 @@ function game:loadTileTypes()
 			character = "∙",
 			ignoreSpatter = true,
 			darkenColour = true
+		},
+		crateWall = {
+			displayName = "crate",
+			solidity = "solid",
+			character = "#",
+			blocksLight = true,
+			lightSlipPast = true,
+			boxDrawingNumber = 2,
+			swapColours = false
 		}
 	}
 end

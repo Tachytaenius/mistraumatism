@@ -166,8 +166,9 @@ function game:loadActionTypes()
 		if action.timer <= 0 then
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
-			if entity.creatureType.meleeDamage and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
-				self:damageEntity(action.targetEntity, entity.creatureType.meleeDamage, entity, entity.creatureType.meleeBleedRateAdd, entity.creatureType.meleeInstantBloodLoss)
+			if self:getAttackStrengths(entity) and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
+				local meleeDamage, meleeBleedRateAdd, meleeInstantBloodLoss = self:getAttackStrengths(entity)
+				self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
 				action.doneType = "completed"
 			else
 				action.doneType = "cancelled"
@@ -350,7 +351,7 @@ function game:loadActionTypes()
 
 	local swapInventorySlot = newActionType("swapInventorySlot", "swap slot")
 	function swapInventorySlot.construct(self, entity, slot)
-		if entity.inventory and (not slot or (#entity.inventory >= slot and entity.inventory[slot].item)) then
+		if entity.inventory and (not slot or (#entity.inventory >= slot and entity.inventory[slot].item)) and slot ~= entity.inventory.selectedSlot then
 			local new = {type = "swapInventorySlot"}
 			new.slot = slot
 			new.timer = 8

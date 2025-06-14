@@ -48,12 +48,13 @@ function game:placeCrate(x, y, w, h, material)
 		self:logError("Tried to place a crate but it wasn't all floor")
 		return
 	end
-	self:placeRectangle(x, y, w, h, "wall", material)
+	self:placeRectangle(x, y, w, h, "crateWall", material)
 	self:placeRectangle(x + 1, y + 1, w - 2, h - 2, "floor", material)
+	local crateGroup = self:getAutotileGroupId()
 	for x = x, x + w - 1 do
 		for y = y, y + h - 1 do
 			-- Not replacing
-			self.state.map[x][y].autotileGroup = self:getAutotileGroupId()
+			self.state.map[x][y].autotileGroup = crateGroup
 		end
 	end
 end

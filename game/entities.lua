@@ -544,4 +544,12 @@ function game:abilityShoot(entity, action, ability, targetEntity)
 	end
 end
 
+function game:getAttackStrengths(entity)
+	local heldItem = self:getHeldItem(entity)
+	if heldItem and heldItem.itemType.isMeleeWeapon then
+		return heldItem.itemType.meleeDamage, heldItem.itemType.meleeBleedRateAdd, heldItem.itemType.meleeInstantBloodLoss
+	end
+	return entity.creatureType.meleeDamage, entity.creatureType.meleeBleedRateAdd, entity.creatureType.meleeInstantBloodLoss
+end
+
 return game
