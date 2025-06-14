@@ -165,9 +165,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						goto continue
 					end
 					local sameType = otherTile.type == tile.type
+					local doorWithWall = otherTile.doorData and tile.type == "wall"
 					local groupedAutotiling = tile.autotileGroup or otherTile.autotileGroup
 					local sameGroup = tile.autotileGroup == otherTile.autotileGroup
-					neighbours[direction] = otherTile and sameType and (not groupedAutotiling or sameGroup)
+					neighbours[direction] = otherTile and (sameType or doorWithWall) and (not groupedAutotiling or sameGroup)
 					::continue::
 				end
 			end
