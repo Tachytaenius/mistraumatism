@@ -58,83 +58,6 @@ function game:draw()
 		end
 	end
 	love.graphics.setShader()
-
-	love.graphics.setColor(1, 0, 0)
-	for x, c in pairs(evm.horizontal) do
-		for y, v in pairs(c) do
-			if not v then
-				goto continue
-			end
-			local x = x - (self.state.player.x - math.floor(self.viewportWidth / 2)) + 1
-			local y = y - (self.state.player.y - math.floor(self.viewportHeight / 2)) + 1
-			love.graphics.line(x * 16, y * 16 + 16, x * 16 + 16, y * 16 + 16)
-		    ::continue::
-		end
-	end
-	love.graphics.setColor(1, 1, 0)
-	for x, c in pairs(evm.vertical) do
-		for y, v in pairs(c) do
-			if not v then
-				goto continue
-			end
-			local x = x - (self.state.player.x - math.floor(self.viewportWidth / 2)) + 1
-			local y = y - (self.state.player.y - math.floor(self.viewportHeight / 2)) + 1
-			love.graphics.line(x * 16 + 16, y * 16, x * 16 + 16, y * 16 + 16)
-			::continue::
-		end
-	end
-	for x, xTable in pairs(sns) do
-		love.graphics.setLineStyle("rough")
-		for _, sectorSlice in ipairs(xTable) do
-			local top = sectorSlice.slopeTopY / sectorSlice.slopeTopX
-			local bottom = sectorSlice.slopeBottomY / sectorSlice.slopeBottomX
-			local X = math.floor(self.viewportWidth / 2) + 1
-			local Y = math.floor(self.viewportHeight / 2) + 1
-			love.graphics.setPointSize(4)
-			local function l(a, b, c, d)
-				-- love.graphics.push()
-				if sectorSlice.octant == 1 then
-					a, b = -b, -a
-					c, d = -d, -c
-				elseif sectorSlice.octant == 2 then
-					a, b = b, -a
-					c, d = d, -c
-				elseif sectorSlice.octant == 3 then
-					a, c = -a, -c
-				elseif sectorSlice.octant == 4 then
-					a, c = -a, -c
-					b, d = -b, -d
-				elseif sectorSlice.octant == 5 then
-					a, b = b, a
-					c, d = d, c
-				elseif sectorSlice.octant == 6 then
-					a, b = -b, a
-					c, d = -d, c
-				elseif sectorSlice.octant == 7 then
-					b = -b
-					d = -d
-				end
-				love.graphics.line(
-					(a + X + 0.5) * 16,
-					(b + Y + 0.5) * 16,
-					(c + X + 0.5) * 16,
-					(d + Y + 0.5) * 16
-				)
-				-- love.graphics.pop()
-			end
-			love.graphics.setColor(0, 1, 0)
-			l(
-				(x - 1), -bottom * (x - 1),
-				(x + 0), -bottom * (x + 0)
-			)
-			love.graphics.setColor(0, 1, 1)
-			l(
-				(x - 1), -top * (x - 1),
-				(x + 0), -top * (x + 0)
-			)
-		end
-	end
-	love.graphics.setColor(1, 1, 1)
 end
 
 function game:drawFramebufferGameplay(framebuffer) -- After this function completes, the result is in currentFramebuffer
@@ -152,8 +75,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local topLeftY = cameraY - math.floor(self.viewportHeight / 2)
 
 	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight, edgeVisibilityMap = self:computeVisibilityMap(cameraX, cameraY, cameraSightDistance, nil, nil, true)
-	evm = edgeVisibilityMap -- TEMP
-	print("global!")
 	assert(visibilityMapTopLeftX == topLeftX)
 	assert(visibilityMapTopLeftY == topLeftY)
 	assert(visibilityMapWidth == self.viewportWidth)
@@ -263,12 +184,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					upMask = true
 					downMask = true
 				end
-				-- if not self:tileBlocksLight(x + 1, y - 1) then
-				-- 	upMask = true
-				-- end
-				-- if not self:tileBlocksLight(x + 1, y + 1) then
-				-- 	downMask = true
-				-- end
 			end
 	
 			local upEdge = isEdgeVisible(x, y - 1, "horizontal")
@@ -278,12 +193,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					rightMask = true
 					leftMask = true
 				end
-				-- if not self:tileBlocksLight(x - 1, y - 1) then
-				-- 	leftMask = true
-				-- end
-				-- if not self:tileBlocksLight(x + 1, y - 1) then
-				-- 	rightMask = true
-				-- end
 			end
 	
 			local leftEdge = isEdgeVisible(x - 1, y, "vertical")
@@ -293,12 +202,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					upMask = true
 					downMask = true
 				end
-				-- if not self:tileBlocksLight(x - 1, y - 1) then
-				-- 	upMask = true
-				-- end
-				-- if not self:tileBlocksLight(x - 1, y + 1) then
-				-- 	downMask = true
-				-- end
 			end
 	
 			local downEdge = isEdgeVisible(x, y, "horizontal")
@@ -308,46 +211,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					rightMask = true
 					leftMask = true
 				end
-				-- if not self:tileBlocksLight(x - 1, y + 1) then
-				-- 	leftMask = true
-				-- end
-				-- if not self:tileBlocksLight(x + 1, y + 1) then
-				-- 	rightMask = true
-				-- end
 			end
-
-
-			-- local function checkCorner(ox, oy)
-			-- 	local tx, ty = x + ox, y + oy
-			-- 	return isTileVisible(tx, ty) and not self:tileBlocksLight(tx, ty)
-			-- end
-
-			-- local upLeftCorner = checkCorner(-1, -1)
-			-- leftMask = upLeftCorner or leftMask
-			-- upMask = upLeftCorner or upMask
-
-			-- local upRightCorner = checkCorner(1, -1)
-			-- rightMask = upRightCorner or rightMask
-			-- upMask = upRightCorner or upMask
-
-			-- local downLeftCorner = checkCorner(-1, 1)
-			-- leftMask = downLeftCorner or leftMask
-			-- downMask = downLeftCorner or downMask
-
-			-- local downRightCorner = checkCorner(1, 1)
-			-- rightMask = downRightCorner or rightMask
-			-- downMask = downRightCorner or downMask
-
-
-			-- local rightEdge = isEdgeVisible(x, y, "vertical")
-			-- local upEdge = isEdgeVisible(x, y - 1, "horizontal")
-			-- local leftEdge = isEdgeVisible(x - 1, y, "vertical")
-			-- local downEdge = isEdgeVisible(x, y, "horizontal")
-
-			-- rightMask = rightMask or rightEdge
-			-- upMask = upMask or upEdge
-			-- leftMask = leftMask or leftEdge
-			-- downMask = downMask or downEdge
 	
 			local right = right and rightMask
 			local up = up and upMask

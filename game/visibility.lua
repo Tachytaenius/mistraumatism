@@ -183,101 +183,6 @@ function game:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, x, 
 			local isVisible = (y ~= topY or slopeGreaterOrEqual(slopeTopX, slopeTopY, x, y)) and (y ~= bottomY or slopeLessOrEqual(slopeBottomX, slopeBottomY, x, y))
 			local openVisible = isVisible and not isOpaque
 
-			local function setEdge(edgeTileX, edgeTileY, edgeType)
-
-
-
-
-
-
-
-
-
-				if true then return end
-
-
-
-
-
-
-
-
-				local typeTable = visibilityMapInfo.edgeMap[edgeType]
-				if not typeTable[edgeTileX] then
-					typeTable[edgeTileX] = {}
-				end
-				typeTable[edgeTileX][edgeTileY] = true
-			end
-
-			-- and love.math.random() < 0.05
-			if visibilityMapInfo.edgeMap then
-				local octantPair = math.floor((octant + 1) / 2) % 4 -- Rotated quadrants
-				if octantPair == 0 then
-					setEdge(globalX - 1, globalY, "vertical")
-
-					if octant == 0 then
-						setEdge(globalX, globalY, "horizontal")
-						if openVisible then
-							-- setEdge(globalX, globalY + 1, "vertical")
-							-- setEdge(globalX - 1, globalY - 1, "horizontal")
-						end
-					else -- 7
-						setEdge(globalX, globalY - 1, "horizontal")
-						if openVisible then
-							-- setEdge(globalX, globalY - 1, "vertical")
-							-- setEdge(globalX - 1, globalY, "horizontal")
-						end
-					end
-				elseif octantPair == 1 then
-					setEdge(globalX, globalY, "horizontal")
-
-					if octant == 1 then
-						setEdge(globalX - 1, globalY, "vertical")
-						if openVisible then
-							-- setEdge(globalX - 1, globalY - 1, "horizontal")
-							-- setEdge(globalX, globalY + 1, "vertical")
-						end
-					else -- 2
-						setEdge(globalX, globalY, "vertical")
-						if openVisible then
-							-- setEdge(globalX + 1, globalY - 1, "horizontal")
-							-- setEdge(globalX - 1, globalY + 1, "vertical")
-						end
-					end
-				elseif octantPair == 2 then
-					setEdge(globalX, globalY, "vertical")
-
-					if octant == 3 then
-						setEdge(globalX, globalY, "horizontal")
-						if openVisible then
-							-- setEdge(globalX - 1, globalY + 1, "vertical")
-							-- setEdge(globalX + 1, globalY - 1, "horizontal")
-						end
-					else -- 4
-						setEdge(globalX, globalY - 1, "horizontal")
-						if openVisible then
-							-- setEdge(globalX - 1, globalY - 1, "vertical")
-							-- setEdge(globalX + 1, globalY, "horizontal")
-						end
-					end
-				elseif octantPair == 3 then
-					setEdge(globalX, globalY - 1, "horizontal")
-
-					if octant == 5 then
-						setEdge(globalX, globalY, "vertical")
-						if openVisible then
-							-- setEdge(globalX + 1, globalY, "horizontal")
-							-- setEdge(globalX - 1, globalY - 1, "vertical")
-						end
-					else -- 6
-						setEdge(globalX - 1, globalY, "vertical")
-						if openVisible then
-							-- setEdge(globalX - 1, globalY, "horizontal")
-							-- setEdge(globalX, globalY - 1, "vertical")
-						end
-					end
-				end
-			end
 			if rangeLimit < 0 or disableDistanceCheck or (not disableDistanceCheck and self:length(x, y) <= (visibilityMapInfo.distanceCheckRangeLimit or rangeLimit)) then
 				if isVisible then
 					if visibilityMapInfo.wholeMap then
@@ -397,27 +302,7 @@ function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCh
 		visibilityMapTopLeftX = visibilityMapTopLeftX,
 		visibilityMapTopLeftY = visibilityMapTopLeftY,
 		visibilityMap = visibilityMap,
-		edgeMap = edges and {vertical = {}, horizontal = {}},
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		
-		sectorsNextStep = {} -- TEMP
+		edgeMap = edges and {vertical = {}, horizontal = {}}
 	}
 	if not allVisible then
 		setVisibleBasic(startX, startY, visibilityMapInfo)
@@ -430,7 +315,6 @@ function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCh
 		edges.horizontal[startX][startY - 1] = true
 		edges.horizontal[startX] = edges.horizontal[startX] or {}
 		edges.horizontal[startX][startY] = true
-		-- for _, octant in ipairs({5, 6}) do
 		for octant = 0, 7 do
 			self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, 1, 1, 1, 1, 0, disableDistanceCheck, visibilityMapInfo)
 		end
@@ -452,60 +336,6 @@ function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCh
 			local worldX = visibilityMapTopLeftX + x
 			for y = -1, visibilityMapHeight - 1 do
 				local worldY = visibilityMapTopLeftY + y
-
-				-- if true then
-				-- 	if
-				-- 		(
-				-- 			visibilityMap[x] and visibilityMap[x][y] or
-				-- 			visibilityMap[x + 1] and visibilityMap[x + 1][y]
-				-- 		) and not (
-				-- 			(self:tileBlocksLight(worldX, worldY) or not (visibilityMap[x] and visibilityMap[x][y])) and
-				-- 			(self:tileBlocksLight(worldX + 1, worldY) or not (visibilityMap[x + 1] and visibilityMap[x + 1][y]))
-				-- 		)
-				-- 	then
-				-- 		edgeMap.vertical[worldX] = edgeMap.vertical[worldX] or {}
-				-- 		edgeMap.vertical[worldX][worldY] = true
-				-- 	end
-
-				-- 	if
-				-- 		(
-				-- 			visibilityMap[x] and visibilityMap[x][y] or
-				-- 			visibilityMap[x] and visibilityMap[x][y + 1]
-				-- 		) and not (
-				-- 			(self:tileBlocksLight(worldX, worldY) or not (visibilityMap[x] and visibilityMap[x][y])) and
-				-- 			(self:tileBlocksLight(worldX, worldY + 1) or not (visibilityMap[x] and visibilityMap[x][y + 1]))
-				-- 		)
-				-- 	then
-				-- 		edgeMap.horizontal[worldX] = edgeMap.horizontal[worldX] or {}
-				-- 		edgeMap.horizontal[worldX][worldY] = true
-				-- 	end
-				-- else
-				-- 	if
-				-- 		(
-				-- 			visibilityMap[x] and visibilityMap[x][y] or
-				-- 			visibilityMap[x + 1] and visibilityMap[x + 1][y]
-				-- 		) and not (
-				-- 			self:tileBlocksLight(worldX, worldY) and
-				-- 			self:tileBlocksLight(worldX + 1, worldY)
-				-- 		)
-				-- 	then
-				-- 		edgeMap.vertical[worldX] = edgeMap.vertical[worldX] or {}
-				-- 		edgeMap.vertical[worldX][worldY] = true
-				-- 	end
-
-				-- 	if
-				-- 		(
-				-- 			visibilityMap[x] and visibilityMap[x][y] or
-				-- 			visibilityMap[x] and visibilityMap[x][y + 1]
-				-- 		) and not (
-				-- 			self:tileBlocksLight(worldX, worldY) and
-				-- 			self:tileBlocksLight(worldX, worldY + 1)
-				-- 		)
-				-- 	then
-				-- 		edgeMap.horizontal[worldX] = edgeMap.horizontal[worldX] or {}
-				-- 		edgeMap.horizontal[worldX][worldY] = true
-				-- 	end
-				-- end
 
 				if (visibilityMap[x] and visibilityMap[x][y]) then
 					if not self:tileBlocksLight(worldX, worldY) then
@@ -540,9 +370,6 @@ function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCh
 			end
 		end
 	end
-
-	print("global...")
-	sns = visibilityMapInfo.sectorsNextStep
 
 	return visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight, edges and visibilityMapInfo.edgeMap or nil
 end
