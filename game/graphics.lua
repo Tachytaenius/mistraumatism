@@ -486,7 +486,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local drawnEntities = {}
 	for _, entity in ipairs(entitiesToDrawVisible) do
 		if shouldReplaceWithSwitchIndicator(entity) then
-			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, "&", "red", "black")
+			drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, "&", "darkGreen", "black")
 			goto continue
 		end
 
