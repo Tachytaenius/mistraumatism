@@ -227,9 +227,13 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				down and num or 0
 			)
 
-			return boxCharacter or tileType.character
+			if boxCharacter then
+				return boxCharacter, true
+			else
+				return tileType.character, false
+			end
 		else
-			return tileType.character
+			return tileType.character, false
 		end
 	end
 
@@ -360,10 +364,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					cell.foregroundColour = darker
 				end
 			end
-			if tileType.swapColours then
+			local box
+			cell.character, box = getTileCharacter(tileX, tileY)
+			if tileType.swapColours and not (box and tileType.swapColoursSingleOnly) then
 				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
 			end
-			cell.character = getTileCharacter(tileX, tileY)
 
 			if not tileType.ignoreSpatter then
 				local largestSpatter
@@ -805,10 +810,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 		if tile.type and material then
 			local foreground, background = material.colour, "black"
-			if state.tileTypes[tile.type].swapColours then
+			local char, box = getTileCharacter(tile.x, tile.y)
+			if state.tileTypes[tile.type].swapColours and not (box and state.tileTypes[tile.type].swapColoursSingleOnly) then
 				foreground, background = background, foreground
 			end
-			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, getTileCharacter(tile.x, tile.y), foreground, background)
+			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, char, foreground, background)
 		end
 		local largestSpatter
 		if tile.spatter then

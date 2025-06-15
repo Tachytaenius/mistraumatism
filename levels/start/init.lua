@@ -9,12 +9,14 @@ function info:createLevel() -- name should be the name of the directory containi
 
 	local types = {
 		[0x00] = "floor",
-		[0x55] = "wall"
+		[0x55] = "wall",
+		[0xaa] = "drain"
 	}
 	local materials = {
 		[0x00] = "concrete",
 		[0x55] = "labTiles",
-		[0xaa] = "lino"
+		[0xaa] = "lino",
+		[0xff] = "steel"
 	}
 	local spawnX, spawnY
 	local function decodeExtra(x, y, r, g, value, a)
@@ -52,7 +54,7 @@ function info:createLevel() -- name should be the name of the directory containi
 	local function wardRoom(doorX, doorY, xOffsetMultiply, yOffsetMultiply)
 		xOffsetMultiply = xOffsetMultiply or 1
 		yOffsetMultiply = yOffsetMultiply or 1
-		self:placeItem(doorX + xOffsetMultiply * 2, doorY + yOffsetMultiply * 5, "toilet", "porcelain")
+		self:placeItem(doorX + xOffsetMultiply * 2, doorY + yOffsetMultiply * 4, "toilet", "porcelain")
 		self:placeItem(doorX, doorY + yOffsetMultiply * 4, "bed", "plywood")
 		self:placeItem(doorX, doorY + yOffsetMultiply * 3, "bedsideTable", "plywood")
 	end
@@ -66,7 +68,7 @@ function info:createLevel() -- name should be the name of the directory containi
 	wardRoom(46, 51, -1, -1)
 	wardRoom(41, 51, -1, -1)
 
-	self:placeItem(45, 61, "penKnife", "steel")
+	self:placeItem(45, 61, "boxCutter", "steel")
 	self:placeNote(46, 62, "MEDICATION INVENTORY")
 
 	self:placeItem(53, 61, "toilet", "porcelain")

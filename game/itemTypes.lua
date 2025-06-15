@@ -75,9 +75,9 @@ function game:loadItemTypes()
 		range = 16
 	}
 
-	itemTypes.penKnife = {
+	itemTypes.boxCutter = {
 		tile = "`",
-		displayName = "pen-knife",
+		displayName = "box cutter",
 		isMeleeWeapon = true,
 		meleeDamage = 5,
 		meleeBleedRateAdd = 25
