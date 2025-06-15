@@ -199,17 +199,17 @@ function game:loadActionTypes()
 
 	local pickUp = newActionType("pickUp", "pick up")
 	function pickUp.construct(self, entity, targetEntity)
-		local freeSlot = self:getFirstFreeInventorySlot(entity)
-		if not freeSlot then
-			return
-		end
-		if entity.x ~= targetEntity.x or entity.y ~= targetEntity.y then
-			return
-		end
 		if not targetEntity then
 			return
 		end
 		if not (targetEntity.entityType == "item" and not targetEntity.itemData.itemType.noPickUp) then
+			return
+		end
+		local freeSlot = self:getFirstFreeInventorySlotForItem(entity, targetEntity.itemData)
+		if not freeSlot then
+			return
+		end
+		if entity.x ~= targetEntity.x or entity.y ~= targetEntity.y then
 			return
 		end
 		local new = {type = "pickUp"}
@@ -220,7 +220,7 @@ function game:loadActionTypes()
 	function pickUp.process(self, entity, action)
 		action.timer = action.timer - 1
 		if action.timer <= 0 then
-			if self:getFirstFreeInventorySlot(entity) and action.targetEntity.x == entity.x and action.targetEntity.y == entity.y then
+			if self:getFirstFreeInventorySlotForItem(entity, action.targetEntity.itemData) and action.targetEntity.x == entity.x and action.targetEntity.y == entity.y then
 				self:registerPickUp(entity, action.targetEntity)
 				action.doneType = "completed"
 			else
@@ -232,17 +232,8 @@ function game:loadActionTypes()
 		if not (commands.checkCommand("pickUpOrDrop") and not commands.checkCommand("dropMode")) then
 			return
 		end
-		if not self:getFirstFreeInventorySlot(player) then
-			return
-		end
 		local targetEntity = self:getCursorEntity()
-		if not targetEntity or targetEntity.entityType ~= "item" then
-			return
-		end
-		if not (targetEntity.x == player.x and targetEntity.y == player.y) then
-			return
-		end
-		return pickUp.construct(self, player, targetEntity)
+		return pickUp.construct(self, player, targetEntity) -- Can be nil
 	end
 
 	local drop = newActionType("drop", "drop")
@@ -442,12 +433,9 @@ function game:loadActionTypes()
 		action.timer = action.timer - 1
 		if action.timer <= 0 then
 			if reload.validate(self, entity, action) then
-				-- TODO: Stacking
 				local heldItem = self:getHeldItem(entity)
-				local item = entity.inventory[action.slot].item
-				entity.inventory[action.slot].item = nil
+				local item = self:takeItemFromSlot(entity, action.slot)
 				if action.reloadType == "replaceMagazine" then
-					entity.inventory[action.slot].item = heldItem.insertedMagazine -- May be nil (actually, Should be nil, since there's a check for inserted magazine not being present now)
 					heldItem.insertedMagazine = item
 				elseif action.reloadType == "addRoundToMagazineData" then
 					table.insert(heldItem.magazineData, item)
@@ -504,7 +492,23 @@ function game:loadActionTypes()
 			end
 		end
 		if action.slot then
-			if not (entity.inventory and entity.inventory[action.slot] and not entity.inventory[action.slot].item) then
+			local itemToUnload
+			if heldItem.itemType.magazine then
+				itemToUnload = heldItem.magazineData[#heldItem.magazineData]
+			else
+				itemToUnload = heldItem.insertedMagazine
+			end
+			if not (
+				entity.inventory and
+				entity.inventory[action.slot] and
+				(
+					not entity.inventory[action.slot].item or
+					(
+						self:isItemStackable(entity.inventory[action.slot].item, itemToUnload) and
+						self:getSlotStackSize(entity, action.slot) < self:getMaxStackSize(entity.inventory[action.slot].item)
+					)
+				)
+			) then
 				return false
 			end
 		else
@@ -544,7 +548,8 @@ function game:loadActionTypes()
 				heldItem.insertedMagazine = nil
 			end
 			if action.slot then
-				entity.inventory[action.slot].item = unloadedItem
+				local added = self:addItemToSlot(entity, action.slot, unloadedItem)
+				assert(added, "Couldn't add item to slot for unload action, even though the action was(?) validated")
 			else
 				local ox, oy = self:getDirectionOffset(action.direction)
 				local targetX, targetY = entity.x + ox, entity.y + oy

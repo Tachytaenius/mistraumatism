@@ -128,17 +128,65 @@ function game:getHeldItem(entity)
 	return entity.inventory[entity.inventory.selectedSlot].item -- Can be nil
 end
 
-function game:dropItemFromSlot(entity, selectedSlotNumber, targetX, targetY)
+function game:takeItemFromSlot(entity, slotNumber)
 	if not entity.inventory then
 		return
 	end
-	if not entity.inventory[selectedSlotNumber] then
+	if not entity.inventory[slotNumber] then
 		return
 	end
-	local item = entity.inventory[selectedSlotNumber].item
+	local item = entity.inventory[slotNumber].item
+	entity.inventory[slotNumber].item = table.remove(entity.inventory[slotNumber].otherItems) -- Can be nil
+	return item
+end
+
+function game:isItemStackable(itemA, itemB)
+	if itemA.itemType.stackable and itemA.itemType == itemB.itemType then
+		if itemA.itemType.isAmmo and itemA.fired ~= itemB.fired then
+			return false
+		end
+		return true
+	end
+	return false
+end
+
+function game:addItemToSlot(entity, slotNumber, item)
+	assert(item, "Tried to add a nil item to an inventory")
+	if not entity.inventory then
+		return
+	end
+	local slot = entity.inventory[slotNumber]
+	if not slot then
+		return
+	end
+	if not slot.item or (
+		self:isItemStackable(slot.item, item) and
+		self:getSlotStackSize(entity, slotNumber) < self:getMaxStackSize(slot.item)
+	) then
+		table.insert(slot.otherItems, slot.item)
+		slot.item = item
+		return true
+	end
+	return false
+end
+
+function game:dropItemFromSlot(entity, selectedSlotNumber, targetX, targetY)
+	local item = self:takeItemFromSlot(entity, selectedSlotNumber)
 	if item then
 		self:newItemEntity(targetX, targetY, item)
-		entity.inventory[selectedSlotNumber].item = nil
+	end
+end
+
+function game:dropAllItemsFromSlot(entity, selectedSlotNumber, targetX, targetY)
+	if not entity.inventory then
+		return
+	end
+	local slot = entity.inventory[selectedSlotNumber]
+	if not slot then
+		return
+	end
+	while slot.item or #slot.otherItems > 0 do
+		self:dropItemFromSlot(entity, selectedSlotNumber, targetX, targetY)
 	end
 end
 
@@ -152,6 +200,40 @@ function game:getFirstFreeInventorySlot(entity)
 		end
 	end
 	return nil
+end
+
+function game:getFirstFreeInventorySlotForItem(entity, item)
+	if not entity.inventory then
+		return nil
+	end
+	for i, slot in ipairs(entity.inventory) do
+		if
+			not slot.item or
+			self:isItemStackable(slot.item, item) and self:getSlotStackSize(entity, i) < self:getMaxStackSize(slot.item)
+		then
+			return i
+		end
+	end
+	return nil
+end
+
+function game:getMaxStackSize(item)
+	local itemType = item.itemType
+	if not itemType.stackable then
+		return 1
+	end
+	return itemType.maxStackSize or consts.itemDefaultMaxStackSize
+end
+
+function game:getSlotStackSize(entity, slotNumber)
+	if not entity.inventory then
+		return
+	end
+	local slot = entity.inventory[slotNumber]
+	if not slot then
+		return
+	end
+	return (slot.item and 1 or 0) + #slot.otherItems
 end
 
 return game

@@ -737,6 +737,17 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				end
 				if slot.item then
 					drawCharacterFramebuffer(x, y, slot.item.itemType.tile, util.conditionalSwap(state.materials[slot.item.material].colour, "black", slot.item.itemType.swapColours))
+					if slot.item.itemType.stackable then
+						local num = self:getSlotStackSize(state.player, i)
+						local str
+						if num > 9 then
+							-- Not supposed to happen
+							str = "+"
+						else
+							str = tostring(num)
+						end
+						drawCharacterFramebuffer(x + 1, y, str, "lightGrey", "black")
+					end
 				end
 			end
 		end

@@ -31,6 +31,8 @@ function game:loadItemTypes()
 
 	itemTypes.smallBullet = {
 		isAmmo = true,
+		stackable = true,
+		maxStackSize = 8,
 		tile = "i",
 		ammoClass = "bulletSmall",
 		displayName = "small bullet",
@@ -59,6 +61,8 @@ function game:loadItemTypes()
 
 	itemTypes.shotgunShell = {
 		isAmmo = true,
+		stackable = true,
+		maxStackSize = 6,
 		tile = "▬",
 		ammoClass = "shellMedium",
 		displayName = "shotgun shell",

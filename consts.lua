@@ -87,4 +87,6 @@ consts.bleedTimerLength = 1024
 consts.bleedHealTimerLength = 256
 consts.maxBleedingAmount = 900
 
+consts.itemDefaultMaxStackSize = 9
+
 return consts

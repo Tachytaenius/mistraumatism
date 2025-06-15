@@ -52,7 +52,11 @@ function game:newCreatureEntity(parameters)
 	if creatureType.inventorySize then
 		new.inventory = {}
 		for i = 1, creatureType.inventorySize do
-			new.inventory[i] = {}
+			new.inventory[i] = {
+				item = nil,
+				otherItems = {} -- For stacking
+				-- item is the top of a stack (as in FIFO data structure, as well as group of items), with the contents of otherItems being beneath it
+			}
 		end
 	end
 
@@ -119,7 +123,7 @@ function game:updateEntitiesAndProjectiles()
 		entity.actions = {}
 		if entity.inventory then
 			for i = 1, #entity.inventory do
-				self:dropItemFromSlot(entity, i, entity.x, entity.y)
+				self:dropAllItemsFromSlot(entity, i, entity.x, entity.y)
 			end
 		end
 		-- entitiesToRemove[entity] = true
@@ -236,10 +240,11 @@ function game:updateEntitiesAndProjectiles()
 		else
 			local entity = itemPickup[1]
 			if entity then
-				local slot = self:getFirstFreeInventorySlot(entity)
-				entity.inventory[slot].item = itemPickup.item.itemData
-				itemPickup.item.pickedUp = true
-				entitiesToRemove[itemPickup.item] = true
+				local slot = self:getFirstFreeInventorySlotForItem(entity, itemPickup.item.itemData)
+				if slot and self:addItemToSlot(entity, slot, itemPickup.item.itemData) then
+					itemPickup.item.pickedUp = true
+					entitiesToRemove[itemPickup.item] = true
+				end
 			end
 		end
 	end
