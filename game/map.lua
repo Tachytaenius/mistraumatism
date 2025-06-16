@@ -21,15 +21,15 @@ function game:getWalkable(x, y, ignoreDoors)
 	return self.state.tileTypes[tile.type].solidity == "passable"
 end
 
-function game:getCheckedNeighbourTiles(x, y, checkFunction) -- Used to, for example, get all walkable neighbour tiles
+function game:getCheckedNeighbourTiles(x, y, checkFunction, includeCentreTile) -- Used to, for example, get all walkable neighbour tiles
 	local list = {}
 	for ox = -1, 1 do
 		for oy = -1, 1 do
-			if ox == 0 and oy == 0 then
+			if ox == 0 and oy == 0 and not includeCentreTile then
 				goto continue
 			end
 			local tileX, tileY = x + ox, y + oy
-			if checkFunction(x, y) then
+			if checkFunction(tileX, tileY) then
 				list[#list+1] = self:getTile(tileX, tileY)
 			end
 		    ::continue::

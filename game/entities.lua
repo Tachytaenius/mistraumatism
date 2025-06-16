@@ -46,6 +46,7 @@ function game:newCreatureEntity(parameters)
 		new.bleedTimer = 0
 		new.bleedHealTimer = 0
 	end
+	new.drownTimer = 0
 	new.dead = false
 	new.actions = {}
 
@@ -139,6 +140,7 @@ function game:updateEntitiesAndProjectiles()
 				table.remove(state.entities, i)
 
 				-- Remove links
+				-- Flee info links are pruned when handled
 				for _, entity2 in ipairs(state.entities) do
 					if entity2.targetEntity == entity then
 						entity2.targetEntity = nil
@@ -157,12 +159,76 @@ function game:updateEntitiesAndProjectiles()
 		entitiesToRemove = {} -- New list
 	end
 
+	local function tickItems(tickFunction)
+		for _, entity in ipairs(state.entities) do
+			if entity.inventory then
+				for _, slot in ipairs(entity.inventory) do
+					if slot.item then
+						tickFunction(slot.item, entity.x, entity.y)
+					end
+				end
+			elseif entity.itemData then
+				tickFunction(entity.itemData, entity.x, entity.y)
+			end
+		end
+	end
+
+	-- Reset buttons
+	tickItems(function(item, x, y)
+		if item.itemType.isButton and item.pressed and not item.frozenState then
+			item.pressed = false
+			if item.onUnpress then
+				item.onUnpress(self, item, x, y)
+			end
+		end
+	end)
+
+
 	-- AI visibility etc
 	for _, entity in ipairs(state.entities) do
 		assert(not (entity.targetEntity and entity.targetEntity.removed), "An entity is targetting a removed entity")
 
 		if entity == state.player then
 			goto continue
+		end
+
+		-- Fleeing behaviour
+		-- Maintain current list and save its entries
+		local fleeEntities = {}
+		if entity.fleeFromEntities then
+			for _, fleeInfo in ipairs(entity.fleeFromEntities) do
+				if not fleeInfo.entity.removed and self:shouldEntityFlee(entity, fleeInfo.entity) then
+					fleeEntities[fleeInfo.entity] = true
+					if self:entityCanSeeEntity(entity, fleeInfo.entity) then
+						fleeInfo.lastKnownX, fleeInfo.lastKnownY = fleeInfo.entity.x, fleeInfo.entity.y
+					end
+				else
+					fleeInfo.remove = true
+				end
+			end
+		end
+		-- Look for new entries not in the current list
+		for _, fleeEntity in ipairs(state.entities) do
+			if fleeEntities[fleeEntity] or not self:shouldEntityFlee(entity, fleeEntity) then
+				goto continue
+			end
+			if self:entityCanSeeEntity(entity, fleeEntity) then
+				entity.fleeFromEntities = entity.fleeFromEntities or {}
+				entity.fleeFromEntities[#entity.fleeFromEntities+1] = {lastKnownX = fleeEntity.x, lastKnownY = fleeEntity.y, entity = fleeEntity}
+			end
+		    ::continue::
+		end
+		-- Delete flee infos marked for removal
+		if entity.fleeFromEntities then
+			local fleeI = 1
+			while fleeI <= #entity.fleeFromEntities do
+				local fleeInfo = entity.fleeFromEntities[fleeI]
+				if fleeInfo.remove then
+					table.remove(entity.fleeFromEntities, fleeI)
+				else
+					fleeI = fleeI + 1
+				end
+			end
 		end
 
 		if entity.targetEntity and entity.targetEntity.dead then
@@ -250,10 +316,67 @@ function game:updateEntitiesAndProjectiles()
 	end
 	flushEntityRemoval()
 
-	-- Damage and bleeding
+	-- Damage, drowning, and bleeding
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType ~= "creature" then
 			goto continue
+		end
+		if not entity.dead and entity.drownTimer and entity.creatureType.breathingTimerLength then
+			if self:isDrowning(entity) then
+				-- Mismatch; not breathing
+				entity.drownTimer = math.min(entity.creatureType.breathingTimerLength, entity.drownTimer + 1)
+				-- Drowning kill code is with health and blood based kills
+			else
+				-- Breathing. Recover drownTimer
+				entity.drownTimer = math.max(0, entity.drownTimer - consts.drownTimerRecoveryRate)
+			end
+
+			if entity == state.player then
+				-- NOTE: For announcement purposes, we assume the player is a human either drowning in water or breathing in air, because that's the intended use of this code. Drowning still works if the player controls a fish, but the announcements will be wrong. We also assume that entering/exiting fluid is the player in a water airlock.
+
+				-- Entering/exiting fluid
+				if self:isDrowning(entity) and not entity.initialDrowningThisTick then
+					self:announce("You breathe in before the water fully consumes you.", "darkBlue")
+				elseif not self:isDrowning(entity) and entity.initialDrowningThisTick then
+					-- TODO: Announce based on how much time you had left
+					self:announce("The water drains around you.", "blue")
+				end
+
+				-- Escalating drowning
+				if self:isDrowning(entity) then
+					local init = entity.initialDrownTimerThisTick
+					local cur = entity.drownTimer
+					local len = entity.creatureType.breathingTimerLength
+					if init < len * 0.35 and cur >= len * 0.35 then
+						self:announce("You begin to feel uncomfortable without air.", "darkBlue")
+					end
+					if init < len * 0.6 and cur >= len * 0.6 then
+						self:announce("You feel sick. Your vision feels off.", "darkBlue")
+					end
+					if init < len * 0.8 and cur >= len * 0.8 then
+						self:announce("You begin to panic, desperate for air.\nYou are suffering.", "darkCyan")
+					end
+					if init < len * 0.9 and cur >= len * 0.9 then
+						self:announce("Your lungs refuse to hold.\nYou blurt out air and swallow water.", "red")
+					end
+				end
+
+				-- De-escalating drownTimer
+				if not self:isDrowning(entity) then
+					local init = entity.initialDrownTimerThisTick
+					local cur = entity.drownTimer
+					local len = entity.creatureType.breathingTimerLength
+					if cur == 0 and init > 0 then
+						self:announce("You are fully breathing again.", "lightGrey")
+					end
+					if init > len * 1/3 and cur <= len * 1/3 then
+						self:announce("You can breathe less desperately.", "blue")
+					end
+					if init > len * 2/3 and cur <= len * 2/3 then
+						self:announce("Relief washes over you as you receive air.", "darkBlue")
+					end
+				end
+			end
 		end
 		if entity.blood then -- Bleed even if dead
 			-- Lose blood to bleeding
@@ -310,7 +433,7 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 		if not entity.dead then
-			if entity.health <= 0 or (entity.blood and entity.blood <= 0) then
+			if entity.health <= 0 or (entity.blood and entity.blood <= 0) or (entity.drownTimer and entity.creatureType.breathingTimerLength and entity.drownTimer >= entity.creatureType.breathingTimerLength) then
 				kill(entity)
 			end
 		end
@@ -332,7 +455,7 @@ function game:updateEntitiesAndProjectiles()
 	    ::continue::
 	end
 
-	local function tickItem(item, x, y)
+	tickItems(function(item, x, y)
 		if item.shotCooldownTimer then
 			item.shotCooldownTimer = item.shotCooldownTimer - 1
 			if item.shotCooldownTimer <= 0 then
@@ -342,18 +465,7 @@ function game:updateEntitiesAndProjectiles()
 				end
 			end
 		end
-	end
-	for _, entity in ipairs(state.entities) do
-		if entity.inventory then
-			for _, slot in ipairs(entity.inventory) do
-				if slot.item then
-					tickItem(slot.item, entity.x, entity.y)
-				end
-			end
-		elseif entity.itemData then
-			tickItem(entity.itemData, entity.x, entity.y)
-		end
-	end
+	end)
 
 	for _, actionType in ipairs(state.actionTypes) do
 		assert(processedActions[actionType.name], "Did not process action type " .. actionType.name)
@@ -555,6 +667,40 @@ function game:getAttackStrengths(entity)
 		return heldItem.itemType.meleeDamage, heldItem.itemType.meleeBleedRateAdd, heldItem.itemType.meleeInstantBloodLoss
 	end
 	return entity.creatureType.meleeDamage, entity.creatureType.meleeBleedRateAdd, entity.creatureType.meleeInstantBloodLoss
+end
+
+function game:isEntitySwimming(entity)
+	local tile = self:getTile(entity.x, entity.y)
+	if not tile then
+		return
+	end
+	return not not tile.liquid
+end
+
+function game:getMoveTimerLength(entity)
+	return self:isEntitySwimming(entity) and (entity.creatureType.swimMoveTimerLength or
+		entity.creatureType.moveTimerLength and entity.creatureType.moveTimerLength * 2
+	) or entity.creatureType.moveTimerLength
+end
+
+function game:isDrowning(entity) -- Returns whether drowning as a boolean, and also the cause as a string. Causes: "noAir", "airDrowning"
+	return
+		self:isEntitySwimming(entity) ~= not not entity.creatureType.aquatic,
+		entity.creatureType.aquatic and "airDrowning" or "noAir"
+end
+
+function game:shouldEntityFlee(entity, potentialFleeFromEntity)
+	-- Monsters that flee when sufficiently wounded?
+	if potentialFleeFromEntity.entityType ~= "creature" then
+		return false
+	end
+	if potentialFleeFromEntity.dead then
+		return false
+	end
+	if entity.team == "critter" and potentialFleeFromEntity.team ~= "critter" then
+		return true
+	end
+	return false
 end
 
 return game

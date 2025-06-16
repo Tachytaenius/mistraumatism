@@ -37,7 +37,16 @@ function game:realtimeUpdate(dt)
 			self.updateTimer = self.updateTimer + dt
 			if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
 				self.updateTimer = 0
+
+				local startTime = love.timer.getTime()
 				self:update()
+				local endTime = love.timer.getTime()
+				local tickTime = endTime - startTime
+				if #self.tickTimes >= math.floor(self.framebufferWidth / 4) then
+					table.remove(self.tickTimes, 1)
+				end
+				self.tickTimes[#self.tickTimes+1] = tickTime
+
 				self:autoUpdateCursorEntity()
 			end
 		end

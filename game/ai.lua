@@ -6,6 +6,19 @@ local game = {}
 
 -- self is game instance
 
+local function tilePathCheckFunction(self, tileX, tileY, entity)
+	local tile = self:getTile(tileX, tileY)
+	if not tile then
+		return false
+	end
+	if tile.doorData then
+		if not tile.doorData.open and not (entity.creatureType.canOpenDoors and tile.doorData.entity.itemData.itemType.interactable) then
+			return false
+		end
+	end
+	return self:getWalkable(tileX, tileY, true)
+end
+
 local function chaseTargetEntityLastKnownPosition(self, entity)
 	local state = self.state
 
@@ -23,11 +36,11 @@ local function chaseTargetEntityLastKnownPosition(self, entity)
 		local startTile = self:getTile(entity.x, entity.y)
 		local endTile = self:getTile(targetLocationX, targetLocationY)
 		if startTile and endTile then
-			local function tileHasEntityToAvoid(tile)
+			local function tileHasEntityToAvoid(tile, excludeEntity)
 				local list = state.tileEntityLists[tile.x] and state.tileEntityLists[tile.x][tile.y] and state.tileEntityLists[tile.x][tile.y].all
 				if list then
 					for _, entity in ipairs(list) do
-						if entity.entityType == "creature" and not entity.dead then
+						if entity.entityType == "creature" and not entity.dead and entity ~= excludeEntity then
 							return true
 						end
 					end
@@ -35,16 +48,7 @@ local function chaseTargetEntityLastKnownPosition(self, entity)
 				return false
 			end
 			local function checkFunction(tileX, tileY)
-				local tile = self:getTile(tileX, tileY)
-				if not tile then
-					return false
-				end
-				if tile.doorData then
-					if not tile.doorData.open and not entity.creatureType.canOpenDoors then
-						return false
-					end
-				end
-				return self:getWalkable(tileX, tileY, true)
+				return tilePathCheckFunction(self, tileX, tileY, entity)
 			end
 			local result = pathfind({
 				start = startTile,
@@ -56,7 +60,7 @@ local function chaseTargetEntityLastKnownPosition(self, entity)
 				end,
 				distance = function(tileA, tileB)
 					local cost = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
-					if tileHasEntityToAvoid(tileA) or tileHasEntityToAvoid(tileB) then
+					if tileHasEntityToAvoid(tileA, entity) or tileHasEntityToAvoid(tileB, entity) then
 						cost = cost * consts.entityPathfindingOccupiedCostMultiplier
 					end
 					return cost
@@ -74,6 +78,102 @@ local function chaseTargetEntityLastKnownPosition(self, entity)
 						end
 					end
 				end
+			end
+		end
+	end
+end
+
+local function fleeLastKnownFleeFromEntityPositions(self, entity)
+	-- Lots of complexity that didn't really end up doing what I wanted.
+
+	local state = self.state
+
+	-- Get walkable neighbours
+	local function checkFunction(tileX, tileY)
+		return tilePathCheckFunction(self, tileX, tileY, entity)
+	end
+	local potentialNextSteps = self:getCheckedNeighbourTiles(entity.x, entity.y, checkFunction, true)
+
+	-- Get closest flee from entity
+	local closestFleeFromInfo
+	local closestFleeFromDistance = math.huge
+	for _, fleeEntityInfo in ipairs(entity.fleeFromEntities) do
+		local distance = self:distance(entity.x, entity.y, fleeEntityInfo.lastKnownX, fleeEntityInfo.lastKnownY)
+		if distance < closestFleeFromDistance then
+			closestFleeFromInfo = fleeEntityInfo
+			closestFleeFromDistance = distance
+		end
+	end
+
+	-- Get tile which is most aligned with the direction away from closest flee from entity
+
+	local nextTile
+	if closestFleeFromDistance == 0 then
+		nextTile = potentialNextSteps[love.math.random(#potentialNextSteps)]
+	else
+		if not closestFleeFromInfo then
+			return
+		end
+		local fleeX, fleeY = entity.x - closestFleeFromInfo.lastKnownX, entity.y - closestFleeFromInfo.lastKnownY
+		local fleeDirX, fleeDirY = fleeX / closestFleeFromDistance, fleeY / closestFleeFromDistance
+
+		local function getScore(x, y)
+			local stepX, stepY = x - entity.x, y - entity.y
+			local stepDist = self:length(stepX, stepY)
+			if stepDist == 0 then
+				return -math.huge
+			end
+			local stepDirX, stepDirY = stepX / stepDist, stepY / stepDist
+			if self:distance(x, y, closestFleeFromInfo.lastKnownX, closestFleeFromInfo.lastKnownY) < closestFleeFromDistance then
+				return nil -- Exclude from checks
+			end
+			local dot = stepDirX * fleeDirX + stepDirY * fleeDirY -- Dot product of normalised vectors :)
+			return dot >= 0 and dot or nil
+		end
+
+		local highestScore = -math.huge
+		local scores = {}
+		for _, tile in ipairs(potentialNextSteps) do
+			local tileScore = getScore(tile.x, tile.y)
+			if not tileScore then
+				goto continue
+			end
+			scores[tile] = tileScore
+			highestScore = math.max(highestScore, tileScore)
+		    ::continue::
+		end
+
+		local choices = {}
+		for _, tile in ipairs(potentialNextSteps) do
+			if scores[tile] and scores[tile] >= highestScore then
+				choices[#choices+1] = tile
+			end
+		end
+
+		nextTile = choices[love.math.random(#choices)]
+
+		if not nextTile then
+			-- Find tile that takes entity furthest from what it's fleeing from
+			local furthestTile
+			local furthestTileDistance = -math.huge
+			for _, tile in ipairs(potentialNextSteps) do
+				local dist = self:distance(tile.x, tile.y, closestFleeFromInfo.lastKnownX, closestFleeFromInfo.lastKnownY)
+				if furthestTileDistance < dist then
+					furthestTileDistance = dist
+					furthestTile = tile
+				end
+			end
+			nextTile = furthestTile
+		end
+	end
+
+	if nextTile then
+		local direction = self:getDirection(nextTile.x - entity.x, nextTile.y - entity.y)
+		if direction then
+			if nextTile.doorData and not nextTile.doorData.open then
+				return self.state.actionTypes.interact.construct(self, entity, nextTile.doorData.entity, direction)
+			elseif direction ~= "zero" then
+				return self.state.actionTypes.move.construct(self, entity, direction)
 			end
 		end
 	end
@@ -117,7 +217,9 @@ function game:getAIActions(entity)
 
 	local newAction
 
-	if entity.targetEntity then
+	if entity.fleeFromEntities and #entity.fleeFromEntities > 0 then
+		newAction = fleeLastKnownFleeFromEntityPositions(self, entity)
+	elseif entity.targetEntity then
 		local canSee = self:entityCanSeeEntity(entity, entity.targetEntity)
 		local fightAction
 		if canSee then

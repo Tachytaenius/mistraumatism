@@ -14,6 +14,8 @@ function game:loadCreatureTypes()
 		bloodMaterialName = "bloodRed",
 
 		moveTimerLength = 6,
+		swimMoveTimerLength = 18,
+		breathingTimerLength = 900, -- 900 ticks / (18 ticks / step) = 50 steps when underwater. 0.03125 seconds / tick * 900 ticks = 28.125 seconds before drowning.
 		sightDistance = 17,
 		maxHealth = 16,
 		maxBlood = 16,
@@ -150,6 +152,59 @@ function game:loadCreatureTypes()
 				range = 20
 			}
 		}
+	}
+
+	creatureTypes.angler = {
+		displayName = "angler",
+		tile = "Ä",
+		colour = "darkYellow",
+		bloodMaterialName = "bloodRed",
+
+		aquatic = true,
+		cantMoveOnLand = true,
+		moveTimerLength = nil,
+		swimMoveTimerLength = 15,
+		breathingTimerLength = 300,
+		sightDistance = 24,
+		maxHealth = 50,
+		maxBlood = 50,
+		bleedHealRate = 12,
+		meleeTimerLength = 4,
+		meleeDamage = 24,
+		meleeBleedRateAdd = 80,
+		meleeInstantBloodLoss = 10,
+	}
+	creatureTypes.smallFish1 = {
+		displayName = "small fish",
+		tile = ",",
+		colour = "darkGreen",
+		bloodMaterialName = "bloodRed",
+
+		aquatic = true,
+		cantMoveOnLand = true,
+		moveTimerLength = nil,
+		swimMoveTimerLength = 2,
+		breathingTimerLength = 100,
+		sightDistance = 9,
+		maxHealth = 1,
+		maxBlood = 1,
+		bleedHealRate = 12
+	}
+	creatureTypes.smallFish2 = {
+		displayName = "small fish",
+		tile = "α",
+		colour = "darkCyan",
+		bloodMaterialName = "bloodRed",
+
+		aquatic = true,
+		cantMoveOnLand = true,
+		moveTimerLength = nil,
+		swimMoveTimerLength = 4,
+		breathingTimerLength = 120,
+		sightDistance = 9,
+		maxHealth = 2,
+		maxBlood = 2,
+		bleedHealRate = 12
 	}
 end
 

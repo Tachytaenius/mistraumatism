@@ -49,38 +49,45 @@ function game:shootGun(entity, action, gun, targetEntity)
 		return
 	end
 	gun.cocked = false
-	if gun.chamberedRound and not gun.chamberedRound.fired then
-		gun.chamberedRound.fired = true
-		gun.shotCooldownTimer = gunType.shotCooldownTimerLength
-		local roundType = gun.chamberedRound.itemType
-		local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
-		local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single shotgun blast
-		for _=1, roundType.bulletCount or 1 do
-			local spread = (roundType.spread or 0) + (gunType.extraSpread or 0)
-			spread = spread ~= 0 and spread or nil
-			self:newProjectile({
-				shooter = entity,
-				startX = entity.x,
-				startY = entity.y,
-				tile = "∙",
-				colour = "darkGrey",
-				subtickMoveTimerLength = roundType.projectileSubtickMoveTimerLength,
-				damage = roundType.damage + (gunType.extraDamage or 0),
-				bleedRateAdd = roundType.bleedRateAdd,
-				instantBloodLoss = roundType.instantBloodLoss,
-				range = roundType.range,
-				entityHitRandomSeed = entityHitRandomSeed,
-
-				aimX = aimX,
-				aimY = aimY,
-				bulletSpread = spread,
-
-				targetEntity = targetEntity -- Can be nil
-			})
+	if self:isEntitySwimming(entity) and not gunType.worksInLiquid then
+		if entity == self.state.player then
+			-- NOTE: Assumed the liquid is water
+			self:announce("The gun won't work underwater.", "darkGrey")
 		end
 	else
-		if entity == self.state.player then
-			self:announce("The gun just clicks.", "darkGrey")
+		if gun.chamberedRound and not gun.chamberedRound.fired then
+			gun.chamberedRound.fired = true
+			gun.shotCooldownTimer = gunType.shotCooldownTimerLength
+			local roundType = gun.chamberedRound.itemType
+			local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
+			local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single shotgun blast
+			for _=1, roundType.bulletCount or 1 do
+				local spread = (roundType.spread or 0) + (gunType.extraSpread or 0)
+				spread = spread ~= 0 and spread or nil
+				self:newProjectile({
+					shooter = entity,
+					startX = entity.x,
+					startY = entity.y,
+					tile = "∙",
+					colour = "darkGrey",
+					subtickMoveTimerLength = roundType.projectileSubtickMoveTimerLength,
+					damage = roundType.damage + (gunType.extraDamage or 0),
+					bleedRateAdd = roundType.bleedRateAdd,
+					instantBloodLoss = roundType.instantBloodLoss,
+					range = roundType.range,
+					entityHitRandomSeed = entityHitRandomSeed,
+
+					aimX = aimX,
+					aimY = aimY,
+					bulletSpread = spread,
+
+					targetEntity = targetEntity -- Can be nil
+				})
+			end
+		else
+			if entity == self.state.player then
+				self:announce("The gun just clicks.", "darkGrey")
+			end
 		end
 	end
 end

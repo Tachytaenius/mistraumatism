@@ -369,6 +369,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			if tileType.swapColours and not (box and tileType.swapColoursSingleOnly) then
 				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
 			end
+			if tile.liquid then
+				cell.character = "≈" -- What about a more solid-looking tile?
+				cell.foregroundColour = state.materials[tile.liquid.material].colour
+				cell.backgroundColour = "black"
+			end
 
 			if not tileType.ignoreSpatter then
 				local largestSpatter
@@ -383,7 +388,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					local material = state.materials[largestSpatter.materialName]
 					cell.foregroundColour = material.colour
 					local matterState = material.matterState
-					if tileType.solidity ~= "solid" then
+					if tileType.solidity ~= "solid" and not (tile.liquid and matterState == "liquid") then
 						if largestSpatter.amount >= consts.spatterThreshold4 then
 							-- cell.character = matterState == "liquid" and "█" or "▓"
 							cell.character = matterState == "liquid" and "≈" or "▒"
@@ -510,6 +515,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local tile = entity.itemData.itemType.tile
 			if entity.doorTile and entity.doorTile.doorData.open then
 				tile = entity.itemData.itemType.openTile
+			end
+			if entity.itemData.itemType.isButton and entity.itemData.pressed then
+				tile = entity.itemData.itemType.activeTile
 			end
 			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, tile, foreground, background)
 		end
@@ -803,7 +811,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		local tile = state.cursor and self:getTile(state.cursor.x, state.cursor.y)
 		local material = state.materials[tile.material]
 		if tile.type then
-			drawStringFramebuffer(statusX + 3, statusY + yShift + 1, util.capitalise(state.tileTypes[tile.type].displayName, false), "lightGrey", "black")
+			local str = util.capitalise(state.tileTypes[tile.type].displayName, false)
+			if tile.liquid then
+				str = str .. " & " .. state.materials[tile.liquid.material].displayName
+			end
+			drawStringFramebuffer(statusX + 3, statusY + yShift + 1, str, "lightGrey", "black")
 		end
 		if material then
 			drawStringFramebuffer(statusX + 3, statusY + yShift + 2, util.capitalise(material.displayName, false), "lightGrey", "black")
@@ -876,6 +888,18 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			end
 		else
 			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, "No spatter", "lightGrey", "black")
+		end
+	end
+
+	if self.drawTickTimes then
+		for i, time in ipairs(self.tickTimes) do
+			local x = (i - 1) * 4
+			local proportion = time / consts.fixedUpdateTickLength
+			local colour = proportion >= 0.5 and "red" or proportion > 0.25 and "yellow" or "green"
+			if i < #self.tickTimes then
+				colour = consts.darkerColours[colour]
+			end
+			drawStringFramebuffer(x, 0, string.format("%3s", math.floor(proportion * 100)), colour, "black")
 		end
 	end
 end

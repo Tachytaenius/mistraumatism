@@ -21,7 +21,7 @@ function game:loadActionTypes()
 
 	local move = newActionType("move", "move")
 	function move.construct(self, entity, direction)
-		local moveTimerLength = entity.creatureType.moveTimerLength
+		local moveTimerLength = self:getMoveTimerLength(entity)
 		if not moveTimerLength then
 			return
 		end
@@ -46,7 +46,7 @@ function game:loadActionTypes()
 		end
 	end
 	function move.fromInput(self, player)
-		local playerMoveTimerLength = player.creatureType.moveTimerLength
+		local playerMoveTimerLength = self:getMoveTimerLength(player)
 		if playerMoveTimerLength then
 			local direction
 			if not commands.checkCommand("moveCursor") then

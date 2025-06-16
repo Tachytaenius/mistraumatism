@@ -1,5 +1,14 @@
 local game = {}
 
+function game:isDoorBlocked(doorEntity)
+	for _, entity in ipairs(self.state.entities) do
+		if entity.x == doorEntity.x and entity.y == doorEntity.y and entity ~= doorEntity then
+			return true
+		end
+	end
+	return false
+end
+
 function game:loadInteractionTypes()
 	local interactionTypes = {}
 
@@ -39,13 +48,9 @@ function game:loadInteractionTypes()
 		if not doorData then
 			return
 		end
-		if not info.doneDoorOpenState then
-			-- Disable closing if an entity is in the way
-			for _, entity in ipairs(self.state.entities) do
-				if entity.x == interactee.x and entity.y == interactee.y and entity ~= interactee then
-					return
-				end
-			end
+		if not info.doneDoorOpenState and self:isDoorBlocked(interactee) then
+			-- Disable closing, an entity is in the way
+			return
 		end
 		doorData.open = info.doneDoorOpenState
 	end
@@ -74,6 +79,27 @@ function game:loadInteractionTypes()
 		end
 	end
 	interactionTypes.readable.resultHeld = interactionTypes.readable.resultWorld
+
+	interactionTypes.button = {} -- Store state and other information on the item, not an entity representing the item in the world
+	function interactionTypes.button:startInfoWorld(interactor, interactionType, interactee)
+		return 1
+	end
+	function interactionTypes.button:resultWorld(interactor, interactionType, interactee, info)
+		local item = interactionType == "world" and interactee.itemData or interactee
+		if item.pressed or item.frozenState then
+			return
+		end
+		if item.onPress then
+			local x, y
+			if interactionType == "world" then
+				x, y = interactee.x, interactee.y
+			elseif interactor then
+				x, y = interactor.x, interactor.y
+			end
+			item.onPress(self, item, x, y)
+		end
+		item.pressed = true
+	end
 
 	self.state.interactionTypes = interactionTypes
 end

@@ -76,12 +76,20 @@ function game:placeItem(x, y, itemTypeName, material)
 	return entity.itemData, entity
 end
 
-function game:placeMonster(x, y, creatureTypeName)
+function game:placeCreatureTeam(x, y, creatureTypeName, team)
 	return self:newCreatureEntity({
 		creatureTypeName = creatureTypeName,
-		team = "monster",
+		team = team,
 		x = x, y = y
 	})
+end
+
+function game:placeMonster(x, y, creatureTypeName)
+	return self:placeCreatureTeam(x, y, creatureTypeName, "monster")
+end
+
+function game:placeCritter(x, y, creatureTypeName)
+	return self:placeCreatureTeam(x, y, creatureTypeName, "critter")
 end
 
 function game:placeDoorItem(x, y, itemTypeName, material, open)
@@ -98,6 +106,7 @@ function game:placeDoorItem(x, y, itemTypeName, material, open)
 	})
 	local doorEntity = self:newItemEntity(x, y, doorItem, {doorTile = tile})
 	tile.doorData = {entity = doorEntity, open = open}
+	return doorEntity
 end
 
 function game:randomSpatterRectangleDistribute(x, y, w, h, material, amount)
@@ -118,6 +127,75 @@ function game:placeNote(x, y, text, startLineBreak)
 	local item, entity = self:placeItem(x, y, "note", "paper")
 	item.writtenText = text
 	item.writtenTextStartLineBreak = startLineBreak
+end
+
+function game:placeButton(x, y, material, onPress, onUnpress)
+	local item = self:placeItem(x, y, "button", material)
+	item.onPress = onPress
+	item.onUnpress = onUnpress
+end
+
+function game:getAirlockOnPress(airlockInfo)
+	return function(self, item, x, y)
+		-- TODO: Delay
+		if airlockInfo.airDoorOpen then
+			if self:isDoorBlocked(airlockInfo.airDoor) then
+				return
+			end
+			if airlockInfo.airDoor.doorTile then
+				airlockInfo.airDoor.doorTile.doorData.open = false
+			end
+			if airlockInfo.otherDoor.doorTile then
+				airlockInfo.otherDoor.doorTile.doorData.open = true
+			end
+			if airlockInfo.liquidMaterial then
+				for _, tile in ipairs(airlockInfo.liquidTiles) do
+					tile.liquid = {material = airlockInfo.liquidMaterial}
+				end
+			end
+		else
+			if self:isDoorBlocked(airlockInfo.otherDoor) then
+				return
+			end
+			if airlockInfo.otherDoor.doorTile then
+				airlockInfo.otherDoor.doorTile.doorData.open = false
+			end
+			if airlockInfo.airDoor.doorTile then
+				airlockInfo.airDoor.doorTile.doorData.open = true
+			end
+			if airlockInfo.liquidMaterial then
+				for _, tile in ipairs(airlockInfo.liquidTiles) do
+					tile.liquid = nil
+				end
+			end
+		end
+		airlockInfo.airDoorOpen = not airlockInfo.airDoorOpen
+	end
+end
+
+function game:makeAirlock(params)
+	local info = {}
+	-- TODO: Initial state from parameters
+	info.airDoorOpen = false
+	info.airDoor = self:placeDoorItem(params.airDoorX, params.airDoorY, "airlockDoor", params.airDoorMaterial, false)
+	info.otherDoor = self:placeDoorItem(params.otherDoorX, params.otherDoorY, "airlockDoor", params.otherDoorMaterial, true)
+	info.liquidMaterial = params.liquidMaterial
+	info.liquidTiles = {}
+	for i, coord in ipairs(params.liquidTileCoords) do
+		local tile = self:getTile(coord[1], coord[2])
+		info.liquidTiles[i] = tile
+		assert(tile, "No tile to be marked for airlock liquid at " .. coord[1] .. ", " .. coord[2])
+	end
+	if params.liquidMaterial then
+		for _, tile in ipairs(info.liquidTiles) do
+			tile.liquid = {material = info.liquidMaterial}
+		end
+	end
+	local pressFunction = self:getAirlockOnPress(info)
+	for _, buttonInfo in ipairs(params.buttonData) do
+		self:placeButton(buttonInfo.x, buttonInfo.y, buttonInfo.material, pressFunction)
+	end
+	self.state.airlockData[#self.state.airlockData+1] = info
 end
 
 function game:initialiseMap(width, height)

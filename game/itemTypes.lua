@@ -32,8 +32,8 @@ function game:loadItemTypes()
 	itemTypes.smallBullet = {
 		isAmmo = true,
 		stackable = true,
-		maxStackSize = 8,
-		tile = "i",
+		maxStackSize = 4,
+		tile = "î",
 		ammoClass = "bulletSmall",
 		displayName = "small bullet",
 		spread = 0,
@@ -62,7 +62,7 @@ function game:loadItemTypes()
 	itemTypes.shotgunShell = {
 		isAmmo = true,
 		stackable = true,
-		maxStackSize = 6,
+		maxStackSize = 4,
 		tile = "▬",
 		ammoClass = "shellMedium",
 		displayName = "shotgun shell",
@@ -80,7 +80,7 @@ function game:loadItemTypes()
 		displayName = "box cutter",
 		isMeleeWeapon = true,
 		meleeDamage = 5,
-		meleeBleedRateAdd = 25
+		meleeBleedRateAdd = 15
 	}
 
 	itemTypes.note = {
@@ -153,6 +153,24 @@ function game:loadItemTypes()
 		tile = "│",
 		openTile = "╟",
 		displayName = "windowed door"
+	}
+	itemTypes.airlockDoor = {
+		isDoor = true,
+		noPickUp = true,
+		doorWindow = false,
+		tile = "╪",
+		openTile = "╡",
+		displayName = "airlock door"
+	}
+
+	itemTypes.button = {
+		isButton = true,
+		noPickUp = true,
+		tile = "•",
+		activeTile = "○",
+		displayName = "button",
+		interactable = true,
+		interactionType = state.interactionTypes.button
 	}
 end
 

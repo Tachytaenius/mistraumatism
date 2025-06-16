@@ -7,8 +7,12 @@ function game:setInitialNonPersistentVariables()
 	local state = self.state
 
 	for _, entity in ipairs(state.entities) do
-		entity.initialHealthThisTick = entity.health
-		entity.initialBloodThisTick = entity.blood
+		if entity.entityType == "creature" then
+			entity.initialHealthThisTick = entity.health
+			entity.initialBloodThisTick = entity.blood
+			entity.initialDrowningThisTick, entity.initialDrowningThisTickCause = self:isDrowning(entity)
+			entity.initialDrownTimerThisTick = entity.drownTimer
+		end
 	end
 
 	state.damagesThisTick = {}
@@ -18,8 +22,12 @@ function game:clearNonPersistentVariables()
 	local state = self.state
 
 	for _, entity in ipairs(state.entities) do
-		entity.initialHealthThisTick = nil
-		entity.initialBloodThisTick = nil
+		if entity.entityType == "creature" then
+			entity.initialHealthThisTick = nil
+			entity.initialBloodThisTick = nil
+			entity.initialDrowningThisTick, entity.initialDrowningThisTickCause = nil, nil
+			entity.initialDrownTimerThisTick = nil
+		end
 	end
 
 	state.damagesThisTick = nil
@@ -71,7 +79,7 @@ function game:getTeamRelation(teamAName, teamBName)
 
 	assert(teamA.relations[teamB] == teamB.relations[teamA], "Mismatched relations between " .. teamAName .. " and " .. teamBName)
 
-	return teamA.relations[teamB]
+	return teamA.relations[teamB] or "neutral"
 end
 
 function game:getDirection(x, y)

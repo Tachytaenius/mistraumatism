@@ -34,13 +34,14 @@ function game:newState()
 	state.teams = {}
 	self:newTeam("player")
 	self:newTeam("monster")
+	self:newTeam("critter")
 	self:setTeamRelation("player", "monster", "enemy")
-
-	state.projectiles = {}
 
 	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
 
+	state.projectiles = {}
 	state.entities = {}
+	state.airlockData = {}
 	local levelGenerationResult = self:generateLevel({levelName = "start"})
 	state.player = self:newCreatureEntity({
 		creatureTypeName = "human",
@@ -71,6 +72,7 @@ function game:init(args)
 
 	self.updateTimer = 0 -- Used when player is not in control, "spent" on fixed updates
 	self.realTime = 0
+	self.tickTimes = {}
 
 	local fontLocation = "fonts/modifiedKelora.png"
 	local fontImageData = love.image.newImageData(fontLocation)
@@ -83,8 +85,16 @@ function game:init(args)
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
 	-- TEMP, change as needed
-	local skipIntro = args[1] == "skipIntro"
-	local flickerIntro = args[1] == "enableFlickerIntro"
+	local skipIntro, flickerIntro
+	for _, arg in ipairs(args) do
+		if arg == "skipIntro" then
+			skipIntro = true
+		elseif arg == "enableFlickerIntro" then
+			flickerIntro = args[1] == "enableFlickerIntro"
+		elseif arg == "drawTickTimes" then
+			self.drawTickTimes = true
+		end
+	end
 
 	if skipIntro then
 		self:newState()
