@@ -306,7 +306,7 @@ function game:updateEntitiesAndProjectiles()
 		else
 			local entity = itemPickup[1]
 			if entity then
-				local slot = self:getFirstFreeInventorySlotForItem(entity, itemPickup.item.itemData)
+				local slot = self:getBestFreeInventorySlotForItem(entity, itemPickup.item.itemData)
 				if slot and self:addItemToSlot(entity, slot, itemPickup.item.itemData) then
 					itemPickup.item.pickedUp = true
 					entitiesToRemove[itemPickup.item] = true

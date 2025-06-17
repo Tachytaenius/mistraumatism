@@ -44,6 +44,8 @@ return {
 		dropMode = "lshift",
 		pickUpOrDrop = "g",
 		unloadMode = "u",
+		operateBarrel1 = "lshift",
+		operateBarrel2 = "lctrl",
 		handleInventorySlot1 = "1",
 		handleInventorySlot2 = "2",
 		handleInventorySlot3 = "3",

@@ -78,7 +78,7 @@ function game:loadActionTypes()
 	end
 
 	local shoot = newActionType("shoot", "shoot")
-	function shoot.construct(self, entity, targetX, targetY, targetEntity, shotType, abilityName)
+	function shoot.construct(self, entity, targetX, targetY, targetEntity, shotType, abilityName, magazineSlotSelectionIndex)
 		local new = {type = "shoot"}
 		new.relativeX = targetX - entity.x
 		new.relativeY = targetY - entity.y
@@ -93,6 +93,7 @@ function game:loadActionTypes()
 				end
 			end
 		end
+		new.magazineSlotSelectionIndex = magazineSlotSelectionIndex
 		new.timer = ability and ability.shootTime or 1
 		new.targetEntity = targetEntity
 		new.shotType = shotType
@@ -102,6 +103,10 @@ function game:loadActionTypes()
 	function shoot.process(self, entity, action)
 		if action.shotType == "heldItem" then
 			if not (self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun) then
+				action.doneType = "cancelled"
+				return
+			end
+			if self:getHeldItem(entity).itemType.breakAction and self:getHeldItem(entity).actionOpen then
 				action.doneType = "cancelled"
 				return
 			end
@@ -129,7 +134,13 @@ function game:loadActionTypes()
 			if ability then
 				self:abilityShoot(entity, action, ability, targetEntity)
 			else
-				self:shootGun(entity, action, self:getHeldItem(entity), targetEntity)
+				if action.magazineSlotSelectionIndex == "all" then
+					for i = 1, self:getHeldItem(entity).itemType.magazineCapacity do
+						self:shootGun(entity, action, self:getHeldItem(entity), targetEntity, i)
+					end
+				else
+					self:shootGun(entity, action, self:getHeldItem(entity), targetEntity, action.magazineSlotSelectionIndex)
+				end
 			end
 		end
 	end
@@ -140,11 +151,43 @@ function game:loadActionTypes()
 		if not (self:getHeldItem(player) and self:getHeldItem(player).itemType.isGun) then
 			return
 		end
+		if self:getHeldItem(player).itemType.breakAction and self:getHeldItem(player).actionOpen then
+			return
+		end
 		local cursor = self.state.cursor
 		if not cursor then
 			return
 		end
-		return shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity())
+		local magIndex
+		if self:getHeldItem(player).itemType.alteredMagazineUse == "select" then
+			if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+				magIndex = "all"
+			elseif commands.checkCommand("operateBarrel1") then
+				magIndex = 1
+			elseif commands.checkCommand("operateBarrel2") then
+				magIndex = 2
+			else
+				-- Pull triggers for loaded barrels first, then try ones with cocked hammers
+				for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
+					if self:getHeldItem(player).magazineData[i] and not self:getHeldItem(player).magazineData[i].fired then
+						magIndex = i
+						break
+					end
+				end
+				if not magIndex then
+					for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
+						if self:getHeldItem(player).cockedStates[i] then
+							magIndex = i
+							break
+						end
+					end
+				end
+			end
+			if not magIndex then
+				return nil
+			end
+		end
+		return shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity(), "heldItem", nil, magIndex)
 	end
 
 	local melee = newActionType("melee", "melee")
@@ -205,7 +248,7 @@ function game:loadActionTypes()
 		if not (targetEntity.entityType == "item" and not targetEntity.itemData.itemType.noPickUp) then
 			return
 		end
-		local freeSlot = self:getFirstFreeInventorySlotForItem(entity, targetEntity.itemData)
+		local freeSlot = self:getBestFreeInventorySlotForItem(entity, targetEntity.itemData)
 		if not freeSlot then
 			return
 		end
@@ -220,7 +263,7 @@ function game:loadActionTypes()
 	function pickUp.process(self, entity, action)
 		action.timer = action.timer - 1
 		if action.timer <= 0 then
-			if self:getFirstFreeInventorySlotForItem(entity, action.targetEntity.itemData) and action.targetEntity.x == entity.x and action.targetEntity.y == entity.y then
+			if self:getBestFreeInventorySlotForItem(entity, action.targetEntity.itemData) and action.targetEntity.x == entity.x and action.targetEntity.y == entity.y then
 				self:registerPickUp(entity, action.targetEntity)
 				action.doneType = "completed"
 			else
@@ -326,7 +369,28 @@ function game:loadActionTypes()
 				itemType.interactionType.resultHeld(self, entity, "held", heldItem, action.useInfo)
 				action.doneType = "completed"
 			elseif itemType.isGun then
-				self:cycleGun(heldItem, entity.x, entity.y)
+				if itemType.breakAction then
+					heldItem.actionOpen = not heldItem.actionOpen
+					if heldItem.actionOpen and heldItem.itemType.automaticEjection then
+						if heldItem.ejectorStates then
+							for i = 1, heldItem.itemType.magazineCapacity do -- Assuming alteredMagazineUse == "select" or whatever
+								if heldItem.ejectorStates[i] then
+									local ejected = heldItem.magazineData[i]
+									heldItem.magazineData[i] = nil
+									if ejected then
+										self:newItemEntity(entity.x, entity.y, ejected)
+									end
+								end
+							end
+						end
+						heldItem.ejectorStates = nil
+					end
+					if not heldItem.actionOpen then
+						self:cycleGun(heldItem, entity.x, entity.y)
+					end
+				else
+					self:cycleGun(heldItem, entity.x, entity.y)
+				end
 				action.doneType = "completed"
 			else
 				-- Do nothing, I guess
@@ -398,6 +462,9 @@ function game:loadActionTypes()
 		if not reloadItem then
 			return
 		end
+		if heldItem.itemType.breakAction and not heldItem.actionOpen then
+			return false
+		end
 		if action.reloadType == "replaceMagazine" then
 			if
 				not heldItem.insertedMagazine and
@@ -408,23 +475,32 @@ function game:loadActionTypes()
 				return true
 			end
 		elseif action.reloadType == "addRoundToMagazineData" then
+			local spaceFree
+			if heldItem.itemType.alteredMagazineUse == "select" then
+				if not action.magazineSlotSelectionIndex then
+					return false
+				end
+				spaceFree = not heldItem.magazineData[action.magazineSlotSelectionIndex]
+			else
+				spaceFree = #heldItem.magazineData < heldItem.itemType.magazineCapacity
+			end
 			if
 				heldItem.itemType.magazine and
 				reloadItem.itemType.isAmmo and
 				heldItem.itemType.ammoClass == reloadItem.itemType.ammoClass and
-				#heldItem.magazineData < heldItem.itemType.magazineCapacity
+				spaceFree
 			then
 				return true
 			end
 		end
 		return false
 	end
-	function reload.construct(self, entity, slot, reloadType, alt)
+	function reload.construct(self, entity, slot, reloadType, magazineSlotSelectionIndex)
 		local new = {type = "reload"}
 		new.slot = slot
 		new.reloadType = reloadType
-		new.alt = alt -- For double barrel etc
 		new.timer = 12
+		new.magazineSlotSelectionIndex = magazineSlotSelectionIndex
 		if reload.validate(self, entity, new) then
 			return new
 		end
@@ -438,7 +514,11 @@ function game:loadActionTypes()
 				if action.reloadType == "replaceMagazine" then
 					heldItem.insertedMagazine = item
 				elseif action.reloadType == "addRoundToMagazineData" then
-					table.insert(heldItem.magazineData, item)
+					if heldItem.itemType.alteredMagazineUse == "select" then
+						heldItem.magazineData[action.magazineSlotSelectionIndex] = item
+					else
+						table.insert(heldItem.magazineData, item)
+					end
 				end
 				action.doneType = "completed"
 			else
@@ -471,7 +551,27 @@ function game:loadActionTypes()
 		end
 
 		if heldItem.itemType.magazine then
-			return reload.construct(self, player, number, "addRoundToMagazineData") -- If valid
+			local selection
+			if heldItem.itemType.alteredMagazineUse == "select" then
+				if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+
+				elseif commands.checkCommand("operateBarrel1") then
+					selection = 1
+				elseif commands.checkCommand("operateBarrel2") then
+					selection = 2
+				else
+					for i = 1, heldItem.itemType.magazineCapacity do
+						if not heldItem.magazineData[i] then
+							selection = i
+							break
+						end
+					end
+				end
+				if not selection then
+					return nil
+				end
+			end
+			return reload.construct(self, player, number, "addRoundToMagazineData", selection) -- If valid
 		elseif heldItem.itemType.magazineRequired then
 			return reload.construct(self, player, number, "replaceMagazine") -- If valid
 		end
@@ -486,18 +586,32 @@ function game:loadActionTypes()
 		if not (heldItem.magazineData or heldItem.insertedMagazine) then
 			return false
 		end
-		if heldItem.magazineData then
+		if heldItem.itemType.breakAction and not heldItem.actionOpen then
+			return false
+		end
+		local selectType = heldItem.itemType.alteredMagazineUse == "select"
+		if heldItem.magazineData and not selectType then
 			if #heldItem.magazineData == 0 then
 				return false
 			end
 		end
-		if action.slot then
-			local itemToUnload
-			if heldItem.itemType.magazine then
-				itemToUnload = heldItem.magazineData[#heldItem.magazineData]
+		local itemToUnload
+		if heldItem.itemType.magazine then
+			if selectType then
+				if not action.magazineSlotSelectionIndex then
+					return false
+				end
+				itemToUnload = heldItem.magazineData[action.magazineSlotSelectionIndex]
 			else
-				itemToUnload = heldItem.insertedMagazine
+				itemToUnload = heldItem.magazineData[#heldItem.magazineData]
 			end
+		else
+			itemToUnload = heldItem.insertedMagazine
+		end
+		if not itemToUnload then
+			return false
+		end
+		if action.slot then
 			if not (
 				entity.inventory and
 				entity.inventory[action.slot] and
@@ -520,13 +634,14 @@ function game:loadActionTypes()
 		end
 		return true
 	end
-	function unload.construct(self, entity, slot, floorX, floorY)
+	function unload.construct(self, entity, slot, floorX, floorY, magazineSlotSelectionIndex)
 		local new = {type = "unload"}
 		if slot then
 			new.slot = slot
 		else
 			new.direction = self:getDirection(floorX - entity.x, floorY - entity.y)
 		end
+		new.magazineSlotSelectionIndex = magazineSlotSelectionIndex
 		new.timer = 9
 		if unload.validate(self, entity, new) then
 			return new
@@ -542,7 +657,12 @@ function game:loadActionTypes()
 			local heldItem = self:getHeldItem(entity)
 			local unloadedItem
 			if heldItem.itemType.magazine then
-				unloadedItem = table.remove(heldItem.magazineData)
+				if heldItem.itemType.alteredMagazineUse == "select" then
+					unloadedItem = heldItem.magazineData[action.magazineSlotSelectionIndex]
+					heldItem.magazineData[action.magazineSlotSelectionIndex] = nil
+				else
+					unloadedItem = table.remove(heldItem.magazineData)
+				end
 			else
 				unloadedItem = heldItem.insertedMagazine
 				heldItem.insertedMagazine = nil
@@ -570,16 +690,49 @@ function game:loadActionTypes()
 			return
 		end
 
+		local magIndex
+		if self:getHeldItem(player).itemType.alteredMagazineUse == "select" then
+			if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+
+			elseif commands.checkCommand("operateBarrel1") then
+				magIndex = 1
+			elseif commands.checkCommand("operateBarrel2") then
+				magIndex = 2
+			else
+				-- Unload fired ones first
+				for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
+					if self:getHeldItem(player).magazineData[i] and self:getHeldItem(player).magazineData[i].fired then
+						magIndex = i
+						break
+					end
+				end
+				if not magIndex then
+					for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
+						if self:getHeldItem(player).magazineData[i] then
+							magIndex = i
+							break
+						end
+					end
+				end
+			end
+			if not magIndex then
+				return nil
+			end
+		end
+
 		if commands.checkCommand("deselectInventorySlot") then
+			local x, y
 			if not self.state.cursor then
-				return
+				x, y = player.x, player.y
+			else
+				x, y = self.state.cursor.x, self.state.cursor.y
+				local dx, dy = x - player.x, y - player.y
+				if math.abs(dx) > 1 or math.abs(dy) > 1 then
+					-- return
+					x, y = player.x, player.y
+				end
 			end
-			local x, y = self.state.cursor.x, self.state.cursor.y
-			local dx, dy = x - player.x, y - player.y
-			if math.abs(dx) > 1 or math.abs(dy) > 1 then
-				return
-			end
-			return unload.construct(self, player, nil, x, y)
+			return unload.construct(self, player, nil, x, y, magIndex)
 		end
 
 		local number
@@ -594,7 +747,7 @@ function game:loadActionTypes()
 		if not number then
 			return
 		end
-		return unload.construct(self, player, number)
+		return unload.construct(self, player, number, nil, nil, magIndex)
 	end
 
 	local interact = newActionType("interact", "interact")

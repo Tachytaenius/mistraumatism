@@ -707,14 +707,25 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local item = entity.itemData
 			local itemType = item.itemType
 			if itemType.isGun then
-				local magazineItem = item.magazineData and item or item.insertedMagazine or nil -- The gun itself, an inserted magazine, or nothing
-				local nextRound = item.itemType.noChamber and magazineItem and magazineItem.magazineData[#magazineItem.magazineData] or item.chamberedRound
-				local gunStatus =
-					(nextRound and (nextRound.fired and "Fired" or "Live") or "Empty") ..
-					"∙" ..
-					(item.shotCooldownTimer and "Working" or (item.itemType.noCocking and "Ready" or (item.cocked and "Cocked" or "Uncocked"))) ..
-					"\n" ..
-					(item.itemType.alteredMagazineUse == "ignore" and "" or (magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine"))
+				local gunStatus
+				if itemType.displayAsDoubleShotgun then
+					local a, b = item.magazineData[1], item.magazineData[2]
+					gunStatus =
+						(a and (a.fired and "Fired" or "Live") or "Empty") .. "∙" .. (b and (b.fired and "Fired" or "Live") or "Empty") ..
+						"∙" ..
+						(item.actionOpen and "Open" or "Shut") ..
+						"\n" ..
+						(not item.cockedStates[1] and not item.cockedStates[2] and "Both uncocked" or (item.cockedStates[1] and "Cocked" or "Uncocked") .. "∙" .. (item.cockedStates[2] and "Cocked" or "Uncocked"))
+				else
+					local magazineItem = item.magazineData and item or item.insertedMagazine or nil -- The gun itself, an inserted magazine, or nothing
+					local nextRound = item.itemType.noChamber and magazineItem and magazineItem.magazineData[#magazineItem.magazineData] or item.chamberedRound
+					gunStatus =
+						(nextRound and (nextRound.fired and "Fired" or "Live") or "Empty") ..
+						"∙" ..
+						(item.shotCooldownTimer and "Working" or (item.itemType.noCocking and "Ready" or (item.cocked and "Cocked" or "Uncocked"))) ..
+						"\n" ..
+						(item.itemType.alteredMagazineUse == "ignore" and (item.itemType.breakAction and (item.actionOpen and "Open" or "Shut") or "") or (magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine"))
+				end
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, gunStatus, "lightGrey", "black")
 			elseif itemType.magazine then -- Would have gone into the block above if it was a gun with its own magazine data
 				local magazineStatus = "Magazine: " .. #item.magazineData .. "/" .. item.itemType.magazineCapacity

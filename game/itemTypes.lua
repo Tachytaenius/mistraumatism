@@ -5,6 +5,8 @@ function game:loadItemTypes()
 	local itemTypes = {}
 	state.itemTypes = itemTypes
 
+	-- NOTE: The gun behaviour variables (like noChamber or alteredMagazineUse) were designed to reach specific intended behaviours, and random combinations of the variables probably won't lead to good results.
+
 	itemTypes.pistol = {
 		isGun = true,
 		tile = "¬",
@@ -117,13 +119,49 @@ function game:loadItemTypes()
 		magazineCapacity = 4
 	}
 
-	itemTypes.shotgunShell = {
+	itemTypes.huntingShotgun = {
+		isGun = true,
+		displayAsDoubleShotgun = true, -- For held item info
+		tile = "⌐",
+		ammoClass = "shellMedium",
+		displayName = "hunt shotgun",
+		automaticEjection = true,
+		extraSpread = 0.05,
+		-- shotCooldownTimerLength = 1, -- Firing with both barrels doesn't work if this is present
+		operationTimerLength = 7,
+		extraDamage = 1,
+		manual = true,
+		noChamber = true,
+		breakAction = true, -- Either in open (load/unload) mode or closed (fire (if cocked)) mode
+		alteredMagazineUse = "select", -- Implies multiple cocking components (number: magazineCapacity)
+		magazine = true,
+		magazineCapacity = 2
+	}
+
+	itemTypes.sawnShotgun = {
+		isGun = true,
+		displayAsDoubleShotgun = true, -- For held item info
+		tile = "⌐",
+		ammoClass = "shellMedium",
+		displayName = "sawn shotgun",
+		extraSpread = 0.25,
+		operationTimerLength = 6,
+		extraDamage = 1,
+		manual = true,
+		noChamber = true,
+		breakAction = true,
+		alteredMagazineUse = "select",
+		magazine = true,
+		magazineCapacity = 2
+	}
+
+	itemTypes.buckshotShell = {
 		isAmmo = true,
 		stackable = true,
 		maxStackSize = 4,
 		tile = "▬",
 		ammoClass = "shellMedium",
-		displayName = "shotgun shell",
+		displayName = "buckshot shell",
 		spread = 0.1,
 		damage = 3,
 		bulletCount = 9,
@@ -133,15 +171,33 @@ function game:loadItemTypes()
 		range = 16
 	}
 
+	itemTypes.slugShell = {
+		isAmmo = true,
+		stackable = true,
+		maxStackSize = 4,
+		tile = "▬",
+		ammoClass = "shellMedium",
+		displayName = "slug shell",
+		damage = 28,
+		bulletCount = 1,
+		bleedRateAdd = 100,
+		instantBloodLoss = 7,
+		projectileSubtickMoveTimerLength = 32,
+		range = 18
+	}
+
 	itemTypes.rocketLauncher = {
 		isGun = true,
+		-- breakAction = true,
+		-- operationTimerLength = 12,
+		cycleDoesntMoveAmmo = true,
 		tile = "/",
 		ammoClass = "rocket",
 		displayName = "RPG launcher",
 		extraSpread = nil,
 		noCocking = true,
 		noChamber = true, -- Assumes magazine (can be inserted or integrated)
-		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore". TODO: Double shotgun use (magazine contains other barrel's round)
+		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore" or "select"
 		manual = true,
 		magazine = true,
 		magazineCapacity = 1
