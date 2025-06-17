@@ -217,6 +217,8 @@ function game:initialiseMap(width, height)
 			map[x][y] = newTile
 		end
 	end
+
+	map.explosionTiles = {}
 end
 
 function game:generateLevel(parameters)

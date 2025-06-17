@@ -70,9 +70,9 @@ consts.inverseDiagonal = math.sqrt(2)
 consts.projectileSubticks = 256
 
 consts.spatterThreshold1 = 1
-consts.spatterThreshold2 = 9
-consts.spatterThreshold3 = 17
-consts.spatterThreshold4 = 25
+consts.spatterThreshold2 = 4
+consts.spatterThreshold3 = 7
+consts.spatterThreshold4 = 10
 
 consts.tau = math.pi * 2
 
@@ -86,8 +86,11 @@ consts.entityPathfindingOccupiedCostMultiplier = 16
 consts.bleedTimerLength = 1024
 consts.bleedHealTimerLength = 256
 consts.maxBleedingAmount = 900
-
 consts.drownTimerRecoveryRate = 4
+consts.gibFleshTiles = {"²", "ⁿ"}
+consts.explosionGradient = {"black", "darkGrey", "lightGrey", "darkYellow", "yellow", "white"}
+consts.explosionGradientMax = 350
+consts.explosionVisualDiminishRate = 0.5
 
 consts.itemDefaultMaxStackSize = 9
 

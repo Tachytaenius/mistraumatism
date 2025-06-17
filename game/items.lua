@@ -7,7 +7,7 @@ local game = {}
 local uncopiedParameters = util.arrayToSet({
 	"itemTypeName"
 })
-function game:newItemData(parameters) -- Will have to be stored inside an entity or whatever
+function game:newItemData(parameters)
 	local state = self.state
 
 	local new = {}
@@ -27,6 +27,10 @@ function game:newItemData(parameters) -- Will have to be stored inside an entity
 	return new
 end
 
+function game:getGunMagazine(gun)
+	return gun.magazineData or gun.insertedMagazine and gun.insertedMagazine.magazineData
+end
+
 function game:shootGun(entity, action, gun, targetEntity)
 	if entity.entityType ~= "creature" or entity.dead then
 		return
@@ -42,7 +46,10 @@ function game:shootGun(entity, action, gun, targetEntity)
 		return
 	end
 	local gunType = gun.itemType
-	if not gun.cocked then
+	if gunType.autoFeed and not (gun.cocked or gunType.noCocking) then
+		self:cycleGun(gun, entity.x, entity.y)
+	end
+	if not gunType.noCocking and not gun.cocked then
 		if entity == self.state.player then
 			self:announce("The trigger does nothing.", "darkGrey")
 		end
@@ -55,10 +62,37 @@ function game:shootGun(entity, action, gun, targetEntity)
 			self:announce("The gun won't work underwater.", "darkGrey")
 		end
 	else
-		if gun.chamberedRound and not gun.chamberedRound.fired then
-			gun.chamberedRound.fired = true
+		local roundToShoot
+		local fromChamber
+		local mag = self:getGunMagazine(gun)
+		local function try()
+			if gunType.noChamber then
+				fromChamber = false
+				mag = self:getGunMagazine(gun) -- Integrated or inserted
+				roundToShoot = mag and mag[#mag]
+			else
+				fromChamber = true
+				roundToShoot = gun.chamberedRound
+			end
+		end
+		try()
+		if not roundToShoot and gunType.autoFeed then
+			self:cycleGun(gun, entity.x, entity.y)
+			try()
+		end
+
+		if roundToShoot and not roundToShoot.fired then
+			local roundType = roundToShoot.itemType
+			if roundType.noCasing then
+				if fromChamber then
+					gun.chamberedRound = nil
+				else
+					assert(roundToShoot == table.remove(mag))
+				end
+			else
+				roundToShoot.fired = true
+			end
 			gun.shotCooldownTimer = gunType.shotCooldownTimerLength
-			local roundType = gun.chamberedRound.itemType
 			local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
 			local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single shotgun blast
 			for _=1, roundType.bulletCount or 1 do
@@ -68,14 +102,21 @@ function game:shootGun(entity, action, gun, targetEntity)
 					shooter = entity,
 					startX = entity.x,
 					startY = entity.y,
-					tile = "∙",
-					colour = "darkGrey",
+					tile = roundType.projectileTile or "∙",
+					colour = roundType.projectileColour or "darkGrey",
 					subtickMoveTimerLength = roundType.projectileSubtickMoveTimerLength,
+					subtickMoveTimerLengthChange = roundType.projectileSubtickMoveTimerLengthChange,
+					subtickMoveTimerLengthMin = roundType.projectileSubtickMoveTimerLengthMin,
+					subtickMoveTimerLengthMax = roundType.projectileSubtickMoveTimerLengthMax,
 					damage = roundType.damage + (gunType.extraDamage or 0),
 					bleedRateAdd = roundType.bleedRateAdd,
 					instantBloodLoss = roundType.instantBloodLoss,
 					range = roundType.range,
 					entityHitRandomSeed = entityHitRandomSeed,
+					maxPierces = roundType.maxPierces,
+					projectileExplosionProjectiles = roundType.projectileExplosionProjectiles,
+					explosionRadius = roundType.projectileExplosionRadius,
+					explosionDamage = roundType.projectileExplosionDamage,
 
 					aimX = aimX,
 					aimY = aimY,
@@ -93,20 +134,31 @@ function game:shootGun(entity, action, gun, targetEntity)
 end
 
 function game:cycleGun(gun, x, y)
-	if gun.chamberedRound then
-		if x and y then
-			self:newItemEntity(x, y, gun.chamberedRound)
+	if not gun.itemType.noChamber then
+		if gun.chamberedRound then
+			if x and y then
+				self:newItemEntity(x, y, gun.chamberedRound)
+			end
+			gun.chamberedRound = nil
 		end
-		gun.chamberedRound = nil
+	else
+		local magRound = table.remove(self:getGunMagazine(gun))
+		if magRound then
+			if x and y then
+				self:newItemEntity(x, y, magRound)
+			end
+		end
 	end
 	local magazineData = gun.magazineData or gun.insertedMagazine and gun.insertedMagazine.magazineData or nil
 	if magazineData and #magazineData > 0 then
 		local potentialRound = magazineData[#magazineData]
-		if potentialRound.itemType.ammoClass == gun.itemType.ammoClass then
+		if potentialRound.itemType.ammoClass == gun.itemType.ammoClass and not gun.itemType.noChamber then
 			gun.chamberedRound = table.remove(magazineData) -- Same round
 		end
 	end
-	gun.cocked = true
+	if not gun.itemType.noCocking then
+		gun.cocked = true
+	end
 end
 
 function game:registerPickUp(entity, itemEntity)

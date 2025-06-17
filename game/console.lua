@@ -14,7 +14,7 @@ function game:announce(text, colour)
 end
 
 function game:announceDamages()
-	local player = self.state.player
+	local player = self.state.player or self.state.initialPlayerThisTick
 	for _, source in ipairs(self.state.damagesThisTick) do
 		local sourceEntity = source.sourceEntity
 		for _, destination in ipairs(source) do

@@ -50,6 +50,7 @@ function game:loadCreatureTypes()
 		displayName = "slug",
 		tile = "~",
 		colour = "darkGreen",
+		fleshMaterialName = "fleshYellow",
 		bloodMaterialName = "bloodBlue",
 
 		moveTimerLength = 16,
@@ -149,6 +150,54 @@ function game:loadCreatureTypes()
 				projectileSubtickMoveTimerLength = 64,
 				damage = 10,
 				bleedRateAdd = 40,
+				range = 20
+			}
+		}
+	}
+
+	creatureTypes.hellKing = {
+		displayName = "Hell king",
+		tile = "K",
+		colour = "red",
+		flashDarkerColour = true,
+		bloodMaterialName = "bloodGreen",
+
+		moveTimerLength = 2,
+		sightDistance = 20,
+		maxHealth = 400,
+		maxBlood = 400,
+		bleedHealRate = 128,
+		meleeTimerLength = 1,
+		meleeDamage = 40,
+		meleeBleedRateAdd = 256,
+		meleeInstantBloodLoss = 20,
+		shootAggressiveness = 0.25,
+
+		canOpenDoors = true,
+
+		projectileAbilities = {
+			{
+				name = "boulder",
+				shootTime = 8,
+				projectileTile = "•",
+				projectileColour = "lightGrey",
+				projectileSubtickMoveTimerLength = 48,
+				projectileSubtickMoveTimerLengthChange = 32,
+				projectileSubtickMoveTimerLengthMax = 256,
+				damage = 30,
+				bleedRateAdd = 200,
+				instantBloodLoss = 18,
+				range = 14
+			},
+			{
+				name = "fireball",
+				shootTime = 6,
+				projectileTile = "☼",
+				projectileColour = "green",
+				projectileSubtickMoveTimerLength = 32,
+				damage = 20,
+				bleedRateAdd = 100,
+				instantBloodLoss = 9,
 				range = 20
 			}
 		}

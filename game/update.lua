@@ -19,7 +19,7 @@ function game:realtimeUpdate(dt)
 				self:setCursor()
 			end
 
-			if not self.state.player then
+			if not (self.state.player or self.state.lastPlayerX) and self.state.lastPlayerY then
 				return
 			end
 
@@ -93,9 +93,13 @@ function game:update()
 	local state = self.state
 	state.waiting = false -- No longer needed
 
+	state.initialPlayerThisTick = state.player
+
 	self:setInitialNonPersistentVariables()
+	self:tickGibs()
 	self:updateEntitiesAndProjectiles()
 	self:announceDamages()
+	self:diminishExplosions()
 	self:clearNonPersistentVariables()
 
 	if state.player then

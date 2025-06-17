@@ -37,9 +37,10 @@ function game:newState()
 	self:newTeam("critter")
 	self:setTeamRelation("player", "monster", "enemy")
 
-	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
+	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance, state.initialPlayerThisTick = 0, 0, 0, state.player -- Failsafes in case of no player
 
 	state.projectiles = {}
+	state.gibs = {}
 	state.entities = {}
 	state.airlockData = {}
 	local levelGenerationResult = self:generateLevel({levelName = "start"})

@@ -80,6 +80,14 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	assert(visibilityMapWidth == self.viewportWidth)
 	assert(visibilityMapHeight == self.viewportHeight)
 
+	local function getCreatureColour(entity)
+		local colour = entity.creatureType.colour
+		if entity.creatureType.flashDarkerColour and self.realTime % 1 < 0.5 then
+			return consts.darkerColours[colour]
+		end
+		return colour
+	end
+
 	local function isTileVisible(x, y)
 		local viewportX = x - topLeftX
 		local viewportY = y - topLeftY
@@ -370,7 +378,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
 			end
 			if tile.liquid then
-				cell.character = "≈" -- What about a more solid-looking tile?
+				cell.character = "≈" -- What about a more full tile?
 				cell.foregroundColour = state.materials[tile.liquid.material].colour
 				cell.backgroundColour = "black"
 			end
@@ -393,9 +401,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 							-- cell.character = matterState == "liquid" and "█" or "▓"
 							cell.character = matterState == "liquid" and "≈" or "▒"
 						elseif largestSpatter.amount >= consts.spatterThreshold3 then
-							cell.character = matterState == "liquid" and "≈" or "▒"
+							cell.character = matterState == "liquid" and "≈" or "░"
 						elseif largestSpatter.amount >= consts.spatterThreshold2 then
-							cell.character = matterState == "liquid" and "~" or "░"
+							cell.character = matterState == "liquid" and "~" or "•"
 						end
 					end
 				end
@@ -407,6 +415,12 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 
 	for _, projectile in ipairs(state.projectiles) do
 		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+	end
+	for _, gib in ipairs(state.gibs) do
+		-- Expect gibs without any flesh or blood to have been deleted
+		local tile = gib.fleshAmount > 0 and gib.fleshTile or gib.bloodAmount > 10 and "•" or gib.bloodAmount >= 3 and "∙" or "·"
+		local colour = state.materials[gib.fleshAmount > 0 and gib.fleshMaterial or gib.bloodMaterial].colour
+		drawCharacterWorldToViewportVisibleOnly(gib.currentX, gib.currentY, tile, colour, "black")
 	end
 
 	local indicatorTiles = {} -- To stop indicators from clashing
@@ -502,7 +516,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 
 		if entity.entityType == "creature" then
 			local background = entity.dead and (entity.creatureType.bloodMaterialName and state.materials[entity.creatureType.bloodMaterialName].colour or "darkRed") or "black"
-			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, entity.creatureType.colour, background)
+			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, getCreatureColour(entity), background)
 			if drawEntityWarnings and entity ~= state.player and entity.actions[1] and entity.actions[1].type == "shoot" then
 				drawIndicator(entity.x, entity.y, "!", "red", "black")
 			end
@@ -522,6 +536,16 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, tile, foreground, background)
 		end
 	    ::continue::
+	end
+	for tile in pairs(state.map.explosionTiles) do
+		local gradientValue = tile.explosionInfo.visual / consts.explosionGradientMax * #consts.explosionGradient
+		local index = math.max(0, math.min(#consts.explosionGradient, math.floor(gradientValue + 0.5))) + 1
+		local foregroundIndex = math.min(#consts.explosionGradient, index)
+		local backgroundIndex = math.max(1, index - 1)
+		if not (foregroundIndex == 1 and backgroundIndex == 1) then
+			local x, y = tile.x, tile.y
+			drawCharacterWorldToViewportVisibleOnly(x, y, "▓", consts.explosionGradient[foregroundIndex], consts.explosionGradient[backgroundIndex])
+		end
 	end
 	for _, entity in ipairs(entitiesToDrawVisible) do
 		if entity.entityType ~= "creature" then
@@ -642,7 +666,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 		drawStringFramebuffer(statusX + 3, statusY + yShift, title, titleColour, "black")
 		if entity and entity.entityType == "creature" then
-			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.creatureType.tile, entity.creatureType.colour, "black")
+			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.creatureType.tile, getCreatureColour(entity), "black")
 			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
 			local healthInfo = entity.health .. "H"
 			if entity.dead then
@@ -684,18 +708,17 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local itemType = item.itemType
 			if itemType.isGun then
 				local magazineItem = item.magazineData and item or item.insertedMagazine or nil -- The gun itself, an inserted magazine, or nothing
+				local nextRound = item.itemType.noChamber and magazineItem and magazineItem.magazineData[#magazineItem.magazineData] or item.chamberedRound
 				local gunStatus =
-					(item.chamberedRound and (item.chamberedRound.fired and "Fired" or "Live") or "Empty") ..
+					(nextRound and (nextRound.fired and "Fired" or "Live") or "Empty") ..
 					"∙" ..
-					(item.shotCooldownTimer and "Cycling" or (item.cocked and "Cocked" or "Uncocked")) ..
+					(item.shotCooldownTimer and "Working" or (item.itemType.noCocking and "Ready" or (item.cocked and "Cocked" or "Uncocked"))) ..
 					"\n" ..
-					-- (item.magazineData and (#item.magazineData > 0 and (#item.magazineData .. " in magazineData") or "magazineData empty") or "No magazineData")
-					-- (item.magazineData and (#item.magazineData .. "/" .. itemData.magazineCapacity .. " in magazineData") or "No magazineData") -- Not enough space for two double digit numbers
-					(magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine")
+					(item.itemType.alteredMagazineUse == "ignore" and "" or (magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine"))
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, gunStatus, "lightGrey", "black")
 			elseif itemType.magazine then -- Would have gone into the block above if it was a gun with its own magazine data
 				local magazineStatus = "Magazine: " .. #item.magazineData .. "/" .. item.itemType.magazineCapacity
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, magazineStatus, "lightGrey", "black") 
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, magazineStatus, "lightGrey", "black")
 			elseif itemType.isAmmo then
 				local ammoStatus = item.fired and "Fired" or "Live"
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, ammoStatus, "lightGrey", "black")
@@ -845,7 +868,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					local character, colour, swap
 					if entity.entityType == "creature" then
 						character = entity.creatureType.tile
-						colour = entity.creatureType.colour
+						colour = getCreatureColour(entity)
 					elseif entity.entityType == "item" then
 						character = entity.itemData.itemType.tile
 						colour = state.materials[entity.itemData.material].colour

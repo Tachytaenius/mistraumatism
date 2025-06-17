@@ -15,6 +15,8 @@ function game:loadMaterials()
 	addMaterial("bloodRed", "blood", "darkRed", "liquid")
 	addMaterial("bloodBlue", "blue blood", "darkBlue", "liquid")
 	addMaterial("bloodGreen", "green blood", "darkGreen", "liquid")
+	addMaterial("fleshRed", "flesh", "red", "solid")
+	addMaterial("fleshYellow", "yellow flesh", "yellow", "solid")
 	addMaterial("bone", "bone", "white", "solid")
 
 	addMaterial("water", "water", "darkBlue", "liquid")

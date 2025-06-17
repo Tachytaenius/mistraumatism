@@ -316,7 +316,7 @@ function game:updateEntitiesAndProjectiles()
 	end
 	flushEntityRemoval()
 
-	-- Damage, drowning, and bleeding
+	-- Damage, drowning, bleeding, explosions, and gibbing
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType ~= "creature" then
 			goto continue
@@ -378,6 +378,14 @@ function game:updateEntitiesAndProjectiles()
 				end
 			end
 		end
+
+		local tile = self:getTile(entity.x, entity.y)
+		if tile.explosionInfo then
+			for _, damageInfo in ipairs(tile.explosionInfo.damagesThisTick) do
+				self:damageEntity(entity, damageInfo.damage, damageInfo.cause, damageInfo.bleedRateAdd, damageInfo.instantBloodLoss)
+			end
+		end
+
 		if entity.blood then -- Bleed even if dead
 			-- Lose blood to bleeding
 			local bled = math.floor((entity.bleedTimer + entity.bleedingAmount) / consts.bleedTimerLength)
@@ -398,8 +406,8 @@ function game:updateEntitiesAndProjectiles()
 			end
 
 			-- Spatter blood lost this tick to the floor
-			local lossPerSpatter = 8
-			local sameTileSpatterThreshold = 4
+			local lossPerSpatter = 6
+			local sameTileSpatterThreshold = 3
 
 			local bloodLoss = math.max(0, entity.initialBloodThisTick - entity.blood)
 			if bloodLoss > 0 then
@@ -432,9 +440,97 @@ function game:updateEntitiesAndProjectiles()
 				end
 			end
 		end
+
 		if not entity.dead then
 			if entity.health <= 0 or (entity.blood and entity.blood <= 0) or (entity.drownTimer and entity.creatureType.breathingTimerLength and entity.drownTimer >= entity.creatureType.breathingTimerLength) then
 				kill(entity)
+			end
+		end
+
+		local gibThreshold = -entity.creatureType.maxHealth * 2.2
+		if entity.health <= gibThreshold then
+			entitiesToRemove[entity] = true
+			local gibForce = (gibThreshold - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
+			local fleshAmount = math.floor(entity.creatureType.maxHealth ^ 0.85 * 2.8)
+			local extraBlood = entity.creatureType.gibBloodRelease or entity.creatureType.maxBlood and math.floor(entity.creatureType.maxBlood * 0.5) or 0
+			local bloodAmount = (entity.blood or 0) + extraBlood
+			local bloodSaveAmount = math.ceil(bloodAmount / 2)
+			bloodAmount = bloodAmount - bloodSaveAmount -- For more blood-only gibs
+			local gibs = {}
+			local gibCount = math.min(fleshAmount, math.floor(gibForce * 6) + 2)
+			local function newGib()
+				local speed = (love.math.random() * 0.25 + 1) * math.min(24, gibForce)
+				local range = math.min(6, math.ceil(speed / 12))
+				local angle = love.math.random() * consts.tau
+				local subtickMoveTimerLength = math.ceil(25 * consts.projectileSubticks / speed)
+				local r = consts.spreadRetargetDistance
+				local startX, startY = entity.x, entity.y
+				local endX = math.floor(math.cos(angle) * r + 0.5) + startX -- Round
+				local endY = math.floor(math.sin(angle) * r + 0.5) + startY
+				return {
+					startDropped = speed < 4,
+					x = startX,
+					y = startY,
+					startX = startX,
+					startY = startY,
+					range = range,
+					aimX = endX,
+					aimY = endY,
+					subtickMoveTimerLength = subtickMoveTimerLength,
+					subtickMoveTimerLengthChange = 24,
+					subtickMoveTimerLengthMax = subtickMoveTimerLength * 2,
+					fleshMaterial = entity.creatureType.fleshMaterialName or "fleshRed",
+					fleshAmount = 0,
+					bloodMaterial = entity.creatureType.bloodMaterialName,
+					bloodAmount = 0,
+					fleshTile = consts.gibFleshTiles[love.math.random(#consts.gibFleshTiles)]
+				}
+			end
+			for i = 1, gibCount do
+				gibs[i] = newGib()
+			end
+			local fleshDistributionChunkSize = 2
+			while fleshAmount > 0 do
+				local gib = gibs[love.math.random(#gibs)]
+				local fleshAmountMoved = math.min(fleshAmount, fleshDistributionChunkSize)
+				fleshAmount = fleshAmount - fleshAmountMoved
+				gib.fleshAmount = gib.fleshAmount + fleshAmountMoved
+			end
+			local bloodDistributionChunkSize = 1
+			if entity.creatureType.bloodMaterialName then
+				while bloodAmount > 0 do
+					local gib = gibs[love.math.random(#gibs)]
+					local bloodAmountMoved = math.min(bloodAmount, bloodDistributionChunkSize)
+					bloodAmount = bloodAmount - bloodAmountMoved
+					gib.bloodAmount = gib.bloodAmount + bloodAmountMoved
+				end
+			end
+			while bloodSaveAmount > 0 do
+				local bloodTaken = math.min(bloodSaveAmount, love.math.random(1, 3))
+				bloodSaveAmount = bloodSaveAmount - bloodTaken
+				local newBloodOnlyGib = newGib()
+				newBloodOnlyGib.bloodAmount = bloodTaken
+				gibs[#gibs+1] = newBloodOnlyGib
+			end
+			local i = 1
+			while i <= #gibs do
+				local gib = gibs[i]
+				if gib.fleshAmount <= 0 and gib.bloodAmount <= 0 then
+					table.remove(gibs, i)
+				else
+					i = i +1
+				end
+			end
+			gibs = util.shuffle(gibs)
+			for _, gib in ipairs(gibs) do
+				if not gib.startDropped then
+					self:initProjectileTrajectory(gib, gib.startX, gib.startY, gib.aimX, gib.aimY)
+					state.gibs[#state.gibs+1] = gib
+				else
+					gib.currentX = gib.startX
+					gib.currentY = gib.startY
+					self:dropGib(gib)
+				end
 			end
 		end
 	    ::continue::
@@ -646,11 +742,18 @@ function game:abilityShoot(entity, action, ability, targetEntity)
 			tile = ability.projectileTile,
 			colour = ability.projectileColour,
 			subtickMoveTimerLength = ability.projectileSubtickMoveTimerLength,
+			subtickMoveTimerLengthChange = ability.projectileSubtickMoveTimerLengthChange,
+			subtickMoveTimerLengthMin = ability.projectileSubtickMoveTimerLengthMin,
+			subtickMoveTimerLengthMax = ability.projectileSubtickMoveTimerLengthMax,
 			damage = ability.damage,
 			bleedRateAdd = ability.bleedRateAdd,
 			instantBloodLoss = ability.instantBloodLoss,
 			range = ability.range,
 			entityHitRandomSeed = entityHitRandomSeed,
+			projectileExplosionProjectiles = ability.projectileExplosionProjectiles,
+			maxPierces = ability.maxPierces,
+			explosionRadius = ability.projectileExplosionRadius,
+			explosionDamage = ability.projectileExplosionDamage,
 
 			aimX = aimX,
 			aimY = aimY,

@@ -33,7 +33,7 @@ function game:loadItemTypes()
 		isAmmo = true,
 		stackable = true,
 		maxStackSize = 4,
-		tile = "î",
+		tile = "i",
 		ammoClass = "bulletSmall",
 		displayName = "small bullet",
 		spread = 0,
@@ -43,6 +43,64 @@ function game:loadItemTypes()
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 18,
 		range = 17
+	}
+
+	itemTypes.mediumBullet = {
+		isAmmo = true,
+		stackable = true,
+		maxStackSize = 4,
+		tile = "ì",
+		ammoClass = "bulletMedium",
+		displayName = "medium bullet",
+		spread = 0,
+		damage = 16,
+		bleedRateAdd = 24,
+		instantBloodLoss = 3,
+		bulletCount = 1,
+		projectileSubtickMoveTimerLength = 16,
+		range = 18
+	}
+
+	itemTypes.rotaryCannon = {
+		isGun = true,
+		tile = "∟",
+		ammoClass = "bulletLarge",
+		displayName = "rotary cannon",
+		autoFeed = true, -- Electronically self-operating, or whatever. Fired rounds in the magazine don't jam!
+		extraSpread = nil,
+		shotCooldownTimerLength = 1,
+		-- shotsPerTick = 3,
+		operationTimerLength = 1,
+		extraDamage = 3,
+		manual = false,
+		magazine = false,
+		magazineRequired = true,
+		magazineClass = "largeBox"
+	}
+
+	itemTypes.largeBoxMagazine = {
+		magazine = true,
+		tile = "⌂",
+		displayName = "large box mag",
+		magazineCapacity = 10,
+		magazineClass = "largeBox",
+		ammoClass = "bulletLarge",
+	}
+
+	itemTypes.largeBullet = {
+		isAmmo = true,
+		stackable = true,
+		maxStackSize = 3,
+		tile = "î",
+		ammoClass = "bulletLarge",
+		displayName = "large bullet",
+		spread = 0,
+		damage = 20,
+		bleedRateAdd = 96,
+		instantBloodLoss = 5,
+		bulletCount = 1,
+		projectileSubtickMoveTimerLength = 14,
+		range = 19
 	}
 
 	itemTypes.pumpShotgun = {
@@ -56,7 +114,7 @@ function game:loadItemTypes()
 		extraDamage = 1,
 		manual = true,
 		magazine = true,
-		magazineCapacity = 5
+		magazineCapacity = 4
 	}
 
 	itemTypes.shotgunShell = {
@@ -73,6 +131,71 @@ function game:loadItemTypes()
 		instantBloodLoss = 1,
 		projectileSubtickMoveTimerLength = 20,
 		range = 16
+	}
+
+	itemTypes.rocketLauncher = {
+		isGun = true,
+		tile = "/",
+		ammoClass = "rocket",
+		displayName = "RPG launcher",
+		extraSpread = nil,
+		noCocking = true,
+		noChamber = true, -- Assumes magazine (can be inserted or integrated)
+		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore". TODO: Double shotgun use (magazine contains other barrel's round)
+		manual = true,
+		magazine = true,
+		magazineCapacity = 1
+	}
+
+	itemTypes.rocket = {
+		isAmmo = true,
+		stackable = false,
+		noCasing = true,
+		tile = "↑",
+		projectileTile = "^",
+		projectileColour = "yellow",
+		ammoClass = "rocket",
+		displayName = "rocket",
+		damage = 60,
+		bulletCount = 1,
+		bleedRateAdd = 200,
+		instantBloodLoss = 80,
+		projectileSubtickMoveTimerLength = 192,
+		projectileSubtickMoveTimerLengthChange = -40, -- Per tick
+		projectileSubtickMoveTimerLengthMin = 16,
+		range = 18,
+		projectileExplosionRadius = 3,
+		projectileExplosionDamage = 400,
+		projectileExplosionProjectiles = {
+			{
+				count = 8,
+				tile = "*",
+				colour = "yellow",
+				subtickMoveTimerLength = 200,
+				subtickMoveTimerLengthChange = 56,
+				subtickMoveTimerLengthMax = 1024,
+				damage = 1,
+				maxPierces = 1,
+				bleedRateAdd = 40,
+				instantBloodLoss = 1,
+				range = 2,
+				hitDeadEntities = true
+			},
+			{
+				count = 2,
+				tile = "☼",
+				colour = "red",
+				subtickMoveTimerLength = 240,
+				subtickMoveTimerLengthChange = 32,
+				subtickMoveTimerLengthMax = 1024,
+				damage = 4,
+				maxPierces = 2,
+				bleedRateAdd = 56,
+				instantBloodLoss = 1,
+				range = 3,
+				hitDeadEntities = true
+			}
+		}
 	}
 
 	itemTypes.boxCutter = {
