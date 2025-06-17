@@ -82,7 +82,7 @@ function game:loadItemTypes()
 		magazine = true,
 		tile = "⌂",
 		displayName = "large box mag",
-		magazineCapacity = 10,
+		magazineCapacity = 99,
 		magazineClass = "largeBox",
 		ammoClass = "bulletLarge",
 	}
