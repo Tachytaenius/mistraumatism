@@ -46,6 +46,25 @@ function game:loadCreatureTypes()
 		inventorySize = 2
 	}
 
+	creatureTypes.skeleton = {
+		displayName = "skeleton",
+		tile = "s",
+		colour = "white",
+		fleshMaterialName = "bone",
+
+		moveTimerLength = 5,
+		sightDistance = 12,
+		maxHealth = 5,
+		meleeTimerLength = 4,
+		meleeDamage = 2,
+		meleeBleedRateAdd = 3,
+		shootAggressiveness = 0.5,
+
+		inventorySize = 2,
+		spawnItemType = "scythe",
+		spawnItemMaterial = "iron"
+	}
+
 	creatureTypes.slug = {
 		displayName = "slug",
 		tile = "~",

@@ -404,6 +404,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 							cell.character = matterState == "liquid" and "≈" or "░"
 						elseif largestSpatter.amount >= consts.spatterThreshold2 then
 							cell.character = matterState == "liquid" and "~" or "•"
+						elseif largestSpatter.amount >= 1 and matterState == "solid" then
+							cell.character = "."
 						end
 					end
 				end
@@ -515,8 +517,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 
 		if entity.entityType == "creature" then
-			local background = entity.dead and (entity.creatureType.bloodMaterialName and state.materials[entity.creatureType.bloodMaterialName].colour or "darkRed") or "black"
-			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, getCreatureColour(entity), background)
+			local foreground = getCreatureColour(entity)
+			local background = entity.dead and (entity.creatureType.bloodMaterialName and state.materials[entity.creatureType.bloodMaterialName].colour or (foreground == "darkGrey" and "lightGrey" or "darkGrey")) or "black"
+			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, foreground, background)
 			if drawEntityWarnings and entity ~= state.player and entity.actions[1] and entity.actions[1].type == "shoot" then
 				drawIndicator(entity.x, entity.y, "!", "red", "black")
 			end

@@ -224,7 +224,7 @@ function game:loadItemTypes()
 		projectileExplosionDamage = 400,
 		projectileExplosionProjectiles = {
 			{
-				count = 8,
+				count = 12,
 				tile = "*",
 				colour = "yellow",
 				subtickMoveTimerLength = 200,
@@ -238,13 +238,13 @@ function game:loadItemTypes()
 				hitDeadEntities = true
 			},
 			{
-				count = 2,
+				count = 4,
 				tile = "☼",
 				colour = "red",
 				subtickMoveTimerLength = 240,
 				subtickMoveTimerLengthChange = 32,
 				subtickMoveTimerLengthMax = 1024,
-				damage = 4,
+				damage = 2,
 				maxPierces = 2,
 				bleedRateAdd = 56,
 				instantBloodLoss = 1,
@@ -260,6 +260,23 @@ function game:loadItemTypes()
 		isMeleeWeapon = true,
 		meleeDamage = 5,
 		meleeBleedRateAdd = 15
+	}
+
+	itemTypes.scythe = {
+		tile = "ƒ",
+		displayName = "scythe",
+		isMeleeWeapon = true,
+		meleeDamage = 10,
+		meleeBleedRateAdd = 32,
+		meleeTimerAdd = 4
+	}
+
+	itemTypes.crowbar = {
+		tile = "⌠",
+		displayName = "crowbar",
+		isMeleeWeapon = true,
+		meleeDamage = 6,
+		meleeBleedRateAdd = 2
 	}
 
 	itemTypes.note = {

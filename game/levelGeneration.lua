@@ -77,11 +77,16 @@ function game:placeItem(x, y, itemTypeName, material)
 end
 
 function game:placeCreatureTeam(x, y, creatureTypeName, team)
-	return self:newCreatureEntity({
+	local entity = self:newCreatureEntity({
 		creatureTypeName = creatureTypeName,
 		team = team,
 		x = x, y = y
 	})
+	if entity.creatureType.spawnItemType and entity.creatureType.inventorySize >= 1 then
+		entity.inventory[1].item = self:newItemData({itemTypeName = entity.creatureType.spawnItemType, material = entity.creatureType.spawnItemMaterial})
+		entity.inventory.selectedSlot = 1
+	end
+	return entity
 end
 
 function game:placeMonster(x, y, creatureTypeName)

@@ -608,8 +608,10 @@ function game:damageEntity(entity, damage, sourceEntity, bleedRateAdd, instantBl
 
 	local state = self.state
 	entity.health = entity.health - damage
-	entity.blood = math.max(0, entity.blood - (instantBloodLoss or 0))
-	entity.bleedingAmount = math.min(consts.maxBleedingAmount, entity.bleedingAmount + (bleedRateAdd or 0))
+	if entity.blood then
+		entity.blood = math.max(0, entity.blood - (instantBloodLoss or 0))
+		entity.bleedingAmount = math.min(consts.maxBleedingAmount, entity.bleedingAmount + (bleedRateAdd or 0))
+	end
 
 	-- Record
 

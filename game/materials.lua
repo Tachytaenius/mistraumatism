@@ -22,6 +22,7 @@ function game:loadMaterials()
 	addMaterial("water", "water", "darkBlue", "liquid")
 
 	addMaterial("steel", "steel", "darkGrey", "solid")
+	addMaterial("iron", "iron", "darkGrey", "solid")
 	addMaterial("stone", "stone", "lightGrey", "solid")
 	addMaterial("concrete", "concrete", "lightGrey", "solid")
 	addMaterial("labTiles", "lab tiles", "white", "solid")

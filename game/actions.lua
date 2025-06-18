@@ -231,6 +231,10 @@ function game:loadActionTypes()
 		local new = {type = "melee"}
 		new.direction = direction
 		new.timer = entity.creatureType.meleeTimerLength
+		local heldItem = self:getHeldItem(entity)
+		if heldItem and heldItem.itemType.isMeleeWeapon and heldItem.itemType.meleeTimerAdd then
+			new.timer = math.max(1, new.timer + heldItem.itemType.meleeTimerAdd)
+		end
 		new.targetEntity = targetEntity
 		return new
 	end
