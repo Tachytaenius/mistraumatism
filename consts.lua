@@ -89,8 +89,15 @@ consts.maxBleedingAmount = 900
 consts.drownTimerRecoveryRate = 4
 consts.gibFleshTiles = {"²", "ⁿ"}
 consts.explosionGradient = {"black", "darkGrey", "lightGrey", "darkYellow", "yellow", "white"}
-consts.explosionGradientMax = 350
+consts.explosionGradientMax = 255 -- Seems to protect against non-uniformities in the gradient? During my specific testing setup, anyway. Which is as follows:
+-- Some random coords in a test map
+-- for xo = 0, 26 do
+-- 	self:getTile(7+xo,15).explosionInfo=nil
+-- 	self:explode(7 + xo, 15, 0, xo * 0.25 * (consts.explosionGradientMax / #consts.explosionGradient), state.player)
+-- end
 consts.explosionVisualDiminishRate = 0.5
+consts.explosionVisualRapidDiminishMultiplier = 8
+consts.explosionVisualRapidDiminishThreshold = 40
 
 consts.itemDefaultMaxStackSize = 9
 

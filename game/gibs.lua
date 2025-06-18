@@ -5,6 +5,14 @@ function game:tickGibs()
 	local gibsToRemove = {}
 	for _, gib in ipairs(state.gibs) do
 		self:moveObjectAsProjectile(gib, nil, nil, gibsToRemove)
+		if gib.bloodMaterial and gib.bloodAmount > 0 then -- and (gib.bloodAmount >= 3 or love.math.random() < 1/3) then
+			local bloodRemoved = math.min(1, gib.bloodAmount)
+			gib.bloodAmount = gib.bloodAmount - bloodRemoved
+			self:addSpatter(gib.currentX, gib.currentY, gib.bloodMaterial, bloodRemoved)
+			if gib.bloodAmount <= 0 and gib.fleshAmount <= 0 then
+				gibsToRemove[gib] = true
+			end
+		end
 	end
 	local i = 1
 	while i <= #state.gibs do

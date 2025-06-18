@@ -452,22 +452,22 @@ function game:updateEntitiesAndProjectiles()
 			entitiesToRemove[entity] = true
 			local gibForce = (gibThreshold - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
 			local fleshAmount = math.floor(entity.creatureType.maxHealth ^ 0.85 * 2.8)
-			local extraBlood = entity.creatureType.gibBloodRelease or entity.creatureType.maxBlood and math.floor(entity.creatureType.maxBlood * 0.5) or 0
+			local extraBlood = entity.creatureType.gibBloodRelease or entity.creatureType.maxBlood and math.floor(entity.creatureType.maxBlood * 0.65) or 0
 			local bloodAmount = (entity.blood or 0) + extraBlood
-			local bloodSaveAmount = math.ceil(bloodAmount / 2)
+			local bloodSaveAmount = math.ceil(bloodAmount * 0.2)
 			bloodAmount = bloodAmount - bloodSaveAmount -- For more blood-only gibs
 			local gibs = {}
-			local gibCount = math.min(fleshAmount, math.floor(gibForce * 6) + 2)
+			local gibCount = math.min(fleshAmount, math.floor(gibForce * 1/3) + 2)
 			local function newGib()
 				local speed = (love.math.random() * 0.25 + 1) * math.min(24, gibForce)
-				local range = math.min(6, math.ceil(speed / 12))
+				local range = math.min(6, math.ceil(speed / 16))
 				local angle = love.math.random() * consts.tau
 				local subtickMoveTimerLength = math.ceil(25 * consts.projectileSubticks / speed)
 				local r = consts.spreadRetargetDistance
 				local startX, startY = entity.x, entity.y
 				local endX = math.floor(math.cos(angle) * r + 0.5) + startX -- Round
 				local endY = math.floor(math.sin(angle) * r + 0.5) + startY
-				return {
+				local new = {
 					startDropped = speed < 4,
 					x = startX,
 					y = startY,
@@ -485,6 +485,13 @@ function game:updateEntitiesAndProjectiles()
 					bloodAmount = 0,
 					fleshTile = consts.gibFleshTiles[love.math.random(#consts.gibFleshTiles)]
 				}
+				-- For blood trails
+				if entity.creatureType.bloodMaterialName then
+					local bloodAmountMoved = math.min(bloodAmount, love.math.random(1, 3))
+					bloodAmount = bloodAmount - bloodAmountMoved
+					new.bloodAmount = new.bloodAmount + bloodAmountMoved
+				end
+				return new
 			end
 			for i = 1, gibCount do
 				gibs[i] = newGib()

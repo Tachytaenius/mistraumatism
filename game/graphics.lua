@@ -538,14 +538,17 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	    ::continue::
 	end
 	for tile in pairs(state.map.explosionTiles) do
-		local gradientValue = tile.explosionInfo.visual / consts.explosionGradientMax * #consts.explosionGradient
+		local gradientValue = tile.explosionInfo.visual * #consts.explosionGradient / consts.explosionGradientMax
 		local index = math.max(0, math.min(#consts.explosionGradient, math.floor(gradientValue + 0.5))) + 1
 		local foregroundIndex = math.min(#consts.explosionGradient, index)
 		local backgroundIndex = math.max(1, index - 1)
-		if not (foregroundIndex == 1 and backgroundIndex == 1) then
-			local x, y = tile.x, tile.y
-			drawCharacterWorldToViewportVisibleOnly(x, y, "▓", consts.explosionGradient[foregroundIndex], consts.explosionGradient[backgroundIndex])
+		local x, y = tile.x, tile.y
+		local char = gradientValue % 1 >= 0.5 and "░" or "▒"
+		if (foregroundIndex == 1 and backgroundIndex == 1) then
+			char = "░"
+			foregroundIndex = 2
 		end
+		drawCharacterWorldToViewportVisibleOnly(x, y, char, consts.explosionGradient[foregroundIndex], consts.explosionGradient[backgroundIndex])
 	end
 	for _, entity in ipairs(entitiesToDrawVisible) do
 		if entity.entityType ~= "creature" then

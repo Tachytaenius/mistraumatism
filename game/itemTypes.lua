@@ -212,10 +212,10 @@ function game:loadItemTypes()
 		projectileColour = "yellow",
 		ammoClass = "rocket",
 		displayName = "rocket",
-		damage = 60,
+		damage = 40,
 		bulletCount = 1,
-		bleedRateAdd = 200,
-		instantBloodLoss = 80,
+		bleedRateAdd = 100,
+		instantBloodLoss = 6,
 		projectileSubtickMoveTimerLength = 192,
 		projectileSubtickMoveTimerLengthChange = -40, -- Per tick
 		projectileSubtickMoveTimerLengthMin = 16,

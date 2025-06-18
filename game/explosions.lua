@@ -19,7 +19,7 @@ function game:explode(x, y, radius, damage, cause)
 			if not self:hitscan(x, y, tileX, tileY, self.tileBlocksAirMotion) then
 				goto continue
 			end
-			local add = math.floor(math.max(0, 1 - dist / radius) * damage)
+			local add = radius == 0 and damage or math.floor(math.max(0, 1 - dist / radius) * damage)
 			if add <= 0 then
 				goto continue
 			end
@@ -33,8 +33,8 @@ function game:explode(x, y, radius, damage, cause)
 			end
 			tile.explosionInfo.damagesThisTick[#tile.explosionInfo.damagesThisTick+1] = {
 				damage = add,
-				bleedRateAdd = add * 16,
-				instantBloodLoss = add,
+				bleedRateAdd = add * 8,
+				instantBloodLoss = math.floor(add / 80),
 				cause = cause
 			}
 
@@ -50,7 +50,11 @@ function game:diminishExplosions()
 			while #tile.explosionInfo.damagesThisTick > 0 do
 				table.remove(tile.explosionInfo.damagesThisTick)
 			end
-			tile.explosionInfo.visual = math.floor(tile.explosionInfo.visual * math.exp(-consts.explosionVisualDiminishRate))
+			local diminishRate = consts.explosionVisualDiminishRate
+			if tile.explosionInfo.visual <= consts.explosionVisualRapidDiminishThreshold then
+				diminishRate = diminishRate * consts.explosionVisualRapidDiminishMultiplier
+			end
+			tile.explosionInfo.visual = math.floor(tile.explosionInfo.visual * math.exp(-diminishRate))
 
 			if tile.explosionInfo.visual <= 0 then
 				tile.explosionInfo = nil
