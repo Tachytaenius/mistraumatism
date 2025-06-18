@@ -14,6 +14,6 @@ return function(game, fontCharacterWidth, fontCharacterHeight)
 			display = currentDisplay
 		}
 	)
-	-- TODO: Set icon
+	love.window.setIcon(love.image.newImageData("icon.png"))
 	love.window.setTitle(consts.windowTitle)
 end

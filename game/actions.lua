@@ -1,5 +1,6 @@
 local commands = require("commands")
 local consts = require("consts")
+local util = require("util")
 
 local game = {}
 
@@ -134,12 +135,41 @@ function game:loadActionTypes()
 			if ability then
 				self:abilityShoot(entity, action, ability, targetEntity)
 			else
+				local shotResultInfo = {}
 				if action.magazineSlotSelectionIndex == "all" then
 					for i = 1, self:getHeldItem(entity).itemType.magazineCapacity do
-						self:shootGun(entity, action, self:getHeldItem(entity), targetEntity, i)
+						self:shootGun(entity, action, self:getHeldItem(entity), targetEntity, i, shotResultInfo)
 					end
 				else
-					self:shootGun(entity, action, self:getHeldItem(entity), targetEntity, action.magazineSlotSelectionIndex)
+					self:shootGun(entity, action, self:getHeldItem(entity), targetEntity, action.magazineSlotSelectionIndex, shotResultInfo)
+				end
+				local announcementType
+				local priority = {"nothing", "click", "cooldown", "inLiquid", "fired"}
+				for i, name in ipairs(priority) do
+					priority[name] = i
+				end
+				for _, result in pairs(shotResultInfo) do
+					if not announcementType then
+						announcementType = result
+						goto continue
+					end
+					-- Order of priority
+					if priority[result] > priority[announcementType] then
+						announcementType = result
+					end
+				    ::continue::
+				end
+				if announcementType then
+					local texts = {
+						fired = nil,
+						inLiquid = "The gun won't work underwater.", -- NOTE: Assumed the liquid is water
+						cooldown = "The gun won't fire that fast.",
+						click = "The gun just clicks.",
+						nothing = "The gun does nothing."
+					}
+					if texts[announcementType] then
+						self:announce(texts[announcementType], "darkGrey")
+					end
 				end
 			end
 		end

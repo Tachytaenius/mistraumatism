@@ -36,7 +36,7 @@ function game:getGunMagazine(gun)
 	return gun.magazineData or gun.insertedMagazine and gun.insertedMagazine.magazineData
 end
 
-function game:shootGun(entity, action, gun, targetEntity, selection)
+function game:shootGun(entity, action, gun, targetEntity, selection, shotResultInfo)
 	if entity.entityType ~= "creature" or entity.dead then
 		return
 	end
@@ -51,6 +51,10 @@ function game:shootGun(entity, action, gun, targetEntity, selection)
 		assert(selection, "No selection passed to shootGun when firing a selection-type gun")
 	end
 	local selectType = gun.itemType.alteredMagazineUse == "select"
+	local function setResult(result)
+		local index = selection or 1
+		shotResultInfo[index] = result
+	end
 	local function getCocked()
 		if selectType then
 			return gun.cockedStates[selection]
@@ -68,7 +72,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection)
 
 	if gun.shotCooldownTimer then
 		if entity == self.state.player then
-			self:announce("The gun won't fire that fast.", "darkGrey")
+			setResult("cooldown")
 		end
 		return
 	end
@@ -78,15 +82,14 @@ function game:shootGun(entity, action, gun, targetEntity, selection)
 	end
 	if not gunType.noCocking and not getCocked() then
 		if entity == self.state.player then
-			self:announce("The trigger does nothing.", "darkGrey")
+			setResult("nothing")
 		end
 		return
 	end
 	setCocked(false)
 	if self:isEntitySwimming(entity) and not gunType.worksInLiquid then
 		if entity == self.state.player then
-			-- NOTE: Assumed the liquid is water
-			self:announce("The gun won't work underwater.", "darkGrey")
+			setResult("inLiquid")
 		end
 	else
 		local roundToShoot
@@ -114,7 +117,12 @@ function game:shootGun(entity, action, gun, targetEntity, selection)
 				if fromChamber then
 					gun.chamberedRound = nil
 				else
-					assert(roundToShoot == table.remove(mag))
+					if selectType then
+						assert(roundToShoot == mag[selection])
+						mag[selection] = nil
+					else
+						assert(roundToShoot == table.remove(mag))
+					end
 				end
 			else
 				roundToShoot.fired = true
@@ -123,6 +131,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection)
 				gun.ejectorStates = gun.ejectorStates or {}
 				gun.ejectorStates[selection] = true
 			end
+			setResult("fired")
 			gun.shotCooldownTimer = gunType.shotCooldownTimerLength -- Can be nil
 			local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
 			local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single shotgun blast
@@ -158,7 +167,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection)
 			end
 		else
 			if entity == self.state.player then
-				self:announce("The gun just clicks.", "darkGrey")
+				setResult("click")
 			end
 		end
 	end

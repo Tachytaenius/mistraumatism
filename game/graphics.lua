@@ -782,8 +782,14 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			for i, slot in ipairs(state.player.inventory) do
 				local x = statusX + (i - 1) % 3 * 4 + 4
 				local y = 2 * (entityStatusHeight + 1) + 2 + math.floor((i - 1) / 3) * 2
-				if i == state.player.inventory.selectedSlot then -- and self.realTime % 0.5 < 0.25 then
-					drawCharacterFramebuffer(x - 1, y, "►", "lightGrey", "black")
+				local isSelectedSlot = i == state.player.inventory.selectedSlot
+				drawCharacterFramebuffer(x - 1, y, tostring(i), isSelectedSlot and "lightGrey" or "darkGrey", "black")
+				if isSelectedSlot then
+					-- drawCharacterFramebuffer(x - 1, y, "►", "lightGrey", "black")
+
+					local n = 2
+					drawCharacterFramebuffer(x - 2, y, util.getBoxDrawingCharacter(n, 1, 0, 1), "white", "black")
+					drawCharacterFramebuffer(x + 2, y, util.getBoxDrawingCharacter(0, 1, n, 1), "white", "black")
 				end
 				if slot.item then
 					drawCharacterFramebuffer(x, y, slot.item.itemType.tile, util.conditionalSwap(state.materials[slot.item.material].colour, "black", slot.item.itemType.swapColours))

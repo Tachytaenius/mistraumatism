@@ -128,7 +128,7 @@ function game:loadItemTypes()
 		automaticEjection = true,
 		extraSpread = 0.05,
 		-- shotCooldownTimerLength = 1, -- Firing with both barrels doesn't work if this is present
-		operationTimerLength = 7,
+		operationTimerLength = 3,
 		extraDamage = 1,
 		manual = true,
 		noChamber = true,
@@ -145,7 +145,7 @@ function game:loadItemTypes()
 		ammoClass = "shellMedium",
 		displayName = "sawn shotgun",
 		extraSpread = 0.25,
-		operationTimerLength = 6,
+		operationTimerLength = 2,
 		extraDamage = 1,
 		manual = true,
 		noChamber = true,

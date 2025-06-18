@@ -167,6 +167,7 @@ function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, 
 					projectile.currentX = newTile.globalX
 					projectile.currentY = newTile.globalY
 					projectile.moved = true
+					projectile.piercedInfo = {}
 					projectile.moveTimer = math.floor(distance * projectile.subtickMoveTimerLength)
 					if projectile.moveTimer <= 0 then -- Avoid a hang in case distance fails (why would it?)
 						projectilesToStop[projectile] = true
@@ -210,6 +211,10 @@ function game:updateProjectiles()
 				if not (entity.x == projectile.currentX and entity.y == projectile.currentY) then
 					goto continue
 				end
+				local pierced = projectile.piercedInfo[entity]
+				if pierced and pierced.x == entity.x and pierced.y == entity.y then
+					goto continue
+				end
 				local wouldHitFriendly
 				if projectile.shooter then
 					wouldHitFriendly = entity == projectile.shooter or self:getTeamRelation(projectile.shooter.team, entity.team) == "friendly"
@@ -235,6 +240,7 @@ function game:updateProjectiles()
 			end
 			local damage = projectile.damage
 			self:damageEntity(hitEntity, damage, projectile.shooter, projectile.bleedRateAdd, projectile.instantBloodLoss)
+			projectile.piercedInfo[hitEntity] = {x = hitEntity.x, y = hitEntity.y}
 			projectile.pierces = (projectile.pierces or 0) + 1
 			return projectile.pierces > (projectile.maxPierces or 0)
 		end
@@ -339,6 +345,7 @@ local uncopiedParameters = util.arrayToSet({
 })
 function game:newProjectile(parameters)
 	local newProjectile = {}
+	newProjectile.piercedInfo = {}
 	for k, v in pairs(parameters) do
 		if not uncopiedParameters[k] then
 			newProjectile[k] = v
