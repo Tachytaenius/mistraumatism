@@ -422,16 +422,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 	end
 
-	for _, projectile in ipairs(state.projectiles) do
-		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
-	end
-	for _, gib in ipairs(state.gibs) do
-		-- Expect gibs without any flesh or blood to have been deleted
-		local tile = gib.fleshAmount > 0 and gib.fleshTile or gib.bloodAmount > 10 and "•" or gib.bloodAmount >= 3 and "∙" or "·"
-		local colour = state.materials[gib.fleshAmount > 0 and gib.fleshMaterial or gib.bloodMaterial].colour
-		drawCharacterWorldToViewportVisibleOnly(gib.currentX, gib.currentY, tile, colour, "black")
-	end
-
 	local indicatorTiles = {} -- To stop indicators from clashing
 	local drawActionIndicators = self.realTime % 1.5 < 0.5
 	local drawCursor = self.realTime % 0.5 < (commands.checkCommand("moveCursor") and 0.4 or 0.25)
@@ -547,6 +537,16 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 	    ::continue::
 	end
+
+	for _, projectile in ipairs(state.projectiles) do
+		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+	end
+	for _, gib in ipairs(state.gibs) do
+		-- Expect gibs without any flesh or blood to have been deleted
+		local tile = gib.fleshAmount > 0 and gib.fleshTile or gib.bloodAmount > 10 and "•" or gib.bloodAmount >= 3 and "∙" or "·"
+		local colour = state.materials[gib.fleshAmount > 0 and gib.fleshMaterial or gib.bloodMaterial].colour
+		drawCharacterWorldToViewportVisibleOnly(gib.currentX, gib.currentY, tile, colour, "black")
+	end
 	for tile in pairs(state.map.explosionTiles) do
 		local gradientValue = tile.explosionInfo.visual * #consts.explosionGradient / consts.explosionGradientMax
 		local index = math.max(0, math.min(#consts.explosionGradient, math.floor(gradientValue + 0.5))) + 1
@@ -560,6 +560,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 		drawCharacterWorldToViewportVisibleOnly(x, y, char, consts.explosionGradient[foregroundIndex], consts.explosionGradient[backgroundIndex])
 	end
+
 	for _, entity in ipairs(entitiesToDrawVisible) do
 		if entity.entityType ~= "creature" then
 			goto continue
