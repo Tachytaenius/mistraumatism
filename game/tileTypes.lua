@@ -87,7 +87,19 @@ function game:loadTileTypes()
 			solidity = "passable",
 			character = "═",
 			swapColours = true
-		}
+		},
+		roughWall = {
+			displayName = "rough wall",
+			solidity = "solid",
+			character = "▓",
+			pretendConnectionTypeName = "wall",
+			blocksLight = true
+		},
+		roughFloor = {
+			displayName = "rough floor",
+			solidity = "passable",
+			character = "░"
+		},
 	}
 end
 

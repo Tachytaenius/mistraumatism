@@ -9,6 +9,7 @@ function info:createLevel()
 
 	local types = {
 		[0x00] = "floor",
+		[0x11] = "roughFloor",
 		[0x22] = "pit",
 		[0x28] = "archway",
 		[0x33] = "drawbridgeVertical",
