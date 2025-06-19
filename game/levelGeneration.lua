@@ -224,6 +224,7 @@ function game:initialiseMap(width, height)
 	end
 
 	map.explosionTiles = {}
+	map.spatteredTiles = {}
 end
 
 function game:generateLevel(parameters)

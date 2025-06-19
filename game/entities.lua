@@ -118,7 +118,9 @@ function game:updateEntitiesAndProjectiles()
 	end
 
 	local entitiesToRemove = {}
-	local function kill(entity)
+	local function kill(entity, forceRemove)
+		assert(not entity.dead, "Entity is already dead")
+		assert(entity.entityType == "creature", "Can't kill non-creatures")
 		entity.dead = true
 		entity.deathTick = state.tick
 		entity.actions = {}
@@ -127,7 +129,9 @@ function game:updateEntitiesAndProjectiles()
 				self:dropAllItemsFromSlot(entity, i, entity.x, entity.y)
 			end
 		end
-		-- entitiesToRemove[entity] = true
+		if forceRemove then
+			entitiesToRemove[entity] = true
+		end
 	end
 	local function flushEntityRemoval()
 		local i = 1
@@ -231,7 +235,7 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 
-		if entity.targetEntity and entity.targetEntity.dead then
+		if entity.targetEntity and (entity.targetEntity.dead and not entity.creatureType.attackDeadTargets) then
 			entity.targetEntity = nil
 			entity.lastKnownTargetLocation = nil
 		end
@@ -316,8 +320,18 @@ function game:updateEntitiesAndProjectiles()
 	end
 	flushEntityRemoval()
 
-	-- Damage, drowning, bleeding, explosions, and gibbing
+	-- Damage, drowning, bleeding, explosions, gibbing, and falling down pits
 	for _, entity in ipairs(state.entities) do
+		local tile = self:getTile(entity.x, entity.y)
+		if tile and tile.type == "pit" and (entity.entityType ~= "creature" or not (entity.creatureType.flying and not entity.dead)) then
+			if entity.entityType == "creature" and not entity.dead then
+				kill(entity, true)
+			else
+				entitiesToRemove[entity] = true
+			end
+			state.fallingEntities[#state.fallingEntities+1] = entity
+		end
+
 		if entity.entityType ~= "creature" then
 			goto continue
 		end
@@ -542,7 +556,6 @@ function game:updateEntitiesAndProjectiles()
 		end
 	    ::continue::
 	end
-
 	flushEntityRemoval()
 
 	for _, entity in ipairs(state.entities) do

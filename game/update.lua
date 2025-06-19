@@ -100,6 +100,7 @@ function game:update()
 	self:updateEntitiesAndProjectiles()
 	self:announceDamages()
 	self:diminishExplosions()
+	self:dropSpatters()
 	self:clearNonPersistentVariables()
 
 	if state.player then

@@ -16,7 +16,7 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 			return false
 		end
 	end
-	return self:getWalkable(tileX, tileY, true)
+	return self:getWalkable(tileX, tileY, true, entity.creatureType.flying)
 end
 
 local function chaseTargetEntityLastKnownPosition(self, entity)
@@ -224,6 +224,10 @@ function game:getAIActions(entity)
 		local fightAction
 		if canSee then
 			local shootType = self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun and "gun" or entity.creatureType.projectileAbilities and #entity.creatureType.projectileAbilities > 0 and "ability" or nil
+			-- Don't shoot if the entity is dead (we'd only be here if entity.creatureType.attackDeadTargets is true, and its purpose is to make monsters destroy corpses, which seems better suited for melee)
+			if entity.targetEntity.dead then
+				shootType = nil
+			end
 			-- Random chance (per tick) to not choose to shoot
 			if love.math.random() >= (entity.creatureType.shootAggressiveness or 1) then
 				shootType = nil

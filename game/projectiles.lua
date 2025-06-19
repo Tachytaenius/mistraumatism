@@ -25,7 +25,10 @@ function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, 
 		while currentTime < consts.projectileSubticks do
 			if not projectile.trajectoryOctant then
 				-- Already did checkForEntityHit
-				tryExplode()
+				local tile = self:getTile(projectile.currentX, projectile.currentY)
+				if self.state.tileTypes[tile.type].solidity ~= "fall" then -- If you are (somehow) flying, currently over a pit, and fire a rocket straight down, it should not blow you up since the floor is so far below.
+					tryExplode()
+				end
 				projectilesToStop[projectile] = true
 				break
 			else

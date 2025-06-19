@@ -172,8 +172,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					if not otherTile then
 						goto continue
 					end
-					local sameType = otherTile.type == tile.type
-					local doorWithWall = otherTile.doorData and tile.type == "wall"
+					local otherType = state.tileTypes[otherTile.type]
+					local sameType =
+						(otherType.pretendConnectionTypeName or otherTile.type) ==
+						(tileType.pretendConnectionTypeName or tile.type)
+					local doorWithWall = otherTile.doorData and (state.tileTypes[tile.type.pretendConnectionTypeName] or tile.type) == "wall"
 					local groupedAutotiling = tile.autotileGroup or otherTile.autotileGroup
 					local sameGroup = tile.autotileGroup == otherTile.autotileGroup
 					neighbours[direction] = otherTile and (sameType or doorWithWall) and (not groupedAutotiling or sameGroup)
@@ -228,12 +231,15 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local down = down and downMask
 	
 			local num = tileType.boxDrawingNumber
-			local boxCharacter = util.getBoxDrawingCharacter(
-				right and num or 0,
-				up and num or 0,
-				left and num or 0,
-				down and num or 0
-			)
+			local boxCharacter
+			if not (right and up and left and down and tileType.no4WayJunction) then
+				boxCharacter = util.getBoxDrawingCharacter(
+					right and num or 0,
+					up and num or 0,
+					left and num or 0,
+					down and num or 0
+				)
+			end
 
 			if boxCharacter then
 				return boxCharacter, true
@@ -366,6 +372,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 
 			local tileType = state.tileTypes[tile.type]
 			cell.foregroundColour = state.materials[tile.material].colour
+			cell.backgroundColour = state.tileTypes[tile.type].secondaryColour or "black"
 			if tileType.darkenColour then
 				local darker = consts.darkerColours[cell.foregroundColour]
 				if darker then
@@ -867,7 +874,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			drawStringFramebuffer(statusX + 3, statusY + yShift + 2, util.capitalise(material.displayName, false), "lightGrey", "black")
 		end
 		if tile.type and material then
-			local foreground, background = material.colour, "black"
+			local foreground, background = material.colour, state.tileTypes[tile.type].secondaryColour or "black"
 			local char, box = getTileCharacter(tile.x, tile.y)
 			if state.tileTypes[tile.type].swapColours and not (box and state.tileTypes[tile.type].swapColoursSingleOnly) then
 				foreground, background = background, foreground

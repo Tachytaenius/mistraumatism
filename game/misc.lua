@@ -15,6 +15,7 @@ function game:setInitialNonPersistentVariables()
 		end
 	end
 
+	state.fallingEntities = {}
 	state.damagesThisTick = {}
 end
 
@@ -30,6 +31,7 @@ function game:clearNonPersistentVariables()
 		end
 	end
 
+	state.fallingEntities = nil
 	state.damagesThisTick = nil
 end
 

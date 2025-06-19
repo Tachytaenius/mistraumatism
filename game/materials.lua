@@ -23,7 +23,9 @@ function game:loadMaterials()
 
 	addMaterial("steel", "steel", "darkGrey", "solid")
 	addMaterial("iron", "iron", "darkGrey", "solid")
+	addMaterial("gold", "gold", "yellow", "solid")
 	addMaterial("stone", "stone", "lightGrey", "solid")
+	addMaterial("stoneGreen", "green stone", "darkGreen", "solid")
 	addMaterial("concrete", "concrete", "lightGrey", "solid")
 	addMaterial("labTiles", "lab tiles", "white", "solid")
 
@@ -34,6 +36,12 @@ function game:loadMaterials()
 	addMaterial("crateBrown", "brown crate", "darkYellow", "solid")
 	addMaterial("crateYellow", "yellow crate", "yellow", "solid")
 
+	addMaterial("ornateCarpet", "gold and cloth", "red", "solid")
+	addMaterial("grass", "grass", "green", "solid")
+	addMaterial("soilLoamless", "loamless soil", "darkYellow", "solid")
+	addMaterial("roseWithered", "withered rose", "darkYellow", "solid")
+
+	addMaterial("wood", "wood", "darkYellow", "solid")
 	addMaterial("paper", "paper", "white", "solid")
 	addMaterial("plasticRed", "red plastic", "darkRed", "solid")
 	addMaterial("plasticBlack", "black plastic", "darkGrey", "solid")

@@ -35,7 +35,7 @@ function game:loadActionTypes()
 	end
 	function move.process(self, entity, action)
 		local destinationX, destinationY = self:getDestinationTile(entity)
-		if self:getWalkable(destinationX, destinationY) then
+		if self:getWalkable(destinationX, destinationY, false, entity.creatureType.flying) then
 			action.timer = action.timer - 1
 			if action.timer <= 0 then
 				entity.x, entity.y = destinationX, destinationY
@@ -71,7 +71,7 @@ function game:loadActionTypes()
 			end
 			if direction then
 				local offsetX, offsetY = self:getDirectionOffset(direction)
-				if self:getWalkable(player.x + offsetX, player.y + offsetY) then
+				if self:getWalkable(player.x + offsetX, player.y + offsetY, false, player.creatureType.flying) then
 					return move.construct(self, player, direction)
 				end
 			end
@@ -362,7 +362,7 @@ function game:loadActionTypes()
 	end
 
 	local useHeldItem = newActionType("useHeldItem", "use item")
-	function useHeldItem.construct(self, entity, item)
+	function useHeldItem.construct(self, entity, item, manualCockedStateSelection)
 		if not self:getHeldItem(entity) or item ~= self:getHeldItem(entity) then
 			return
 		end
@@ -376,18 +376,26 @@ function game:loadActionTypes()
 			end
 			return new
 		elseif self:getHeldItem(entity).itemType.isGun then
-			-- Works on automatic too
-			local timer = self:getHeldItem(entity).itemType.operationTimerLength
-			if not timer then
-				return
+			if self:getHeldItem(entity).itemType.manuallyOperateCockedStates and manualCockedStateSelection then
+				local new = {type = "useHeldItem"}
+				new.item = self:getHeldItem(entity)
+				new.timer = self:getHeldItem(entity).itemType.manualCockTime
+				new.manualCockedStateSelection = manualCockedStateSelection
+				return new
+			else
+				-- Works on automatic too
+				local timer = self:getHeldItem(entity).itemType.operationTimerLength
+				if not timer then
+					return
+				end
+				if self:getHeldItem(entity).shotCooldownTimer then
+					return
+				end
+				local new = {type = "useHeldItem"}
+				new.item = self:getHeldItem(entity)
+				new.timer = timer
+				return new
 			end
-			if self:getHeldItem(entity).shotCooldownTimer then
-				return
-			end
-			local new = {type = "useHeldItem"}
-			new.item = self:getHeldItem(entity)
-			new.timer = timer
-			return new
 		end
 	end
 	function useHeldItem.process(self, entity, action)
@@ -404,23 +412,27 @@ function game:loadActionTypes()
 				action.doneType = "completed"
 			elseif itemType.isGun then
 				if itemType.breakAction then
-					heldItem.actionOpen = not heldItem.actionOpen
-					if heldItem.actionOpen and heldItem.itemType.automaticEjection then
-						if heldItem.ejectorStates then
-							for i = 1, heldItem.itemType.magazineCapacity do -- Assuming alteredMagazineUse == "select" or whatever
-								if heldItem.ejectorStates[i] then
-									local ejected = heldItem.magazineData[i]
-									heldItem.magazineData[i] = nil
-									if ejected then
-										self:newItemEntity(entity.x, entity.y, ejected)
+					if heldItem.itemType.manuallyOperateCockedStates and action.manualCockedStateSelection then
+						heldItem.cockedStates[action.manualCockedStateSelection] = true
+					else
+						heldItem.actionOpen = not heldItem.actionOpen
+						if heldItem.actionOpen and heldItem.itemType.automaticEjection then
+							if heldItem.ejectorStates then
+								for i = 1, heldItem.itemType.magazineCapacity do -- Assuming alteredMagazineUse == "select" or whatever
+									if heldItem.ejectorStates[i] then
+										local ejected = heldItem.magazineData[i]
+										heldItem.magazineData[i] = nil
+										if ejected then
+											self:newItemEntity(entity.x, entity.y, ejected)
+										end
 									end
 								end
 							end
+							heldItem.ejectorStates = nil
 						end
-						heldItem.ejectorStates = nil
-					end
-					if not heldItem.actionOpen then
-						self:cycleGun(heldItem, entity.x, entity.y)
+						if not heldItem.actionOpen and heldItem.itemType.cycleOnBreakActionClose then
+							self:cycleGun(heldItem, entity.x, entity.y)
+						end
 					end
 				else
 					self:cycleGun(heldItem, entity.x, entity.y)
@@ -434,7 +446,15 @@ function game:loadActionTypes()
 	end
 	function useHeldItem.fromInput(self, player)
 		if commands.checkCommand("useHeldItem") then
-			return useHeldItem.construct(self, player, self:getHeldItem(player)) -- Can be nil
+			local manualCockedStateSelection
+			if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+
+			elseif commands.checkCommand("operateBarrel1") then
+				manualCockedStateSelection = 1
+			elseif commands.checkCommand("operateBarrel2") then
+				manualCockedStateSelection = 2
+			end
+			return useHeldItem.construct(self, player, self:getHeldItem(player), manualCockedStateSelection) -- Can be nil
 		end
 	end
 

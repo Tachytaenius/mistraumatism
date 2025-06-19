@@ -82,6 +82,8 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 5,
 		shootAggressiveness = 0.85,
 
+		attackDeadTargets = true,
+
 		projectileAbilities = {
 			{
 				name = "acidSingle",
@@ -125,6 +127,8 @@ function game:loadCreatureTypes()
 		meleeInstantBloodLoss = 1,
 		shootAggressiveness = 0.25,
 
+		flying = true,
+		attackDeadTargets = true,
 		canOpenDoors = true,
 
 		projectileAbilities = {
@@ -148,7 +152,7 @@ function game:loadCreatureTypes()
 		bloodMaterialName = "bloodGreen",
 
 		moveTimerLength = 5,
-		sightDistance = 12,
+		sightDistance = 19,
 		maxHealth = 100,
 		maxBlood = 100,
 		bleedHealRate = 32,
@@ -158,6 +162,7 @@ function game:loadCreatureTypes()
 		meleeInstantBloodLoss = 5,
 		shootAggressiveness = 0.2,
 
+		attackDeadTargets = true,
 		canOpenDoors = true,
 
 		projectileAbilities = {
@@ -241,6 +246,7 @@ function game:loadCreatureTypes()
 		meleeDamage = 24,
 		meleeBleedRateAdd = 80,
 		meleeInstantBloodLoss = 10,
+		attackDeadTargets = true,
 	}
 	creatureTypes.smallFish1 = {
 		displayName = "small fish",

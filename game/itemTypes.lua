@@ -126,13 +126,14 @@ function game:loadItemTypes()
 		ammoClass = "shellMedium",
 		displayName = "hunt shotgun",
 		automaticEjection = true,
-		extraSpread = 0.05,
+		extraSpread = 0.01,
 		-- shotCooldownTimerLength = 1, -- Firing with both barrels doesn't work if this is present
 		operationTimerLength = 3,
 		extraDamage = 1,
 		manual = true,
 		noChamber = true,
 		breakAction = true, -- Either in open (load/unload) mode or closed (fire (if cocked)) mode
+		cycleOnBreakActionClose = true,
 		alteredMagazineUse = "select", -- Implies multiple cocking components (number: magazineCapacity)
 		magazine = true,
 		magazineCapacity = 2
@@ -144,12 +145,15 @@ function game:loadItemTypes()
 		tile = "⌐",
 		ammoClass = "shellMedium",
 		displayName = "sawn shotgun",
-		extraSpread = 0.25,
+		extraSpread = 0.125,
 		operationTimerLength = 2,
 		extraDamage = 1,
 		manual = true,
 		noChamber = true,
 		breakAction = true,
+		cycleOnBreakActionClose = false, -- Manually-cocked external hammers
+		manuallyOperateCockedStates = true,
+		manualCockTime = 1,
 		alteredMagazineUse = "select",
 		magazine = true,
 		magazineCapacity = 2
@@ -286,6 +290,13 @@ function game:loadItemTypes()
 		interactionType = state.interactionTypes.readable
 	}
 
+	itemTypes.flower = {
+		tile = "♣",
+		displayName = "flower",
+		stackable = true,
+		maxStackSize = 6 
+	}
+
 	itemTypes.labTable = {
 		noPickUp = true,
 		tile = "╥",
@@ -300,6 +311,11 @@ function game:loadItemTypes()
 		noPickUp = true,
 		tile = "h",
 		displayName = "office chair"
+	}
+	itemTypes.throne = {
+		noPickUp = true,
+		tile = "H",
+		displayName = "throne"
 	}
 	itemTypes.bedsideTable = {
 		noPickUp = true,
@@ -357,6 +373,24 @@ function game:loadItemTypes()
 		tile = "╪",
 		openTile = "╡",
 		displayName = "airlock door"
+	}
+	itemTypes.castleDoorLeft = {
+		isDoor = true,
+		noPickUp = true,
+		doorWindow = false,
+		tile = "║",
+		openTile = "▐", -- Material colour will be on the left side because of swapColours
+		swapColours = true,
+		displayName = "castle door"
+	}
+	itemTypes.castleDoorRight = {
+		isDoor = true,
+		noPickUp = true,
+		doorWindow = false,
+		tile = "║",
+		openTile = "▌",
+		swapColours = true,
+		displayName = "castle door"
 	}
 
 	itemTypes.button = {

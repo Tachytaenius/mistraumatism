@@ -75,24 +75,36 @@ function game:init(args)
 	self.realTime = 0
 	self.tickTimes = {}
 
-	local fontLocation = "fonts/modifiedKelora.png"
+	local fontName, paletteName
+	local fontArg, paletteArg = "^--font=", "^--palette="
+	for _, arg in ipairs(args) do
+		if arg:match(fontArg) then
+			fontName = arg:gsub(fontArg, "")
+		elseif arg:match(paletteArg) then
+			paletteName = arg:gsub(paletteArg, "")
+		end
+	end
+	fontName = fontName or "modifiedKelora"
+	paletteName = paletteName or "main"
+
+	local fontLocation = "fonts/" .. fontName .. ".png"
 	local fontImageData = love.image.newImageData(fontLocation)
 	local characterWidth = fontImageData:getWidth() / consts.fontWidthCharacters
 	local characterHeight = fontImageData:getHeight() / consts.fontHeightCharacters
 	util.remakeWindow(game, characterWidth, characterHeight)
 	self.fontImage = love.graphics.newImage(fontLocation)
-	self.paletteImage = love.graphics.newImage("palettes/main.png")
+	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
 	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
 	-- TEMP, change as needed
 	local skipIntro, flickerIntro
 	for _, arg in ipairs(args) do
-		if arg == "skipIntro" then
+		if arg == "--skipIntro" then
 			skipIntro = true
-		elseif arg == "enableFlickerIntro" then
-			flickerIntro = args[1] == "enableFlickerIntro"
-		elseif arg == "drawTickTimes" then
+		elseif arg == "--enableFlickerIntro" then
+			flickerIntro = true
+		elseif arg == "--drawTickTimes" then
 			self.drawTickTimes = true
 		end
 	end
