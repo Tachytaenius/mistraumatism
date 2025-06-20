@@ -33,12 +33,19 @@ function game:loadActionTypes()
 		new.timer = math.floor(moveTimerLength * multiplier)
 		return new
 	end
+	local function canWalkTo(entity, destinationX, destinationY)
+		return self:getWalkable(destinationX, destinationY, false, entity.creatureType.flying)
+	end
+	local function moveTo(entity, destinationX, destinationY)
+		entity.x, entity.y = destinationX, destinationY
+	end
 	function move.process(self, entity, action)
-		local destinationX, destinationY = self:getDestinationTile(entity)
-		if self:getWalkable(destinationX, destinationY, false, entity.creatureType.flying) then
+		local offsetX, offsetY = self:getDirectionOffset(action.direction)
+		local destinationX, destinationY = entity.x + offsetX, entity.y + offsetY
+		if canWalkTo(entity, destinationX, destinationY) then
 			action.timer = action.timer - 1
 			if action.timer <= 0 then
-				entity.x, entity.y = destinationX, destinationY
+				moveTo(entity, destinationX, destinationY)
 				action.doneType = "completed"
 				return
 			end
@@ -197,9 +204,9 @@ function game:loadActionTypes()
 			elseif commands.checkCommand("operateBarrel2") then
 				magIndex = 2
 			else
-				-- Pull triggers for loaded barrels first, then try ones with cocked hammers
+				-- Pull triggers for loaded (with live rounds) and cocked barrels first, then try ones with cocked hammers
 				for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
-					if self:getHeldItem(player).magazineData[i] and not self:getHeldItem(player).magazineData[i].fired then
+					if self:getHeldItem(player).magazineData[i] and not self:getHeldItem(player).magazineData[i].fired and self:getHeldItem(player).cockedStates[i] then
 						magIndex = i
 						break
 					end
@@ -221,16 +228,17 @@ function game:loadActionTypes()
 	end
 
 	local melee = newActionType("melee", "melee")
-	function melee.construct(self, entity, targetEntity, direction)
-		if not entity.creatureType.meleeTimerLength then
+	function melee.construct(self, entity, targetEntity, direction, charge)
+		local new = {type = "melee"}
+		new.timer = charge and self:getMoveTimerLength(entity) or entity.creatureType.meleeTimerLength
+		if not new.timer then
 			return
 		end
 		if not targetEntity then
 			return
 		end
-		local new = {type = "melee"}
 		new.direction = direction
-		new.timer = entity.creatureType.meleeTimerLength
+		new.charge = charge
 		local heldItem = self:getHeldItem(entity)
 		if heldItem and heldItem.itemType.isMeleeWeapon and heldItem.itemType.meleeTimerAdd then
 			new.timer = math.max(1, new.timer + heldItem.itemType.meleeTimerAdd)
@@ -243,12 +251,35 @@ function game:loadActionTypes()
 		if action.timer <= 0 then
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
-			if self:getAttackStrengths(entity) and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
-				local meleeDamage, meleeBleedRateAdd, meleeInstantBloodLoss = self:getAttackStrengths(entity)
-				self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
-				action.doneType = "completed"
+			if action.charge then
+				local hitFirstTime
+				if self:getAttackStrengths(entity) and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
+					local meleeDamage, meleeBleedRateAdd, meleeInstantBloodLoss = self:getAttackStrengths(entity)
+					self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
+					hitFirstTime = true
+				end
+				if canWalkTo(entity, targetX, targetY) then
+					moveTo(entity, targetX, targetY)
+				end
+				local hitSecondTime
+				if not hitFirstTime and self:getAttackStrengths(entity) and action.targetEntity.x == targetX + ox and action.targetEntity.y == targetY + oy then
+					local meleeDamage, meleeBleedRateAdd, meleeInstantBloodLoss = self:getAttackStrengths(entity)
+					self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
+					hitSecondTime = true
+				end
+				if hitFirstTime or hitSecondTime then
+					action.doneType = "completed"
+				else
+					action.doneType = "cancelled"
+				end
 			else
-				action.doneType = "cancelled"
+				if self:getAttackStrengths(entity) and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
+					local meleeDamage, meleeBleedRateAdd, meleeInstantBloodLoss = self:getAttackStrengths(entity)
+					self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
+					action.doneType = "completed"
+				else
+					action.doneType = "cancelled"
+				end
 			end
 		end
 	end
@@ -328,7 +359,8 @@ function game:loadActionTypes()
 		if action.timer <= 0 then
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
-			if entity.inventory and entity.inventory.selectedSlot and not self:tileBlocksAirMotion(targetX, targetY) then
+			local tile = self:getTile(targetX, targetY)
+			if entity.inventory and entity.inventory.selectedSlot and not (self:tileBlocksAirMotion(targetX, targetY) or (tile and self.state.tileTypes[tile.type].solidity == "projectilePassable")) then
 				self:dropItemFromSlot(entity, entity.inventory.selectedSlot, targetX, targetY)
 				action.doneType = "completed"
 			else
@@ -356,6 +388,10 @@ function game:loadActionTypes()
 			return
 		end
 		if self:tileBlocksAirMotion(x, y) then
+			return
+		end
+		local tile = self:getTile(x, y)
+		if tile and self.state.tileTypes[tile.type].solidity == "projectilePassable" then
 			return
 		end
 		return drop.construct(self, player, direction)

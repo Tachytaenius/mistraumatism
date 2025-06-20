@@ -14,7 +14,7 @@ function info:createLevel() -- name should be the name of the directory containi
 	}
 	local materials = {
 		[0x00] = "concrete",
-		[0x55] = "labTiles",
+		[0x55] = "plaster",
 		[0xaa] = "lino",
 		[0xff] = "steel"
 	}

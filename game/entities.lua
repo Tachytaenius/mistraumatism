@@ -13,15 +13,6 @@ function game:getMovementAction(entity)
 	return nil
 end
 
-function game:getDestinationTile(entity)
-	local action = self:getMovementAction(entity)
-	if not action then
-		return nil
-	end
-	local offsetX, offsetY = self:getDirectionOffset(action.direction)
-	return entity.x + offsetX, entity.y + offsetY
-end
-
 local uncopiedParameters = util.arrayToSet({
 	"creatureTypeName"
 })
@@ -149,6 +140,9 @@ function game:updateEntitiesAndProjectiles()
 					if entity2.targetEntity == entity then
 						entity2.targetEntity = nil
 					end
+					if entity2.hangingFrom == entity then
+						entity2.hangingFrom = nil
+					end
 				end
 				if entity == state.player then
 					state.player = nil
@@ -177,12 +171,18 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end
 
-	-- Reset buttons
+	-- Reset buttons and tick levers
 	tickItems(function(item, x, y)
 		if item.itemType.isButton and item.pressed and not item.frozenState then
 			item.pressed = false
 			if item.onUnpress then
 				item.onUnpress(self, item, x, y)
+			end
+		elseif item.itemType.isLever then
+			if item.active and item.onTickActive then
+				item.onTickActive(self, item, x, y)
+			elseif not item.active and item.onTickInactive then
+				item.onTickInactive(self, item, x, y)
 			end
 		end
 	end)
@@ -283,7 +283,7 @@ function game:updateEntitiesAndProjectiles()
 		if #entity.actions > 0 or entity == state.player then
 			goto continue
 		end
-		if not entity.entityType == "creature" or entity.dead then
+		if entity.dead then
 			goto continue
 		end
 		self:getAIActions(entity)
@@ -322,8 +322,27 @@ function game:updateEntitiesAndProjectiles()
 
 	-- Damage, drowning, bleeding, explosions, gibbing, and falling down pits
 	for _, entity in ipairs(state.entities) do
+		if entity.hangingFrom then
+			if not (entity.hangingFrom.x == entity.x and entity.hangingFrom.y == entity.y) then
+				entity.hangingFrom = nil
+			end
+		end
 		local tile = self:getTile(entity.x, entity.y)
-		if tile and tile.type == "pit" and (entity.entityType ~= "creature" or not (entity.creatureType.flying and not entity.dead)) then
+		local anchored
+		if entity.entityType == "item" and entity.itemData.itemType.anchorsOverPits then
+			local anchorableNeighbours = self:getCheckedNeighbourTiles(entity.x, entity.y, function(x, y)
+				local tile = self:getTile(x, y)
+				return not tile or state.tileTypes[tile.type].solidity ~= "fall"
+			end)
+			anchored = #anchorableNeighbours > 0
+		end
+		if
+			tile and
+			state.tileTypes[tile.type].solidity == "fall" and
+			(entity.entityType ~= "creature" or not (entity.creatureType.flying and not entity.dead)) and
+			not entity.hangingFrom and
+			not anchored
+		then
 			if entity.entityType == "creature" and not entity.dead then
 				kill(entity, true)
 			else

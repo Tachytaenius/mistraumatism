@@ -19,14 +19,14 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 	return self:getWalkable(tileX, tileY, true, entity.creatureType.flying)
 end
 
-local function chaseTargetEntityLastKnownPosition(self, entity)
+local function chaseTargetEntityLastKnownPosition(self, entity, sameTileMelee)
 	local state = self.state
 
 	local targetLocationX, targetLocationY, dontWalkInto
 	if entity.targetEntity then
 		if self:entityCanSeeEntity(entity, entity.targetEntity) then
 			targetLocationX, targetLocationY = entity.targetEntity.x, entity.targetEntity.y
-			dontWalkInto = true
+			dontWalkInto = not sameTileMelee
 		elseif entity.lastKnownTargetLocation then
 			targetLocationX, targetLocationY = entity.lastKnownTargetLocation.x, entity.lastKnownTargetLocation.y
 		end
@@ -203,7 +203,8 @@ local function tryMeleeTargetEntity(self, entity)
 	if not direction then
 		return
 	end
-	return self.state.actionTypes.melee.construct(self, entity, targetEntity, direction)
+	local charge = direction ~= "zero" and entity.creatureType.chargeMelee and not entity.targetEntity.dead
+	return self.state.actionTypes.melee.construct(self, entity, targetEntity, direction, charge)
 end
 
 function game:getAIActions(entity)
@@ -216,6 +217,7 @@ function game:getAIActions(entity)
 	end
 
 	local newAction
+	local waitForSameTileMelee
 
 	if entity.fleeFromEntities and #entity.fleeFromEntities > 0 then
 		newAction = fleeLastKnownFleeFromEntityPositions(self, entity)
@@ -255,12 +257,16 @@ function game:getAIActions(entity)
 			end
 			if not fightAction and entity.creatureType.meleeDamage then
 				if math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1 then -- In range
-					fightAction = tryMeleeTargetEntity(self, entity)
+					-- if not (entity.x == entity.targetEntity.x and entity.y == entity.targetEntity.y) then
+					-- 	waitForSameTileMelee = true
+					-- else
+						fightAction = tryMeleeTargetEntity(self, entity)
+					-- end
 				end
 			end
 		end
 		if not fightAction then
-			fightAction = chaseTargetEntityLastKnownPosition(self, entity)
+			fightAction = chaseTargetEntityLastKnownPosition(self, entity, waitForSameTileMelee)
 		end
 
 		if fightAction then

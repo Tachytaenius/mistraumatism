@@ -89,6 +89,13 @@ function game:placeCreatureTeam(x, y, creatureTypeName, team)
 	return entity
 end
 
+function game:placeCorpseTeam(x, y, creatureTypeName, team)
+	local entity = self:placeCreatureTeam(x, y, creatureTypeName, team)
+	-- In case any complex behaviour is needed
+	entity.dead = true
+	return entity
+end
+
 function game:placeMonster(x, y, creatureTypeName)
 	return self:placeCreatureTeam(x, y, creatureTypeName, "monster")
 end
@@ -134,10 +141,41 @@ function game:placeNote(x, y, text, startLineBreak)
 	item.writtenTextStartLineBreak = startLineBreak
 end
 
+function game:placeExaminable(x, y, type, material, text)
+	local item, entity = self:placeItem(x, y, type, material)
+	item.examineDescription = text
+end
+
 function game:placeButton(x, y, material, onPress, onUnpress)
 	local item = self:placeItem(x, y, "button", material)
 	item.onPress = onPress
 	item.onUnpress = onUnpress
+end
+
+function game:placeLever(x, y, material, active, onActivate, onDeactivate, onTickActive, onTickInactive)
+	local item = self:placeItem(x, y, "lever", material)
+	item.active = active
+	item.onActivate = onActivate
+	item.onDeactivate = onDeactivate
+	item.onTickActive = onTickActive
+	item.onTickInactive = onTickInactive
+end
+
+function game:mechanismOpenDoor(x, y)
+	local tile = self:getTile(x, y)
+	if tile.doorData then
+		tile.doorData.open = true
+	end
+end
+
+function game:mechanismShutDoor(x, y)
+	local tile = self:getTile(x, y)
+	if tile.doorData.entity and self:isDoorBlocked(tile.doorData.entity) then
+		return
+	end
+	if tile.doorData then
+		tile.doorData.open = false
+	end
 end
 
 function game:getAirlockOnPress(airlockInfo)

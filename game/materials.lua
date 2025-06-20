@@ -28,6 +28,7 @@ function game:loadMaterials()
 	addMaterial("stoneGreen", "green stone", "darkGreen", "solid")
 	addMaterial("concrete", "concrete", "lightGrey", "solid")
 	addMaterial("labTiles", "lab tiles", "white", "solid")
+	addMaterial("plaster", "plaster", "white", "solid")
 
 	addMaterial("porcelain", "porcelain", "white", "solid")
 	addMaterial("plywood", "plywood", "darkYellow", "solid")

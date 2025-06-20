@@ -175,8 +175,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					local otherType = state.tileTypes[otherTile.type]
 					local sameType =
 						(otherType.pretendConnectionTypeName or otherTile.type) ==
-						(tileType.pretendConnectionTypeName or tile.type)
-					local doorWithWall = otherTile.doorData and (state.tileTypes[tile.type.pretendConnectionTypeName] or tile.type) == "wall"
+						(tileType.pretendConnectionTypeName or tile.type) or
+						otherType.allowIncomingConnectionTypeNames and otherType.allowIncomingConnectionTypeNames[tileType.pretendConnectionTypeName or tile.type]
+					local doorWithWall = otherTile.doorData and (tileType.pretendConnectionTypeName or tile.type) == "wall"
 					local groupedAutotiling = tile.autotileGroup or otherTile.autotileGroup
 					local sameGroup = tile.autotileGroup == otherTile.autotileGroup
 					neighbours[direction] = otherTile and (sameType or doorWithWall) and (not groupedAutotiling or sameGroup)
@@ -530,7 +531,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			if entity.doorTile and entity.doorTile.doorData.open then
 				tile = entity.itemData.itemType.openTile
 			end
-			if entity.itemData.itemType.isButton and entity.itemData.pressed then
+			if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
 				tile = entity.itemData.itemType.activeTile
 			end
 			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, tile, foreground, background)
@@ -704,6 +705,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				actionInfo = util.capitalise(state.actionTypes[action.type].displayName) .. "∙" .. action.timer .. "T"
 				if action.type == "move" or action.type == "melee" then
 					local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
+					if action.type == "melee" and action.charge then
+						symbol = "Charge" .. symbol
+					end
 					if symbol then
 						actionInfo = actionInfo .. "∙" .. symbol
 					end
@@ -715,12 +719,21 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, itemName, "lightGrey", "black")
 			end
 		elseif entity and entity.entityType == "item" then
-			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.itemData.itemType.tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, "black", entity.itemData.itemType.swapColours))
+			local tile = entity.itemData.itemType.tile
+			if entity.doorTile and entity.doorTile.doorData.open then
+				tile = entity.itemData.itemType.openTile
+			end
+			if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
+				tile = entity.itemData.itemType.activeTile
+			end
+			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, "black", entity.itemData.itemType.swapColours))
 			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.itemData.itemType.displayName, false), "lightGrey", "black")
 			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, util.capitalise(state.materials[entity.itemData.material].displayName, false), "lightGrey", "black")
 			local item = entity.itemData
 			local itemType = item.itemType
-			if itemType.isGun then
+			if itemType.isDoor then
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, entity.doorTile.doorData.open and "Open" or "Closed", "lightGrey", "black")
+			elseif itemType.isGun then
 				local gunStatus
 				if itemType.displayAsDoubleShotgun then
 					local a, b = item.magazineData[1], item.magazineData[2]
@@ -803,7 +816,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					drawCharacterFramebuffer(x + 2, y, util.getBoxDrawingCharacter(0, 1, n, 1), "white", "black")
 				end
 				if slot.item then
-					drawCharacterFramebuffer(x, y, slot.item.itemType.tile, util.conditionalSwap(state.materials[slot.item.material].colour, "black", slot.item.itemType.swapColours))
+					local tile = slot.item.itemType.tile
+					if slot.item.itemType.isButton and slot.item.pressed or slot.item.itemType.isLever and slot.item.active then
+						tile = slot.item.itemType.activeTile
+					end
+					drawCharacterFramebuffer(x, y, tile, util.conditionalSwap(state.materials[slot.item.material].colour, "black", slot.item.itemType.swapColours))
 					if slot.item.itemType.stackable then
 						local num = self:getSlotStackSize(state.player, i)
 						local str
@@ -895,34 +912,36 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local selectedEntityIndex
 			local selectedEntity = self:getCursorEntity()
 			if selectedEntity then
-				local function drawEntitySymbol(entity, x, y)
-					local character, colour, swap
-					if entity.entityType == "creature" then
-						character = entity.creatureType.tile
-						colour = getCreatureColour(entity)
-					elseif entity.entityType == "item" then
-						character = entity.itemData.itemType.tile
-						colour = state.materials[entity.itemData.material].colour
-						swap = entity.itemData.itemType.swapColours
-					end
-					drawCharacterFramebuffer(x, y, character, util.conditionalSwap(colour, "black", swap))
-				end
-
 				selectedEntityIndex = self:getSelectedEntityListIndex()
 				assert(selectedEntityIndex, "Selected cursor entity is not in the list of currently selectable entities")
-
 				drawCharacterFramebuffer(statusX + 5, statusY + yShift + 3, "►", state.cursor.lockedOn and "cyan" or "yellow", "black")
-				local zeroX = statusX + 6
-				for i, entity in ipairs(entityList) do
-					local relative =  i - selectedEntityIndex
-					local separation = relative < 0 and -2 or relative > 0 and 1 or 0
-					local drawX = zeroX + relative + separation
-					if drawX > statusX + 1 and drawX < statusX + 10 then
-						drawEntitySymbol(entity, drawX, statusY + yShift + 3)
+			end
+			local function drawEntitySymbol(entity, x, y)
+				local character, colour, swap
+				if entity.entityType == "creature" then
+					character = entity.creatureType.tile
+					colour = getCreatureColour(entity)
+				elseif entity.entityType == "item" then
+					character = entity.itemData.itemType.tile
+					if entity.doorTile and entity.doorTile.doorData.open then
+						character = entity.itemData.itemType.openTile
 					end
+					if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
+						character = entity.itemData.itemType.activeTile
+					end
+					colour = state.materials[entity.itemData.material].colour
+					swap = entity.itemData.itemType.swapColours
 				end
-			else
-
+				drawCharacterFramebuffer(x, y, character, util.conditionalSwap(colour, "black", swap))
+			end
+			local zeroX = statusX + 6
+			for i, entity in ipairs(entityList) do
+				local relative =  i - (selectedEntityIndex or 1)
+				local separation = relative < 0 and -2 or relative > 0 and 1 or 0
+				local drawX = zeroX + relative + separation
+				if drawX > statusX + 1 and drawX < statusX + 10 then
+					drawEntitySymbol(entity, drawX, statusY + yShift + 3)
+				end
 			end
 			drawCharacterFramebuffer(statusX + 1, statusY + yShift + 3, "[", "darkGrey", "black")
 			drawCharacterFramebuffer(statusX + 10, statusY + yShift + 3, "]", "darkGrey", "black")
@@ -935,13 +954,13 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 		if largestSpatter then
 			local material = state.materials[largestSpatter.materialName]
-			local str = material.displayName .. "∙" .. largestSpatter.amount
+			local str = util.capitalise(material.displayName) .. "∙" .. largestSpatter.amount
 			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, str, "lightGrey", "black")
 			if #tile.spatter > 1 then
 				drawCharacterFramebuffer(statusX + statusWidth - 2, statusY + yShift + 4, "+", "lightGrey", "black")
 			end
 		else
-			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, "No spatter", "lightGrey", "black")
+			-- drawStringFramebuffer(statusX + 1, statusY + yShift + 4, "No spatter", "lightGrey", "black")
 		end
 	end
 

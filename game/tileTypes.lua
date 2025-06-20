@@ -65,10 +65,22 @@ function game:loadTileTypes()
 			solidity = "passable",
 			character = "∩"
 		},
+		archwayLeft = {
+			displayName = "large archway",
+			pretendConnectionTypeName = "wall",
+			solidity = "passable",
+			character = "/"
+		},
+		archwayRight = {
+			displayName = "large archway",
+			pretendConnectionTypeName = "wall",
+			solidity = "passable",
+			character = "\\"
+		},
 		arrowSlit = {
 			displayName = "arrow slit",
 			pretendConnectionTypeName = "wall",
-			solidity = "gap", -- not "solid" so projectiles can move through, not "passable" so that entities can't
+			solidity = "projectilePassable", -- not "solid" so projectiles can move through, not "passable" so that entities can't
 			blocksLight = false,
 			swapColours = true,
 			character = "↕"
@@ -100,6 +112,52 @@ function game:loadTileTypes()
 			solidity = "passable",
 			character = "░"
 		},
+		brickWall = {
+			displayName = "brick wall",
+			solidity = "solid",
+			character = "O",
+			boxDrawingNumber = 2,
+			pretendConnectionTypeName = "wall",
+			blocksLight = true
+		},
+		livingWall = {
+			displayName = "living wall",
+			solidity = "solid",
+			character = "▒",
+			pretendConnectionTypeName = "wall",
+			blocksLight = true
+		},
+		livingFloor = {
+			displayName = "living floor",
+			solidity = "passable",
+			character = "░"
+		},
+		support = {
+			displayName = "support",
+			solidity = "passable",
+			character = "I"
+		},
+		closedHatch = {
+			displayName = "closed hatch",
+			solidity = "passable",
+			character = "│",
+			swapColours = true
+		},
+		openHatch = {
+			displayName = "open hatch",
+			solidity = "fall",
+			character = "║",
+			deleteSpatter = "all"
+		},
+		diningTable = {
+			displayName = "dining table",
+			solidity = "projectilePassable", -- not "solid" so projectiles can move through, not "passable" so that entities can't
+			blocksLight = false,
+			boxDrawingNumber = 2,
+			swapColours = true,
+			character = "╥",
+			allowIncomingConnectionTypeNames = {ornateCarpet = true}
+		}
 	}
 end
 

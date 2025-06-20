@@ -16,7 +16,7 @@ for _, itemName in ipairs(love.filesystem.getDirectoryItems("game")) do
 	::continue::
 end
 
-function game:newState()
+function game:newState(params)
 	local state = {}
 	self.state = state
 
@@ -32,10 +32,10 @@ function game:newState()
 	self:loadItemTypes()
 
 	state.teams = {}
-	self:newTeam("player")
+	self:newTeam("person")
 	self:newTeam("monster")
 	self:newTeam("critter")
-	self:setTeamRelation("player", "monster", "enemy")
+	self:setTeamRelation("person", "monster", "enemy")
 
 	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance, state.initialPlayerThisTick = 0, 0, 0, state.player -- Failsafes in case of no player
 
@@ -43,10 +43,10 @@ function game:newState()
 	state.gibs = {}
 	state.entities = {}
 	state.airlockData = {}
-	local levelGenerationResult = self:generateLevel({levelName = "start"})
+	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName or "start"})
 	state.player = self:newCreatureEntity({
 		creatureTypeName = "human",
-		team = "player",
+		team = "person",
 		x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY
 	})
 
@@ -98,7 +98,7 @@ function game:init(args)
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
 	-- TEMP, change as needed
-	local skipIntro, flickerIntro
+	local skipIntro, flickerIntro, startLevelName
 	for _, arg in ipairs(args) do
 		if arg == "--skipIntro" then
 			skipIntro = true
@@ -107,10 +107,19 @@ function game:init(args)
 		elseif arg == "--drawTickTimes" then
 			self.drawTickTimes = true
 		end
+		local startLevelArg = "^--startLevel="
+		if arg:match(startLevelArg) then
+			startLevelName = arg:gsub(startLevelArg, "")
+		end
 	end
 
+	local function makeState()
+		self:newState({
+			startLevelName = startLevelName
+		})
+	end
 	if skipIntro then
-		self:newState()
+		makeState()
 		self.mode = "gameplay"
 	else
 		self.mode = "text"
@@ -122,7 +131,7 @@ function game:init(args)
 			updateFunction = function(self, dt)
 				if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
 					self.updateFunction = nil
-					self:newState()
+					makeState()
 					self.mode = "gameplay"
 					return true -- To allow initial realtimeUpdate to fully set up new state
 				end

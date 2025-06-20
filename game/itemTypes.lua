@@ -346,6 +346,37 @@ function game:loadItemTypes()
 		displayName = "filing cabinet"
 	}
 
+	itemTypes.statue1 = {
+		noPickUp = true,
+		tile = "☺",
+		displayName = "statue",
+		interactable = true,
+		interactionType = state.interactionTypes.observable
+	}
+	itemTypes.statue2 = {
+		noPickUp = true,
+		tile = "☻",
+		displayName = "statue",
+		interactable = true,
+		interactionType = state.interactionTypes.observable
+	}
+	itemTypes.altar = {
+		noPickUp = true,
+		tile = "▄",
+		displayName = "altar"
+	}
+	itemTypes.gallows = {
+		noPickUp = true,
+		tile = "Γ",
+		displayName = "gallows",
+		anchorsOverPits = true
+	}
+	itemTypes.ornateChair = {
+		noPickUp = true,
+		tile = "h",
+		displayName = "ornate chair"
+	}
+
 	itemTypes.door = {
 		isDoor = true,
 		interactable = true,
@@ -401,6 +432,16 @@ function game:loadItemTypes()
 		displayName = "button",
 		interactable = true,
 		interactionType = state.interactionTypes.button
+	}
+
+	itemTypes.lever = {
+		isLever = true,
+		noPickUp = true,
+		tile = "ò",
+		activeTile = "ó",
+		displayName = "lever",
+		interactable = true,
+		interactionType = state.interactionTypes.lever
 	}
 end
 

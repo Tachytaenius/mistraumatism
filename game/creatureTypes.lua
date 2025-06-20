@@ -117,7 +117,7 @@ function game:loadCreatureTypes()
 		bloodMaterialName = "bloodRed",
 
 		moveTimerLength = 4,
-		sightDistance = 15,
+		sightDistance = 17,
 		maxHealth = 24,
 		maxBlood = 24,
 		bleedHealRate = 32,
@@ -152,7 +152,7 @@ function game:loadCreatureTypes()
 		bloodMaterialName = "bloodGreen",
 
 		moveTimerLength = 5,
-		sightDistance = 19,
+		sightDistance = 18,
 		maxHealth = 100,
 		maxBlood = 100,
 		bleedHealRate = 32,
@@ -162,6 +162,7 @@ function game:loadCreatureTypes()
 		meleeInstantBloodLoss = 5,
 		shootAggressiveness = 0.2,
 
+		chargeMelee = true,
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
@@ -197,7 +198,9 @@ function game:loadCreatureTypes()
 		meleeInstantBloodLoss = 20,
 		shootAggressiveness = 0.25,
 
+		chargeMelee = true,
 		canOpenDoors = true,
+		attackDeadTargets = true,
 
 		projectileAbilities = {
 			{

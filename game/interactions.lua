@@ -80,6 +80,28 @@ function game:loadInteractionTypes()
 	end
 	interactionTypes.readable.resultHeld = interactionTypes.readable.resultWorld
 
+	interactionTypes.observable = {}
+	function interactionTypes.observable:startInfoWorld(interactor, interactionType, interactee)
+		return 4
+	end
+	function interactionTypes.observable:startInfoHeld(interactor, interactionType, interactee)
+		return 3
+	end
+	function interactionTypes.observable:resultWorld(interactor, interactionType, interactee, info)
+		if not self.state.player or interactor ~= self.state.player then
+			return
+		end
+		local item = interactionType == "world" and interactee.itemData or interactee
+		local name = item.itemType.displayName
+		if item.examineDescription then
+			local text = item.examineDescription
+			self:announce(text, "lightGrey")
+		else
+			self:announce("The " .. name .. " is nondescript.", "lightGrey")
+		end
+	end
+	interactionTypes.observable.resultHeld = interactionTypes.observable.resultWorld
+
 	interactionTypes.button = {} -- Store state and other information on the item, not an entity representing the item in the world
 	function interactionTypes.button:startInfoWorld(interactor, interactionType, interactee)
 		return 1
@@ -99,6 +121,44 @@ function game:loadInteractionTypes()
 			item.onPress(self, item, x, y)
 		end
 		item.pressed = true
+	end
+
+	interactionTypes.lever = {} -- Store state and other information on the item, not an entity representing the item in the world
+	function interactionTypes.lever:startInfoWorld(interactor, interactionType, interactee)
+		local item = interactionType == "world" and interactee.itemData or interactee
+		return 3, {doneState = not item.active}
+	end
+	function interactionTypes.lever:resultWorld(interactor, interactionType, interactee, info)
+		local item = interactionType == "world" and interactee.itemData or interactee
+		if item.frozenState then
+			return
+		end
+		if info.doneState == not not item.active then
+			return
+		end
+		if item.active then
+			if item.onDeactivate then
+				local x, y
+				if interactionType == "world" then
+					x, y = interactee.x, interactee.y
+				elseif interactor then
+					x, y = interactor.x, interactor.y
+				end
+				item.onDeactivate(self, item, x, y)
+			end
+			item.active = false
+		else
+			if item.onActivate then
+				local x, y
+				if interactionType == "world" then
+					x, y = interactee.x, interactee.y
+				elseif interactor then
+					x, y = interactor.x, interactor.y
+				end
+				item.onActivate(self, item, x, y)
+			end
+			item.active = true
+		end
 	end
 
 	self.state.interactionTypes = interactionTypes
