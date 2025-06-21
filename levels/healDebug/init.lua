@@ -35,7 +35,7 @@ function info:createLevel()
 		spawnX = 0,
 		spawnY = 0,
 		playerHealth = 1,
-		playerBleedRate = 30
+		playerBleedRate = 40
 	}
 end
 
