@@ -99,7 +99,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 			if gunType.noChamber then
 				fromChamber = false
 				mag = self:getGunMagazine(gun) -- Integrated or inserted
-				roundToShoot = mag and (selectType and mag[selection] or mag[#mag])
+				roundToShoot = mag and (selectType and mag[selection] or not selectType and mag[#mag])
 			else
 				fromChamber = true
 				roundToShoot = gun.chamberedRound

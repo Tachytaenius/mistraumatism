@@ -656,10 +656,20 @@ function game:loadActionTypes()
 				elseif commands.checkCommand("operateBarrel2") then
 					selection = 2
 				else
+					-- Try cocked barrels (so that the gun is immediately ready to fire) first
 					for i = 1, heldItem.itemType.magazineCapacity do
-						if not heldItem.magazineData[i] then
+						if not heldItem.magazineData[i] and heldItem.cockedStates[i] then
 							selection = i
 							break
+						end
+					end
+					-- Go into first empty barrel
+					if not selection then
+						for i = 1, heldItem.itemType.magazineCapacity do
+							if not heldItem.magazineData[i] then
+								selection = i
+								break
+							end
 						end
 					end
 				end
@@ -795,13 +805,23 @@ function game:loadActionTypes()
 			elseif commands.checkCommand("operateBarrel2") then
 				magIndex = 2
 			else
-				-- Unload fired ones first
+				-- Unload fired ones in cocked barrels first, so that you can reload into a cocked barrel quickly
 				for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
-					if self:getHeldItem(player).magazineData[i] and self:getHeldItem(player).magazineData[i].fired then
+					if self:getHeldItem(player).magazineData[i] and self:getHeldItem(player).magazineData[i].fired and self:getHeldItem(player).cockedStates[i] then
 						magIndex = i
 						break
 					end
 				end
+				-- Try unloading fired barrels, cocked or otherwise
+				if not magIndex then
+					for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
+						if self:getHeldItem(player).magazineData[i] and self:getHeldItem(player).magazineData[i].fired then
+							magIndex = i
+							break
+						end
+					end
+				end
+				-- Just try unloading the first round found
 				if not magIndex then
 					for i = 1, self:getHeldItem(player).itemType.magazineCapacity do
 						if self:getHeldItem(player).magazineData[i] then
