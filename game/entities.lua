@@ -78,36 +78,6 @@ end
 function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
-	local processedActions = {}
-	local function processActions(actionTypeName)
-		if processedActions[actionTypeName] then
-			error("Duplicate processing of action type " .. actionTypeName)
-		end
-		processedActions[actionTypeName] = true
-		local processFunction = state.actionTypes[actionTypeName].process
-		for _, entity in ipairs(state.entities) do
-			if entity.entityType ~= "creature" or entity.dead then
-				goto continue
-			end
-			local i = 1
-			while i <= #entity.actions do
-				local action = entity.actions[i]
-				local removed = false
-				if action.type == actionTypeName then
-					processFunction(self, entity, action)
-					if action.doneType then
-						table.remove(entity.actions, i)
-						removed = true
-					end
-				end
-				if not removed then
-					i = i + 1
-				end
-			end
-		    ::continue::
-		end
-	end
-
 	local entitiesToRemove = {}
 	local function kill(entity, forceRemove)
 		assert(not entity.dead, "Entity is already dead")
@@ -155,6 +125,45 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 		entitiesToRemove = {} -- New list
+	end
+
+	local processedActions = {}
+	local function processActions(actionTypeName)
+		if processedActions[actionTypeName] then
+			error("Duplicate processing of action type " .. actionTypeName)
+		end
+		processedActions[actionTypeName] = true
+		local processFunction = state.actionTypes[actionTypeName].process
+		for _, entity in ipairs(state.entities) do
+			if entity.entityType ~= "creature" or entity.dead then
+				goto continue
+			end
+			local i = 1
+			while i <= #entity.actions do
+				local action = entity.actions[i]
+				local removed = false
+				if action.type == actionTypeName then
+					local resultInfo = processFunction(self, entity, action)
+					if resultInfo then
+						if actionTypeName == "interact" then -- or actionTypeName == "useHeldItem" then -- useHeldItem removes interactee by itself
+							if resultInfo.deleteInteractee then
+								if actionTypeName == "interact" then
+									entitiesToRemove[action.targetEntity] = true
+								end
+							end
+						end
+					end
+					if action.doneType then
+						table.remove(entity.actions, i)
+						removed = true
+					end
+				end
+				if not removed then
+					i = i + 1
+				end
+			end
+		    ::continue::
+		end
 	end
 
 	local function tickItems(tickFunction)

@@ -522,7 +522,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				drawIndicator(entity.x, entity.y, "!", "red", "black")
 			end
 		else
-			local background = "black"
+			local background = entity.itemData.itemType.secondaryColour or "black"
 			local foreground = state.materials[entity.itemData.material].colour
 			if entity.itemData.itemType.swapColours then
 				foreground, background = background, foreground
@@ -726,7 +726,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
 				tile = entity.itemData.itemType.activeTile
 			end
-			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, "black", entity.itemData.itemType.swapColours))
+			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, entity.itemData.itemType.secondaryColour or "black", entity.itemData.itemType.swapColours))
 			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.itemData.itemType.displayName, false), "lightGrey", "black")
 			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, util.capitalise(state.materials[entity.itemData.material].displayName, false), "lightGrey", "black")
 			local item = entity.itemData
@@ -737,6 +737,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.active and "Active" or "Inactive", "lightGrey", "black")
 			elseif itemType.isButton then
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.pressed and "Pressed" or "Not pressed", "lightGrey", "black")
+			elseif itemType.isHealItem and not (item.itemType.healItemEndlessUse or item.itemType.healItemDeleteOnUse) then
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.healingUsed and "Used" or "Unused", "lightGrey", "black")
 			elseif itemType.isGun then
 				local gunStatus
 				if itemType.displayAsDoubleShotgun then
@@ -824,7 +826,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					if slot.item.itemType.isButton and slot.item.pressed or slot.item.itemType.isLever and slot.item.active then
 						tile = slot.item.itemType.activeTile
 					end
-					drawCharacterFramebuffer(x, y, tile, util.conditionalSwap(state.materials[slot.item.material].colour, "black", slot.item.itemType.swapColours))
+					drawCharacterFramebuffer(x, y, tile, util.conditionalSwap(state.materials[slot.item.material].colour, slot.item.itemType.secondaryColour or "black", slot.item.itemType.swapColours))
 					if slot.item.itemType.stackable then
 						local num = self:getSlotStackSize(state.player, i)
 						local str
@@ -884,87 +886,90 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	drawStringFramebuffer(statusX + 3, statusY + yShift, "TILE", "lightGrey", "black")
 	if state.cursor and state.player and self:entityCanSeeTile(state.player, state.cursor.x, state.cursor.y) then
 		local tile = state.cursor and self:getTile(state.cursor.x, state.cursor.y)
-		local material = state.materials[tile.material]
-		if tile.type then
-			local str = util.capitalise(state.tileTypes[tile.type].displayName, false)
-			if tile.liquid then
-				str = str .. " & " .. state.materials[tile.liquid.material].displayName
-			end
-			drawStringFramebuffer(statusX + 3, statusY + yShift + 1, str, "lightGrey", "black")
-		end
-		if material then
-			drawStringFramebuffer(statusX + 3, statusY + yShift + 2, util.capitalise(material.displayName, false), "lightGrey", "black")
-		end
-		if tile.type and material then
-			local foreground, background = material.colour, state.tileTypes[tile.type].secondaryColour or "black"
-			local char, box = getTileCharacter(tile.x, tile.y)
-			if state.tileTypes[tile.type].swapColours and not (box and state.tileTypes[tile.type].swapColoursSingleOnly) then
-				foreground, background = background, foreground
-			end
-			drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, char, foreground, background)
-		end
-		local largestSpatter
-		if tile.spatter then
-			for _, spatter in ipairs(tile.spatter) do
-				if not largestSpatter or spatter.amount >= largestSpatter.amount then
-					largestSpatter = spatter
+		if tile then
+			local material = state.materials[tile.material]
+			if tile.type then
+				local str = util.capitalise(state.tileTypes[tile.type].displayName, false)
+				if tile.liquid then
+					str = str .. " & " .. state.materials[tile.liquid.material].displayName
 				end
+				drawStringFramebuffer(statusX + 3, statusY + yShift + 1, str, "lightGrey", "black")
 			end
-		end
-		local entityList = self:getCursorEntitySelectionList()
-		if entityList and #entityList > 0 then
-			local selectedEntityIndex
-			local selectedEntity = self:getCursorEntity()
-			if selectedEntity then
-				selectedEntityIndex = self:getSelectedEntityListIndex()
-				assert(selectedEntityIndex, "Selected cursor entity is not in the list of currently selectable entities")
-				drawCharacterFramebuffer(statusX + 5, statusY + yShift + 3, "►", state.cursor.lockedOn and "cyan" or "yellow", "black")
+			if material then
+				drawStringFramebuffer(statusX + 3, statusY + yShift + 2, util.capitalise(material.displayName, false), "lightGrey", "black")
 			end
-			local function drawEntitySymbol(entity, x, y)
-				local character, colour, swap
-				if entity.entityType == "creature" then
-					character = entity.creatureType.tile
-					colour = getCreatureColour(entity)
-				elseif entity.entityType == "item" then
-					character = entity.itemData.itemType.tile
-					if entity.doorTile and entity.doorTile.doorData.open then
-						character = entity.itemData.itemType.openTile
+			if tile.type and material then
+				local foreground, background = material.colour, state.tileTypes[tile.type].secondaryColour or "black"
+				local char, box = getTileCharacter(tile.x, tile.y)
+				if state.tileTypes[tile.type].swapColours and not (box and state.tileTypes[tile.type].swapColoursSingleOnly) then
+					foreground, background = background, foreground
+				end
+				drawCharacterFramebuffer(statusX + 1, yShift + statusY + 1, char, foreground, background)
+			end
+			local largestSpatter
+			if tile.spatter then
+				for _, spatter in ipairs(tile.spatter) do
+					if not largestSpatter or spatter.amount >= largestSpatter.amount then
+						largestSpatter = spatter
 					end
-					if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
-						character = entity.itemData.itemType.activeTile
+				end
+			end
+			local entityList = self:getCursorEntitySelectionList()
+			if entityList and #entityList > 0 then
+				local selectedEntityIndex
+				local selectedEntity = self:getCursorEntity()
+				if selectedEntity then
+					selectedEntityIndex = self:getSelectedEntityListIndex()
+					assert(selectedEntityIndex, "Selected cursor entity is not in the list of currently selectable entities")
+					drawCharacterFramebuffer(statusX + 5, statusY + yShift + 3, "►", state.cursor.lockedOn and "cyan" or "yellow", "black")
+				end
+				local function drawEntitySymbol(entity, x, y)
+					local character, colour, swap, background
+					if entity.entityType == "creature" then
+						character = entity.creatureType.tile
+						colour = getCreatureColour(entity)
+					elseif entity.entityType == "item" then
+						character = entity.itemData.itemType.tile
+						if entity.doorTile and entity.doorTile.doorData.open then
+							character = entity.itemData.itemType.openTile
+						end
+						if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
+							character = entity.itemData.itemType.activeTile
+						end
+						colour = state.materials[entity.itemData.material].colour
+						background = entity.itemData.itemType.secondaryColour
+						swap = entity.itemData.itemType.swapColours
 					end
-					colour = state.materials[entity.itemData.material].colour
-					swap = entity.itemData.itemType.swapColours
+					drawCharacterFramebuffer(x, y, character, util.conditionalSwap(colour, background or "black", swap))
 				end
-				drawCharacterFramebuffer(x, y, character, util.conditionalSwap(colour, "black", swap))
-			end
-			local zeroX = statusX + 6
-			for i, entity in ipairs(entityList) do
-				local relative =  i - (selectedEntityIndex or 1)
-				local separation = relative < 0 and -2 or relative > 0 and 1 or 0
-				local drawX = zeroX + relative + separation
-				if drawX > statusX + 1 and drawX < statusX + 10 then
-					drawEntitySymbol(entity, drawX, statusY + yShift + 3)
+				local zeroX = statusX + 6
+				for i, entity in ipairs(entityList) do
+					local relative =  i - (selectedEntityIndex or 1)
+					local separation = relative < 0 and -2 or relative > 0 and 1 or 0
+					local drawX = zeroX + relative + separation
+					if drawX > statusX + 1 and drawX < statusX + 10 then
+						drawEntitySymbol(entity, drawX, statusY + yShift + 3)
+					end
 				end
+				drawCharacterFramebuffer(statusX + 1, statusY + yShift + 3, "[", "darkGrey", "black")
+				drawCharacterFramebuffer(statusX + 10, statusY + yShift + 3, "]", "darkGrey", "black")
+				drawStringFramebuffer(statusX + 12, statusY + yShift + 3, (selectedEntityIndex and (
+					string.format("%2s", selectedEntityIndex)
+				) or "--"), "lightGrey", "black")
+				drawStringFramebuffer(statusX + 14, statusY + yShift + 3, "/" .. #entityList, "lightGrey", "black")
+			else
+				drawStringFramebuffer(statusX + 1, statusY + yShift + 3, "No targets", "lightGrey", "black")
 			end
-			drawCharacterFramebuffer(statusX + 1, statusY + yShift + 3, "[", "darkGrey", "black")
-			drawCharacterFramebuffer(statusX + 10, statusY + yShift + 3, "]", "darkGrey", "black")
-			drawStringFramebuffer(statusX + 12, statusY + yShift + 3, (selectedEntityIndex and (
-				string.format("%2s", selectedEntityIndex)
-			) or "--"), "lightGrey", "black")
-			drawStringFramebuffer(statusX + 14, statusY + yShift + 3, "/" .. #entityList, "lightGrey", "black")
-		else
-			drawStringFramebuffer(statusX + 1, statusY + yShift + 3, "No targets", "lightGrey", "black")
-		end
-		if largestSpatter then
-			local material = state.materials[largestSpatter.materialName]
-			local str = util.capitalise(material.displayName) .. "∙" .. largestSpatter.amount
-			drawStringFramebuffer(statusX + 1, statusY + yShift + 4, str, "lightGrey", "black")
-			if #tile.spatter > 1 then
-				drawCharacterFramebuffer(statusX + statusWidth - 2, statusY + yShift + 4, "+", "lightGrey", "black")
+			if largestSpatter then
+				local material = state.materials[largestSpatter.materialName]
+				local str = util.capitalise(material.displayName) .. "∙" .. largestSpatter.amount
+				drawStringFramebuffer(statusX + 1, statusY + yShift + 4, str, "lightGrey", "black")
+				if #tile.spatter > 1 then
+					drawCharacterFramebuffer(statusX + statusWidth - 2, statusY + yShift + 4, "+", "lightGrey", "black")
+				end
+			else
+				-- drawStringFramebuffer(statusX + 1, statusY + yShift + 4, "No spatter", "lightGrey", "black")
 			end
-		else
-			-- drawStringFramebuffer(statusX + 1, statusY + yShift + 4, "No spatter", "lightGrey", "black")
 		end
 	end
 

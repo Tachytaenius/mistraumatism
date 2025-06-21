@@ -179,6 +179,92 @@ function game:loadInteractionTypes()
 		self:announce("The door is too heavy to move.", "lightGrey")
 	end
 
+	interactionTypes.healItem = {}
+	local function checkHealHasEffect(entity, item)
+		local slowBleeding, heal, replenishBlood, refillAir
+		if entity.bleedingAmount and entity.bleedingAmount ~= 0 and item.itemType.healItemBleedRateSubtract and (item.itemType.healItemBleedRateSubtract == "all" or item.itemType.healItemBleedRateSubtract > 0) then
+			slowBleeding = true
+		end
+		if entity.health and entity.health < entity.creatureType.maxHealth and item.itemType.healItemHealthAdd and (item.itemType.healItemHealthAdd == "all" or item.itemType.healItemHealthAdd > 0) then
+			heal = true
+		end
+		if entity.blood and entity.blood < entity.creatureType.maxBlood and item.itemType.healItemBloodReplenish and (item.itemType.healItemBloodReplenish == "all" or item.itemType.healItemBloodReplenish > 0) then
+			replenishBlood = true
+		end
+		if entity.drownTimer and entity.drownTimer ~= 0 and item.itemType.healItemAirTimeRefill and (item.itemType.healItemAirTimeRefill == "all" or item.itemType.healItemAirTimeRefill > 0) then
+			refillAir = true
+		end
+
+		return slowBleeding or heal or replenishBlood or refillAir
+	end
+	local function doHealEffect(entity, item) -- Returns whether to delete the item
+		if entity.bleedingAmount and entity.bleedingAmount ~= 0 and item.itemType.healItemBleedRateSubtract and (item.itemType.healItemBleedRateSubtract == "all" or item.itemType.healItemBleedRateSubtract > 0) then
+			entity.bleedingAmount = math.max(0, entity.bleedingAmount - (item.itemType.healItemBleedRateSubtract == "all" and math.huge or item.itemType.healItemBleedRateSubtract))
+		end
+		if entity.health and entity.health < entity.creatureType.maxHealth and item.itemType.healItemHealthAdd and (item.itemType.healItemHealthAdd == "all" or item.itemType.healItemHealthAdd > 0) then
+			entity.health = math.min(entity.creatureType.maxHealth, entity.health + (item.itemType.healItemHealthAdd == "all" and math.huge or item.itemType.healItemHealthAdd))
+		end
+		if entity.blood and entity.blood < entity.creatureType.maxBlood and item.itemType.healItemBloodReplenish and (item.itemType.healItemBloodReplenish == "all" or item.itemType.healItemBloodReplenish > 0) then
+			entity.blood = math.min(entity.creatureType.maxBlood, entity.blood + (item.itemType.healItemBloodReplenish == "all" and math.huge or item.itemType.healItemBloodReplenish))
+		end
+		if entity.drownTimer and entity.drownTimer ~= 0 and item.itemType.healItemAirTimeRefill and (item.itemType.healItemAirTimeRefill == "all" or item.itemType.healItemAirTimeRefill > 0) then
+			entity.drownTimer = math.max(0, entity.drownTimer - (item.itemType.healItemAirTimeRefill == "all" and math.huge or item.itemType.healItemAirTimeRefill))
+		end
+
+		if entity == self.state.player and item.itemType.healItemMessage then
+			self:announce(item.itemType.healItemMessage, item.itemType.healItemMessageColour or "lightGrey")
+		end
+
+		item.healingUsed = not (item.itemType.healItemEndlessUse or item.itemType.healItemDeleteOnUse) -- Don't set the entire stack to used if we're going to delete it, since consumable healing items are allowed to be in stacks
+		return item.itemType.healItemDeleteOnUse
+	end
+	function interactionTypes.healItem:startInfoWorld(interactor, interactionType, interactee)
+		if interactee.itemData.itemType.healingRequiresHolding then
+			if interactor == self.state.player then
+				self:announce("Can only use this item from inventory.", "darkGrey")
+			end
+			return
+		end
+		if interactee.itemData.healingUsed then
+			if interactor == self.state.player then
+				self:announce("The item has already been used.", "darkGrey")
+			end
+			return
+		end
+		-- if not checkHealHasEffect(interactor, interactee.itemData) then
+		-- 	if interactor == self.state.player then
+		-- 		self:announce("It won't have any effect.", "darkGrey")
+		-- 	end
+		-- 	return
+		-- end
+		return interactee.itemData.itemType.healItemUseTimerOnGround or interactee.itemData.itemType.healItemUseTimer
+	end
+	function interactionTypes.healItem:startInfoHeld(interactor, interactionType, interactee)
+		if interactee.healingUsed then
+			if interactor == self.state.player then
+				self:announce("The item has already been used.", "darkGrey")
+			end
+			return
+		end
+		-- if not checkHealHasEffect(interactor, interactee) then
+		-- 	if interactor == self.state.player then
+		-- 		self:announce("It won't have any effect.", "darkGrey")
+		-- 	end
+		-- 	return
+		-- end
+		return interactee.itemType.healItemUseTimer
+	end
+	function interactionTypes.healItem:resultWorld(interactor, interactionType, interactee, info)
+		local item = interactionType == "world" and interactee.itemData or interactee
+		local delete = doHealEffect(interactor, item)
+		if delete then
+			return {
+				deleteInteractee = true
+			}
+		end
+	end
+	interactionTypes.healItem.resultHeld = interactionTypes.healItem.resultWorld
+
 	self.state.interactionTypes = interactionTypes
 end
 

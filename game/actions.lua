@@ -444,10 +444,14 @@ function game:loadActionTypes()
 			local heldItem = self:getHeldItem(entity)
 			local itemType = heldItem.itemType
 			if itemType.interactionType then
-				if itemType.interactionType.resultHeld then
-					itemType.interactionType.resultHeld(self, entity, "held", heldItem, action.useInfo)
-				end
 				action.doneType = "completed"
+				if itemType.interactionType.resultHeld then
+					local resultInfo = itemType.interactionType.resultHeld(self, entity, "held", heldItem, action.useInfo)
+					if resultInfo and resultInfo.deleteInteractee then
+						resultInfo.deleteInteractee = nil -- In case we want to return it for some other reason
+						self:takeItemFromSlot(entity, entity.inventory.selectedSlot) -- Delete
+					end
+				end
 			elseif itemType.isGun then
 				if itemType.breakAction then
 					if heldItem.itemType.manuallyOperateCockedStates and action.manualCockedStateSelection then
@@ -868,10 +872,11 @@ function game:loadActionTypes()
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
 			if action.targetEntity.x == targetX and action.targetEntity.y == targetY then
-				if action.targetEntity.itemData.itemType.interactionType and action.targetEntity.itemData.itemType.interactionType.resultWorld then
-					action.targetEntity.itemData.itemType.interactionType.resultWorld(self, entity, "world", action.targetEntity, action.interactionIntent)
-				end
 				action.doneType = "completed"
+				if action.targetEntity.itemData.itemType.interactionType and action.targetEntity.itemData.itemType.interactionType.resultWorld then
+					local resultInfo = action.targetEntity.itemData.itemType.interactionType.resultWorld(self, entity, "world", action.targetEntity, action.interactionIntent)
+					return resultInfo -- processActions has special handling
+				end
 			else
 				action.doneType = "cancelled"
 			end

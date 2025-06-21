@@ -255,7 +255,7 @@ function game:initialiseMap(width, height)
 			newTile.x = x
 			newTile.y = y
 			newTile.type = "roughWall"
-			newTile.material = "stone"
+			newTile.material = "granite"
 			newTile.autotileGroup = group
 			map[x][y] = newTile
 		end

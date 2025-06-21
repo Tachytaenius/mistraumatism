@@ -506,6 +506,81 @@ function game:loadItemTypes()
 		interactable = true,
 		interactionType = state.interactionTypes.observable
 	}
+
+	itemTypes.bandage = {
+		isHealItem = true,
+		tile = "σ",
+		displayName = "bandage",
+		stackable = true,
+		maxStackSize = 3,
+		interactable = true,
+		healItemHealthAdd = 1,
+		healingRequiresHolding = true,
+		healItemUseTimer = 16,
+		healItemUseTimerOnGround = nil,
+		healItemBleedRateSubtract = 15,
+		healItemDeleteOnUse = true,
+		interactionType = state.interactionTypes.healItem
+	}
+	itemTypes.smallMedkit = {
+		isHealItem = true,
+		tile = "+",
+		displayName = "small medkit",
+		swapColours = true,
+		secondaryColour = "white",
+		interactable = true,
+		healingRequiresHolding = false,
+		healItemUseTimer = 22,
+		healItemUseTimerOnGround = 25,
+		healItemBleedRateSubtract = 20,
+		healItemHealthAdd = 5,
+		healItemBloodReplenish = 3,
+		healItemDeleteOnUse = false,
+		interactionType = state.interactionTypes.healItem
+	}
+	itemTypes.largeMedkit = {
+		isHealItem = true,
+		tile = "±",
+		displayName = "large medkit",
+		swapColours = true,
+		secondaryColour = "white",
+		stackable = false,
+		interactable = true,
+		healingRequiresHolding = false,
+		healItemUseTimer = 24,
+		healItemUseTimerOnGround = 27,
+		healItemBleedRateSubtract = 40,
+		healItemHealthAdd = 10,
+		healItemBloodReplenish = 8,
+		healItemDeleteOnUse = false,
+		interactionType = state.interactionTypes.healItem
+	}
+	itemTypes.healingRune = {
+		isHealItem = true,
+		tile = "♥",
+		displayName = "healing rune",
+		swapColours = true,
+		secondaryColour = "magenta",
+		interactable = true,
+		healingRequiresHolding = true,
+		healItemUseTimer = 8,
+		healItemUseTimerOnGround = nil,
+		healItemBleedRateSubtract = "all",
+		healItemHealthAdd = "all",
+		healItemBloodReplenish = "all",
+		healItemAirTimeRefill = "all",
+		healItemDeleteOnUse = true,
+		interactionType = state.interactionTypes.healItem,
+		healItemMessage = "You feel so much better!",
+		healItemMessageColour = "green"
+	}
+	-- TODO: Stimpacks for short-term mitigation of shock and exhaustion?
+
+	for itemTypeName, itemType in pairs(itemTypes) do
+		if itemType.isHealItem and not itemType.healItemDeleteOnUse and itemType.stackable and not itemType.healItemEndlessUse then
+			error(itemTypeName .. " is a healing item type that will set an entire stack of it to be used")
+		end
+	end
 end
 
 return game
