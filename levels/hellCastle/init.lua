@@ -17,6 +17,7 @@ function info:createLevel()
 		[0x33] = "drawbridgeVertical",
 		[0x34] = "openHatch",
 		[0x44] = "diningTable",
+		[0x45] = "hugeBookshelf",
 		[0x55] = "brickWall",
 		[0x56] = "support",
 		[0x57] = "wall",
@@ -30,9 +31,9 @@ function info:createLevel()
 	}
 	local materials = {
 		[0x00] = "stone",
-		[0x22] = "wood",
+		[0x22] = "mahogany",
 		[0x55] = "stoneGreen",
-		[0x66] = "wood",
+		[0x66] = "mahogany",
 		[0xaa] = "grass",
 		[0xbb] = "soilLoamless",
 		[0xcc] = "fleshRed",
@@ -41,6 +42,7 @@ function info:createLevel()
 	local spawnX, spawnY
 	local leversToPlace = {}
 	local leverDoors = {}
+	local secretLibraryBookDoorCoord
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x22 then
 			self:placeExaminable(x, y, "statue2", "stone", "The statue's smug self-complicity angers your animal\nheart. It is vile.")
@@ -55,28 +57,50 @@ function info:createLevel()
 		elseif value == 0x27 then
 			self:placeExaminable(x, y, "statue1", "stone", "Whoever created the sculpture wanted to cause harm.\nIt may be a masterpiece, but it has no value.")
 		elseif value == 0x28 then
-			self:placeDoorItem(x, y, "door", "wood", false)
+			self:placeDoorItem(x, y, "ornateDoor", "mahogany", false)
 		elseif value == 0x29 then
 			self:placeItem(x, y, "altar", "stone")
 		elseif value == 0x2a then
 			self:placeExaminable(x, y, "statue2", "stone", "They worship an icon of abuse.")
+		elseif value == 0x2c then
+			self:placeDoorItem(x, y, "heavyDoor", "mahogany", false)
+			secretLibraryBookDoorCoord = {x = x, y = y}
+		elseif value == 0x2d then
+			leversToPlace[#leversToPlace+1] = function()
+				local function onActivate(self, item, x, y)
+					self:mechanismOpenDoor(secretLibraryBookDoorCoord.x, secretLibraryBookDoorCoord.y)
+				end
+				local function onDeactivate(self, item, x, y)
+					self:mechanismShutDoor(secretLibraryBookDoorCoord.x, secretLibraryBookDoorCoord.y)
+				end
+				self:placeLever(x + 5, y + 2, "leather", false, onActivate, onDeactivate, nil, nil, "leverBook")
+			end
+			self:placeExaminable(x + 1, y + 4, "largeBook", "gold", "It's a torture manual... The techniques listed would\ncause unimaginable pain.")
+			self:placeExaminable(x + 2, y + 2, "book", "leather", "It's the first volume of a novel entitled \"Spoils\".")
+			self:placeExaminable(x + 2, y + 2, "book", "leather", "It's the second volume of a novel entitled \"Spoils\".")
+			self:placeExaminable(x + 3, y + 2, "book", "leather", "It's the third volume of a novel entitled \"Spoils\".")
+			self:placeExaminable(x + 2, y, "smallBook", "leather", "The book's title is \"Violate\". You daren't open it.")
 		elseif value == 0x3b then
 			leverDoors[#leverDoors+1] = {x = x, y = y}
-			self:placeDoorItem(x, y, "castleDoorLeft", "wood", false)
+			self:placeDoorItem(x, y, "castleDoorLeft", "mahogany", false)
 		elseif value == 0x3c then
-			self:placeDoorItem(x, y, "castleDoorLeft", "wood", true)
+			self:placeDoorItem(x, y, "castleDoorLeft", "mahogany", true)
 		elseif value == 0x3d then
-			self:placeItem(x, y, "ornateChair", "wood")
+			self:placeItem(x, y, "ornateChair", "mahogany")
+		elseif value == 0x3e then
+			self:placeItem(x, y, "ornateDesk", "mahogany")
 		elseif value == 0x54 then
 			leverDoors[#leverDoors+1] = {x = x, y = y}
-			self:placeDoorItem(x, y, "castleDoorRight", "wood", false)
+			self:placeDoorItem(x, y, "castleDoorRight", "mahogany", false)
 		elseif value == 0x55 then
-			self:placeDoorItem(x, y, "castleDoorRight", "wood", true)
+			self:placeDoorItem(x, y, "castleDoorRight", "mahogany", true)
 		elseif value == 0x99 then
 			self:placeMonster(x, y, "imp")
+		elseif value == 0x9a then
+			self:placeMonster(x, y, "zombie")
 		elseif value == 0xaa then
-			self:placeItem(x, y, "throne", "gold")
 			self:placeMonster(x, y, "hellNoble")
+			self:placeItem(x, y, "throne", "gold")
 		elseif value == 0xab then
 			self:placeMonster(x, y, "hellNoble")
 		elseif value == 0xbb then
@@ -85,9 +109,9 @@ function info:createLevel()
 			self:placeItem(x, y, "flower", "roseWithered")
 			self:placeItem(x, y, "flower", "roseWithered")
 		elseif value == 0xcd then
-			self:placeItem(x, y, "gallows", "wood")
+			self:placeItem(x, y, "gallows", "mahogany")
 		elseif value == 0xce then
-			local _, gallowsEntity = self:placeItem(x, y, "gallows", "wood")
+			local _, gallowsEntity = self:placeItem(x, y, "gallows", "mahogany")
 			local corpse = self:placeCorpseTeam(x, y, "human", "person")
 			corpse.hangingFrom = gallowsEntity
 			corpse.blood = 0
@@ -126,17 +150,20 @@ function info:createLevel()
 				local function onDeactivate(self, item, x, y)
 					for _, coord in ipairs(leverDoors) do
 						self:mechanismShutDoor(coord.x, coord.y)
-					end
+						end
 				end
 				self:placeLever(x, y, "iron", false, onActivate, onDeactivate)
 			end
 		elseif value == 0xdd then
 			self:placeItem(x, y, "flower", "roseWithered")
-		elseif value == 0xee then
-			self:placeItem(x, y, "huntingShotgun", "steel")
+		elseif value == 0xec then
+			self:placeItem(x, y, "dagger", "iron")
+		elseif value == 0xed then
 			for _= 1, 16 do
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
+		elseif value == 0xee then
+			self:placeItem(x, y, "huntingShotgun", "steel")
 		elseif value == 0xef then
 			self:placeNote(x, y, "TODO: Health kit?")
 		elseif value == 0xf0 then
@@ -146,7 +173,7 @@ function info:createLevel()
 		elseif value == 0xf2 then
 			self:placeItem(x, y, "rocketLauncher", "steel")
 		elseif value == 0xf3 then
-			self:placeNote(x, y, "End of level so far. It's a WIP.")
+			self:placeExaminable(x, y, "smallBook", "ginkgo", "It seems to be a benevolent book of spells...\nBut whose was it?")
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end

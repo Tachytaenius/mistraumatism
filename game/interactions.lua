@@ -122,6 +122,8 @@ function game:loadInteractionTypes()
 		end
 		item.pressed = true
 	end
+	interactionTypes.button.startInfoHeld = interactionTypes.button.startInfoWorld
+	interactionTypes.button.resultHeld = interactionTypes.button.resultWorld
 
 	interactionTypes.lever = {} -- Store state and other information on the item, not an entity representing the item in the world
 	function interactionTypes.lever:startInfoWorld(interactor, interactionType, interactee)
@@ -149,6 +151,9 @@ function game:loadInteractionTypes()
 			item.active = false
 		else
 			if item.onActivate then
+				if item.itemType.onActivateMessage and interactor == self.state.player and self.state.player then
+					self:announce(item.itemType.onActivateMessage, "lightGrey")
+				end
 				local x, y
 				if interactionType == "world" then
 					x, y = interactee.x, interactee.y
@@ -159,6 +164,19 @@ function game:loadInteractionTypes()
 			end
 			item.active = true
 		end
+	end
+	interactionTypes.lever.startInfoHeld = interactionTypes.lever.startInfoWorld
+	interactionTypes.lever.resultHeld = interactionTypes.lever.resultWorld
+
+	interactionTypes.heavyDoor = {}
+	function interactionTypes.heavyDoor:startInfoWorld(interactor, interactionType, interactee)
+		return 12
+	end
+	function interactionTypes.heavyDoor:resultWorld(interactor, interactionType, interactee, info)
+		if not self.state.player or interactor ~= self.state.player then
+			return
+		end
+		self:announce("The door is too heavy to move.", "lightGrey")
 	end
 
 	self.state.interactionTypes = interactionTypes

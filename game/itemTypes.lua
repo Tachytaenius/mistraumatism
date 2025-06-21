@@ -266,6 +266,14 @@ function game:loadItemTypes()
 		meleeBleedRateAdd = 15
 	}
 
+	itemTypes.dagger = {
+		tile = "`",
+		displayName = "dagger",
+		isMeleeWeapon = true,
+		meleeDamage = 6,
+		meleeBleedRateAdd = 18
+	}
+
 	itemTypes.scythe = {
 		tile = "ƒ",
 		displayName = "scythe",
@@ -376,6 +384,31 @@ function game:loadItemTypes()
 		tile = "h",
 		displayName = "ornate chair"
 	}
+	itemTypes.ornateDesk = {
+		noPickUp = true,
+		tile = "╥",
+		displayName = "ornate desk"
+	}
+	itemTypes.ornateDoor = {
+		isDoor = true,
+		interactable = true,
+		interactionType = state.interactionTypes.door,
+		noPickUp = true,
+		doorWindow = false,
+		tile = "│",
+		openTile = "╟",
+		displayName = "ornate door"
+	}
+	itemTypes.heavyDoor = {
+		isDoor = true,
+		interactable = true,
+		interactionType = state.interactionTypes.heavyDoor,
+		noPickUp = true,
+		doorWindow = false,
+		tile = "│",
+		openTile = "╟",
+		displayName = "heavy door"
+	}
 
 	itemTypes.door = {
 		isDoor = true,
@@ -442,6 +475,36 @@ function game:loadItemTypes()
 		displayName = "lever",
 		interactable = true,
 		interactionType = state.interactionTypes.lever
+	}
+
+	itemTypes.smallBook = {
+		tile = "∞",
+		displayName = "small book",
+		interactable = true,
+		interactionType = state.interactionTypes.observable
+	}
+	itemTypes.book = {
+		tile = "∞",
+		displayName = "book",
+		interactable = true,
+		interactionType = state.interactionTypes.observable
+	}
+	itemTypes.leverBook = {
+		tile = "∞",
+		activeTile = "φ",
+		displayName = "book",
+		interactable = true,
+		interactionType = state.interactionTypes.lever,
+		isLever = true,
+		inactiveHidden = true, -- Hide "inactive" status
+		onActivateMessage = "The book was a hidden lever!",
+		noPickUp = true
+	}
+	itemTypes.largeBook = {
+		tile = "∞",
+		displayName = "large book",
+		interactable = true,
+		interactionType = state.interactionTypes.observable
 	}
 end
 

@@ -152,8 +152,8 @@ function game:placeButton(x, y, material, onPress, onUnpress)
 	item.onUnpress = onUnpress
 end
 
-function game:placeLever(x, y, material, active, onActivate, onDeactivate, onTickActive, onTickInactive)
-	local item = self:placeItem(x, y, "lever", material)
+function game:placeLever(x, y, material, active, onActivate, onDeactivate, onTickActive, onTickInactive, itemType)
+	local item = self:placeItem(x, y, itemType or "lever", material)
 	item.active = active
 	item.onActivate = onActivate
 	item.onDeactivate = onDeactivate

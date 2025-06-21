@@ -157,6 +157,15 @@ function game:loadTileTypes()
 			swapColours = true,
 			character = "╥",
 			allowIncomingConnectionTypeNames = {ornateCarpet = true}
+		},
+		hugeBookshelf = {
+			displayName = "huge bookshelf",
+			solidity = "solid",
+			blocksLight = true,
+			lightSlipPast = true,
+			swapColours = true,
+			character = "≡",
+			allowIncomingConnectionTypeNames = {ornateCarpet = true}
 		}
 	}
 end

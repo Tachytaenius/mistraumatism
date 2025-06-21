@@ -403,7 +403,7 @@ function game:loadActionTypes()
 			return
 		end
 		local itemType = self:getHeldItem(entity).itemType
-		if itemType.interactionType then
+		if itemType.interactionType and itemType.interactionType.startInfoHeld then
 			local new = {type = "useHeldItem"}
 			new.item = self:getHeldItem(entity)
 			new.timer, new.useInfo = itemType.interactionType.startInfoHeld(self, entity, "held", new.item)
@@ -444,7 +444,9 @@ function game:loadActionTypes()
 			local heldItem = self:getHeldItem(entity)
 			local itemType = heldItem.itemType
 			if itemType.interactionType then
-				itemType.interactionType.resultHeld(self, entity, "held", heldItem, action.useInfo)
+				if itemType.interactionType.resultHeld then
+					itemType.interactionType.resultHeld(self, entity, "held", heldItem, action.useInfo)
+				end
 				action.doneType = "completed"
 			elseif itemType.isGun then
 				if itemType.breakAction then
@@ -850,6 +852,9 @@ function game:loadActionTypes()
 		end
 		local new = {type = "interact"}
 		new.direction = direction
+		if not (targetEntity.itemData.itemType.interactionType and targetEntity.itemData.itemType.interactionType.startInfoWorld) then
+			return
+		end
 		new.timer, new.interactionIntent = targetEntity.itemData.itemType.interactionType.startInfoWorld(self, entity, "world", targetEntity)
 		if not new.timer then
 			return
@@ -863,7 +868,7 @@ function game:loadActionTypes()
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
 			if action.targetEntity.x == targetX and action.targetEntity.y == targetY then
-				if action.targetEntity.itemData.itemType.interactionType then
+				if action.targetEntity.itemData.itemType.interactionType and action.targetEntity.itemData.itemType.interactionType.resultWorld then
 					action.targetEntity.itemData.itemType.interactionType.resultWorld(self, entity, "world", action.targetEntity, action.interactionIntent)
 				end
 				action.doneType = "completed"
