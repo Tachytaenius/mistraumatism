@@ -33,6 +33,7 @@ function info:createLevel()
 		[0x00] = "granite",
 		[0x22] = "mahogany",
 		[0x55] = "marbleGreen",
+		[0x56] = "marble",
 		[0x66] = "mahogany",
 		[0xaa] = "grass",
 		[0xbb] = "soilLoamless",
