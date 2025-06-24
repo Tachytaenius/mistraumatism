@@ -86,6 +86,22 @@ function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, 
 						disableDistanceCheck,
 						singleLineVisibilityMapInfo
 					)
+
+					if projectile.trailParticleInfo then
+						for _, trailParticle in ipairs(projectile.trailParticleInfo) do
+							if projectile.moved or trailParticle.allowOnFirstMove then
+								for _=1, trailParticle.count do
+									self:newParticle(trailParticle, {
+										startX = projectile.currentX, -- The tile we just left (we haven't set projectile.currentX to the new tile yet)
+										startY = projectile.currentY,
+										targetX = projectile.currentX,
+										targetY = projectile.currentY
+									})
+								end
+							end
+						end
+					end
+
 					if singleLineVisibilityMapInfo.collidedX == currentOctantX + 1 then
 						projectilesToStop[projectile] = true
 						checkForEntityHit()
@@ -288,7 +304,9 @@ function game:updateProjectiles()
 							aimY = projectile.currentY,
 							bulletSpread = consts.tau,
 
-							noShooterSafety = true
+							noShooterSafety = true,
+
+							trailParticleInfo = projectileType.trailParticleInfo
 						})
 					end
 				end

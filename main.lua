@@ -5,6 +5,7 @@ local game = require("game") -- util loaded in here
 local commands = require("commands")
 
 function love.load(args)
+	love.graphics.setDefaultFilter("nearest")
 	game:init(args)
 end
 

@@ -22,6 +22,11 @@ function game:newItemData(parameters)
 
 	if itemType.magazine then
 		new.magazineData = new.magazineData or {}
+	elseif itemType.energyWeapon then
+		new.storedEnergy = 0
+		new.chargeState = "hold"
+	elseif itemType.energyBattery then
+		new.storedEnergy = 0
 	end
 	if not itemType.noCocking then
 		if itemType.alteredMagazineUse == "select" then
@@ -51,6 +56,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 		assert(selection, "No selection passed to shootGun when firing a selection-type gun")
 	end
 	local selectType = gun.itemType.alteredMagazineUse == "select"
+	local energyType = gun.itemType.energyWeapon
 	local function setResult(result)
 		local index = selection or 1
 		shotResultInfo[index] = result
@@ -78,15 +84,19 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 	end
 	local gunType = gun.itemType
 	if gunType.autoFeed and not (gunType.noCocking or getCocked()) then
-		self:cycleGun(gun, entity.x, entity.y)
+		if not energyType then
+			self:cycleGun(gun, entity.x, entity.y)
+		end
 	end
-	if not gunType.noCocking and not getCocked() then
+	if not (gunType.noCocking or energyType) and not getCocked() then
 		if entity == self.state.player then
 			setResult("nothing")
 		end
 		return
 	end
-	setCocked(false)
+	if not (energyType or gunType.noCocking) then
+		setCocked(false)
+	end
 	if self:isEntitySwimming(entity) and not gunType.worksInLiquid then
 		if entity == self.state.player then
 			setResult("inLiquid")
@@ -111,7 +121,16 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 			try()
 		end
 
+		if energyType then
+			-- HACK
+			roundToShoot = gun.storedEnergy >= gun.itemType.energyPerShot and {
+				itemType = gun.itemType.projectile
+			}
+		end
 		if roundToShoot and not roundToShoot.fired then
+			if energyType then
+				gun.storedEnergy = gun.storedEnergy - gun.itemType.energyPerShot
+			end
 			local roundType = roundToShoot.itemType
 			if roundType.noCasing then
 				if fromChamber then
@@ -162,12 +181,14 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 					aimY = aimY,
 					bulletSpread = spread,
 
+					trailParticleInfo = roundType.trailParticleInfo,
+
 					targetEntity = targetEntity -- Can be nil
 				})
 			end
 		else
 			if entity == self.state.player then
-				setResult("click")
+				setResult(energyType and "nothing" or "click")
 			end
 		end
 	end

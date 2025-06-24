@@ -2,6 +2,7 @@ local utf8 = require("utf8")
 
 local util = require("util")
 
+local settings = require("settings")
 local consts = require("consts")
 local commands = require("commands")
 
@@ -52,9 +53,9 @@ function game:draw()
 				characterWidth, characterHeight,
 				fontImage:getDimensions()
 			)
-			characterColoursShader:send("backgroundColourPosition", consts.colourCoords[cell.backgroundColour])
-			characterColoursShader:send("foregroundColourPosition", consts.colourCoords[cell.foregroundColour])
-			love.graphics.draw(fontImage, characterQuad, x * characterWidth, y * characterHeight)
+			characterColoursShader:send("backgroundColourCoords", consts.colourCoordsTexel[cell.backgroundColour])
+			characterColoursShader:send("foregroundColourCoords", consts.colourCoordsTexel[cell.foregroundColour])
+			love.graphics.draw(fontImage, characterQuad, x * characterWidth * settings.graphics.canvasScale, y * characterHeight * settings.graphics.canvasScale, 0, settings.graphics.canvasScale, settings.graphics.canvasScale)
 		end
 	end
 	love.graphics.setShader()
@@ -539,14 +540,17 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	    ::continue::
 	end
 
-	for _, projectile in ipairs(state.projectiles) do
-		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+	for _, particle in ipairs(state.particles) do
+		drawCharacterWorldToViewportVisibleOnly(particle.currentX, particle.currentY, particle.tile, particle.foregroundColour, particle.backgroundColour or "black")
 	end
 	for _, gib in ipairs(state.gibs) do
 		-- Expect gibs without any flesh or blood to have been deleted
 		local tile = gib.fleshAmount > 0 and gib.fleshTile or gib.bloodAmount > 10 and "•" or gib.bloodAmount >= 3 and "∙" or "·"
 		local colour = state.materials[gib.fleshAmount > 0 and gib.fleshMaterial or gib.bloodMaterial].colour
 		drawCharacterWorldToViewportVisibleOnly(gib.currentX, gib.currentY, tile, colour, "black")
+	end
+	for _, projectile in ipairs(state.projectiles) do
+		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
 	end
 	for tile in pairs(state.map.explosionTiles) do
 		local gradientValue = tile.explosionInfo.visual * #consts.explosionGradient / consts.explosionGradientMax
@@ -621,14 +625,17 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 	end
 	for rowI, row in ipairs(rows) do
-		for textI = 1, #row.text do
+		local textI = 1
+		for _, code in utf8.codes(row.text) do
+			local char = utf8.char(code)
 			drawCharacterFramebuffer(
 				1 + textI - 1,
 				2 + self.viewportHeight + rowI - 1,
-				row.text:sub(textI, textI),
+				char,
 				row.colour,
 				"black"
 			)
+			textI = textI + 1
 		end
 	end
 
@@ -741,7 +748,23 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.healingUsed and "Used" or "Unused", "lightGrey", "black")
 			elseif itemType.isGun then
 				local gunStatus
-				if itemType.displayAsDoubleShotgun then
+				if itemType.energyWeapon then
+					local energyStatus = item.storedEnergy >= item.itemType.energyPerShot
+					local energyStatusLine =
+						(item.shotCooldownTimer and "Working" or "Ready") ..
+						"∙" ..
+						"Energy "
+					local energyStatusChar = energyStatus and "√" or "X"
+					local energyStatusColour = energyStatus and "green" or "red"
+					energyStatusColour = "lightGrey"
+					drawCharacterFramebuffer(statusX + 1 + utf8.len(energyStatusLine), statusY + 3 + yShift, energyStatusChar, energyStatusColour, "black")
+					gunStatus =
+						energyStatusLine ..
+						"\n" ..
+						(item.storedEnergy .. "/" .. item.itemType.maxEnergy) ..
+						(item.chargeState == "fromBattery" and "«" or item.chargeState == "toBattery" and "»" or "│") ..
+						(item.insertedMagazine and ("C" .. item.insertedMagazine.storedEnergy .. "/" .. item.insertedMagazine.itemType.maxEnergy) or "No cell")
+				elseif itemType.displayAsDoubleShotgun then
 					local a, b = item.magazineData[1], item.magazineData[2]
 					gunStatus =
 						(a and (a.fired and "Fired" or "Live") or "Empty") .. "∙" .. (b and (b.fired and "Fired" or "Live") or "Empty") ..
@@ -760,6 +783,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						(item.itemType.alteredMagazineUse == "ignore" and (item.itemType.breakAction and (item.actionOpen and "Open" or "Shut") or "") or (magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine"))
 				end
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, gunStatus, "lightGrey", "black")
+			elseif itemType.energyBattery then
+				local cellStatus = "Energy: " .. item.storedEnergy .. "/" .. item.itemType.maxEnergy
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, cellStatus, "lightGrey", "black")
 			elseif itemType.magazine then -- Would have gone into the block above if it was a gun with its own magazine data
 				local magazineStatus = "Magazine: " .. #item.magazineData .. "/" .. item.itemType.magazineCapacity
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, magazineStatus, "lightGrey", "black")

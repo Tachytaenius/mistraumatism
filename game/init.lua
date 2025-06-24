@@ -41,6 +41,7 @@ function game:newState(params)
 
 	state.projectiles = {}
 	state.gibs = {}
+	state.particles = {}
 	state.entities = {}
 	state.airlockData = {}
 	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName or "start"})
@@ -149,7 +150,7 @@ function game:init(args)
 				if flickerIntro then
 					function self.textInfo.getColour(x, y)
 						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
-						local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.perlinNoise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
+						local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.noise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
 						local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
 						local stage = proportionModified * (#stages - 1)
 						local incrementChance = stage % 1

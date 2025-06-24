@@ -398,7 +398,7 @@ function game:loadActionTypes()
 	end
 
 	local useHeldItem = newActionType("useHeldItem", "use item")
-	function useHeldItem.construct(self, entity, item, manualCockedStateSelection)
+	function useHeldItem.construct(self, entity, item, manualCockedStateSelection, energyWeaponModeSet)
 		if not self:getHeldItem(entity) or item ~= self:getHeldItem(entity) then
 			return
 		end
@@ -412,7 +412,13 @@ function game:loadActionTypes()
 			end
 			return new
 		elseif self:getHeldItem(entity).itemType.isGun then
-			if self:getHeldItem(entity).itemType.manuallyOperateCockedStates and manualCockedStateSelection then
+			if self:getHeldItem(entity).itemType.energyWeapon then
+				local new = {type = "useHeldItem"}
+				new.item = self:getHeldItem(entity)
+				new.timer = self:getHeldItem(entity).itemType.operationTimerLength
+				new.energyWeaponModeSet = energyWeaponModeSet
+				return new
+			elseif self:getHeldItem(entity).itemType.manuallyOperateCockedStates and manualCockedStateSelection then
 				local new = {type = "useHeldItem"}
 				new.item = self:getHeldItem(entity)
 				new.timer = self:getHeldItem(entity).itemType.manualCockTime
@@ -453,7 +459,9 @@ function game:loadActionTypes()
 					end
 				end
 			elseif itemType.isGun then
-				if itemType.breakAction then
+				if itemType.energyWeapon then
+					heldItem.chargeState = action.energyWeaponModeSet
+				elseif itemType.breakAction then
 					if heldItem.itemType.manuallyOperateCockedStates and action.manualCockedStateSelection then
 						heldItem.cockedStates[action.manualCockedStateSelection] = true
 					else
@@ -496,7 +504,13 @@ function game:loadActionTypes()
 			elseif commands.checkCommand("operateBarrel2") then
 				manualCockedStateSelection = 2
 			end
-			return useHeldItem.construct(self, player, self:getHeldItem(player), manualCockedStateSelection) -- Can be nil
+			local energyWeaponModeSet = "hold"
+			if commands.checkCommand("energyWeaponChargeMode") and not commands.checkCommand("energyWeaponDischargeMode") then
+				energyWeaponModeSet = "fromBattery"
+			elseif commands.checkCommand("energyWeaponDischargeMode") then
+				energyWeaponModeSet = "toBattery"
+			end
+			return useHeldItem.construct(self, player, self:getHeldItem(player), manualCockedStateSelection, energyWeaponModeSet) -- Can be nil
 		end
 	end
 
@@ -565,7 +579,7 @@ function game:loadActionTypes()
 			if
 				not heldItem.insertedMagazine and
 				heldItem.itemType.magazineRequired and
-				reloadItem.itemType.magazine and not reloadItem.itemType.isGun and
+				(reloadItem.itemType.magazine or reloadItem.itemType.energyBattery) and not reloadItem.itemType.isGun and
 				heldItem.itemType.magazineClass == reloadItem.itemType.magazineClass
 			then
 				return true

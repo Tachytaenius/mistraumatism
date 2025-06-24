@@ -31,11 +31,18 @@ function info:createLevel()
 	self:placeItem(10, 3, "healingRune", "slate")
 	self:placeItem(11, 3, "healingRune", "slate")
 
+	self:placeItem(1, 0, "rocketLauncher", "polymer")
+	self:placeItem(1, 0, "rocket", "plasticBrown")
+
+	self:placeItem(1, 1, "railgun", "polymer")
+	local cell = self:placeItem(1, 1, "railgunEnergyCell", "polymer")
+	cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
+
 	return {
 		spawnX = 0,
 		spawnY = 0,
-		playerHealth = 1,
-		playerBleedRate = 40
+		-- playerHealth = 1,
+		-- playerBleedRate = 40
 	}
 end
 

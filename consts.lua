@@ -3,7 +3,7 @@ local utf8 = require("utf8")
 local consts = {}
 
 consts.loveIdentity = "mistraumatism"
-consts.loveVersion = "12.0"
+consts.loveVersion = "11.0"
 consts.windowTitle = "Mistraumatism"
 
 local null = utf8.char(0)
@@ -49,6 +49,11 @@ consts.colourCoords = {
 	darkMagenta = {0, 6}, magenta = {1, 6},
 	lightGrey = {0, 7}, white = {1, 7}
 }
+
+consts.colourCoordsTexel = {}
+for colour, coord in pairs(consts.colourCoords) do
+	consts.colourCoordsTexel[colour] = {coord[1] / 2, coord[2] / 8}
+end
 
 consts.darkerColours = {}
 for name, coords in pairs(consts.colourCoords) do

@@ -195,7 +195,7 @@ function game:loadItemTypes()
 		-- breakAction = true,
 		-- operationTimerLength = 12,
 		cycleDoesntMoveAmmo = true,
-		tile = "/",
+		tile = "I",
 		ammoClass = "rocket",
 		displayName = "RPG launcher",
 		extraSpread = nil,
@@ -213,7 +213,7 @@ function game:loadItemTypes()
 		noCasing = true,
 		tile = "↑",
 		projectileTile = "^",
-		projectileColour = "yellow",
+		projectileColour = "darkYellow",
 		ammoClass = "rocket",
 		displayName = "rocket",
 		damage = 40,
@@ -255,7 +255,67 @@ function game:loadItemTypes()
 				range = 3,
 				hitDeadEntities = true
 			}
+		},
+		trailParticleInfo = {
+			{
+				count = 1,
+				tile = "▒",
+				foregroundColour = "darkGrey",
+				backgroundColour = "black",
+				lifetime = 1
+			}
 		}
+	}
+
+	itemTypes.railgun = {
+		isGun = true,
+		tile = "⌐",
+		maxEnergy = 100,
+		energyPerShot = 100,
+		energyChargeRate = 2,
+		energyDischargeRate = 3, -- Railgun to cell
+		energyWeapon = true,
+		displayName = "railgun",
+		extraSpread = nil,
+		shotCooldownTimerLength = 16,
+		operationTimerLength = 1,
+		manual = false,
+		magazine = false,
+		magazineRequired = true,
+		worksInLiquid = true,
+		magazineClass = "railgun",
+		projectile = {
+			tile = "°",
+			spread = 0,
+			damage = 200,
+			bleedRateAdd = 1000,
+			instantBloodLoss = 25,
+			bulletCount = 1,
+			projectileSubtickMoveTimerLength = 1,
+			range = 22,
+			maxPierces = 5,
+			trailParticleInfo = {
+				{
+					count = 1,
+					tile = "█",
+					foregroundColour = "cyan",
+					backgroundColour = "white",
+					lifetime = 1
+				}
+			}
+		}
+	}
+
+	itemTypes.railgunEnergyCell = {
+		energyBattery = true,
+		maxEnergy = 200,
+		energyDischargeRate = 6,
+		energyChargeRate = 5, -- Railgun to cell
+		displayName = "railgun cell",
+		tile = "Φ",
+		swapColours = true,
+		secondaryColour = "cyan",
+		magazineClass = "railgun"
 	}
 
 	itemTypes.boxCutter = {

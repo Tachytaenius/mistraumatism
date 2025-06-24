@@ -97,6 +97,7 @@ function game:update()
 
 	self:setInitialNonPersistentVariables()
 	self:tickGibs()
+	self:tickParticles()
 	self:updateEntitiesAndProjectiles()
 	self:announceDamages()
 	self:diminishExplosions()

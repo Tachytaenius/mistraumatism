@@ -170,9 +170,9 @@ function info:createLevel()
 		elseif value == 0xf0 then
 			self:placeNote(x, y, "TODO: Armour?")
 		elseif value == 0xf1 then
-			self:placeItem(x, y, "rocket", "plasticBlack")
+			self:placeItem(x, y, "rocket", "plasticBrown")
 		elseif value == 0xf2 then
-			self:placeItem(x, y, "rocketLauncher", "steel")
+			self:placeItem(x, y, "rocketLauncher", "polymer")
 		elseif value == 0xf3 then
 			self:placeExaminable(x, y, "smallBook", "ginkgo", "It seems to be a benevolent book of spells...\nBut whose was it?")
 		elseif value == 0xff then

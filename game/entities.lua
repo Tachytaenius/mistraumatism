@@ -609,6 +609,27 @@ function game:updateEntitiesAndProjectiles()
 				end
 			end
 		end
+		if item.itemType.energyWeapon then
+			if not item.insertedMagazine then
+				item.chargeState = "hold"
+			else
+				if item.chargeState == "fromBattery" then
+					local rate = math.min(item.itemType.energyChargeRate, item.insertedMagazine.itemType.energyDischargeRate)
+					local spaceInWeapon = math.max(0, item.itemType.maxEnergy - item.storedEnergy)
+					local give = math.min(rate, item.insertedMagazine.storedEnergy)
+					local finalGive = math.min(spaceInWeapon, give)
+					item.storedEnergy = item.storedEnergy + finalGive
+					item.insertedMagazine.storedEnergy = item.insertedMagazine.storedEnergy - finalGive
+				elseif item.chargeState == "toBattery" then
+					local rate = math.min(item.itemType.energyDischargeRate, item.insertedMagazine.itemType.energyChargeRate)
+					local spaceInBattery = math.max(0, item.insertedMagazine.itemType.maxEnergy - item.insertedMagazine.storedEnergy)
+					local give = math.min(rate, item.storedEnergy)
+					local finalGive = math.min(spaceInBattery, give)
+					item.insertedMagazine.storedEnergy = item.insertedMagazine.storedEnergy + finalGive
+					item.storedEnergy = item.storedEnergy - finalGive
+				end
+			end
+		end
 	end)
 
 	for _, actionType in ipairs(state.actionTypes) do
@@ -808,6 +829,8 @@ function game:abilityShoot(entity, action, ability, targetEntity)
 			aimX = aimX,
 			aimY = aimY,
 			bulletSpread = spread,
+
+			trailParticleInfo = ability.trailParticleInfo,
 
 			targetEntity = targetEntity -- Can be nil
 		})
