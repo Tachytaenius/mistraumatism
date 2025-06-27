@@ -384,7 +384,8 @@ function game:updateEntitiesAndProjectiles()
 					self:announce("You breathe in before the " .. newFluidMaterial .. " fully consumes you.", "darkBlue")
 				elseif not self:isDrowning(entity) and entity.initialDrowningThisTick then
 					-- TODO: Announce based on how much time you had left
-					self:announce("The " .. oldFluidMaterial .. " drains around you.", "blue")
+					-- self:announce("The " .. oldFluidMaterial .. " drains around you.", "blue")
+					self:announce("You emerge from the " .. oldFluidMaterial .. ".", "blue")
 				end
 
 				-- Escalating drowning
