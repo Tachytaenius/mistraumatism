@@ -3,61 +3,7 @@ local consts = require("consts")
 
 local commands = {}
 
-local commandTypes = {
-	moveRight = "hold",
-	moveUpRight = "hold",
-	moveUp = "hold",
-	moveUpLeft = "hold",
-	moveLeft = "hold",
-	moveDownLeft = "hold",
-	moveDown = "hold",
-	moveDownRight = "hold",
-
-	moveCursor = "hold",
-	moveCursorRight = "repeat",
-	moveCursorUpRight = "repeat",
-	moveCursorUp = "repeat",
-	moveCursorUpLeft = "repeat",
-	moveCursorLeft = "repeat",
-	moveCursorDownLeft = "repeat",
-	moveCursorDown = "repeat",
-	moveCursorDownRight = "repeat",
-	lockOn = "pressed",
-	clearCursor = "pressed",
-	deselectTarget = "pressed",
-
-	wait = "hold",
-	waitPrecise = "pressed",
-
-	shoot = "pressed",
-	melee = "pressed",
-	useHeldItem = "pressed",
-	interact = "pressed",
-
-	scrollListBackwards = "repeat",
-	scrollListForwards = "repeat",
-
-	dropMode = "hold",
-	pickUpOrDrop = "pressed",
-	reloadMode = "hold",
-	unloadMode = "hold",
-	operateBarrel1 = "hold",
-	operateBarrel2 = "hold",
-	energyWeaponChargeMode = "hold",
-	energyWeaponDischargeMode = "hold",
-	handleInventorySlot1 = "pressed",
-	handleInventorySlot2 = "pressed",
-	handleInventorySlot3 = "pressed",
-	handleInventorySlot4 = "pressed",
-	handleInventorySlot5 = "pressed",
-	handleInventorySlot6 = "pressed",
-	handleInventorySlot7 = "pressed",
-	handleInventorySlot8 = "pressed",
-	handleInventorySlot9 = "pressed",
-	deselectInventorySlot = "pressed",
-
-	confirm = "pressed"
-}
+local commandTypes = require("commandTypes")
 
 commands.previousTickRepeatKeys = {}
 commands.pressed = {}

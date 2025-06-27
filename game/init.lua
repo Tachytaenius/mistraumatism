@@ -1,5 +1,4 @@
 local util = require("util")
-util.load()
 local consts = require("consts")
 local commands = require("commands")
 
@@ -68,6 +67,14 @@ function game:newState(params)
 	state.previousTileEntityLists = nil
 end
 
+function game:getCanvasSize(fontImageWidth, fontImageHeight)
+	-- Can pass in font image width and height if making window for the first time (only have an image data, since images require a window)
+	if not (fontImageWidth and fontImageHeight) then
+		fontImageWidth, fontImageHeight = self.fontImage:getDimensions()
+	end
+	return self.framebufferWidth * fontImageWidth / consts.fontWidthCharacters, self.framebufferHeight * fontImageHeight / consts.fontHeightCharacters
+end
+
 function game:init(args)
 	self.framebufferWidth, self.framebufferHeight = 56, 48
 
@@ -96,9 +103,7 @@ function game:init(args)
 
 	local fontLocation = "fonts/" .. fontName .. ".png"
 	local fontImageData = love.image.newImageData(fontLocation)
-	local characterWidth = fontImageData:getWidth() / consts.fontWidthCharacters
-	local characterHeight = fontImageData:getHeight() / consts.fontHeightCharacters
-	util.remakeWindow(game, characterWidth, characterHeight)
+	util.remakeWindow(self:getCanvasSize(fontImageData:getDimensions()))
 	self.fontImage = love.graphics.newImage(fontLocation)
 	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
 	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values

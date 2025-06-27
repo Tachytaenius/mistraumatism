@@ -41,6 +41,9 @@ function game:draw()
 	local characterHeight = fontImage:getHeight() / consts.fontHeightCharacters
 	love.graphics.setShader(characterColoursShader)
 	characterColoursShader:send("palette", paletteImage)
+	local width, height = self:getCanvasSize()
+	local xOffset = (love.graphics.getWidth() - width * settings.graphics.canvasScale) / 2
+	local yOffset = (love.graphics.getHeight() - height * settings.graphics.canvasScale) / 2
 	for x = 0, self.framebufferWidth - 1 do
 		local column = self.currentFramebuffer[x]
 		for y = 0, self.framebufferHeight - 1 do
@@ -55,7 +58,13 @@ function game:draw()
 			)
 			characterColoursShader:send("backgroundColourCoords", consts.colourCoordsTexel[cell.backgroundColour])
 			characterColoursShader:send("foregroundColourCoords", consts.colourCoordsTexel[cell.foregroundColour])
-			love.graphics.draw(fontImage, characterQuad, x * characterWidth * settings.graphics.canvasScale, y * characterHeight * settings.graphics.canvasScale, 0, settings.graphics.canvasScale, settings.graphics.canvasScale)
+			love.graphics.draw(
+				fontImage, characterQuad,
+				xOffset + x * characterWidth * settings.graphics.canvasScale,
+				yOffset + y * characterHeight * settings.graphics.canvasScale,
+				0,
+				settings.graphics.canvasScale, settings.graphics.canvasScale
+			)
 		end
 	end
 	love.graphics.setShader()

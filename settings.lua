@@ -59,6 +59,10 @@ return {
 		handleInventorySlot9 = "9",
 		deselectInventorySlot = "0",
 
-		confirm = "space"
+		confirm = "space",
+
+		decreaseCanvasScale = "f9",
+		increaseCanvasScale = "f10",
+		toggleFullscreen = "f11"
 	}
 }
