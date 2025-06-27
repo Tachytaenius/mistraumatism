@@ -374,14 +374,17 @@ function game:updateEntitiesAndProjectiles()
 			end
 
 			if entity == state.player then
-				-- NOTE: For announcement purposes, we assume the player is a human either drowning in water or breathing in air, because that's the intended use of this code. Drowning still works if the player controls a fish, but the announcements will be wrong. We also assume that entering/exiting fluid is the player in a water airlock.
+				-- NOTE: For announcement purposes, we assume the player is a human either drowning in a liquid or breathing in air, because that's the intended use of this code. Drowning still works if the player controls a fish, but the announcements will be wrong. We also assume that entering/exiting fluid is the player in an airlock.
+
+				local newFluidMaterial = self:getCurrentLiquid(entity)
+				local oldFluidMaterial = entity.initialSubmergedFluid
 
 				-- Entering/exiting fluid
 				if self:isDrowning(entity) and not entity.initialDrowningThisTick then
-					self:announce("You breathe in before the water fully consumes you.", "darkBlue")
+					self:announce("You breathe in before the " .. newFluidMaterial .. " fully consumes you.", "darkBlue")
 				elseif not self:isDrowning(entity) and entity.initialDrowningThisTick then
 					-- TODO: Announce based on how much time you had left
-					self:announce("The water drains around you.", "blue")
+					self:announce("The " .. oldFluidMaterial .. " drains around you.", "blue")
 				end
 
 				-- Escalating drowning
@@ -399,7 +402,7 @@ function game:updateEntitiesAndProjectiles()
 						self:announce("You begin to panic, desperate for air.\nYou are suffering.", "darkCyan")
 					end
 					if init < len * 0.9 and cur >= len * 0.9 then
-						self:announce("Your lungs refuse to hold.\nYou blurt out air and swallow water.", "red")
+						self:announce("Your lungs refuse to hold.\nYou blurt out air and swallow " .. newFluidMaterial .. ".", "red")
 					end
 				end
 
@@ -863,6 +866,18 @@ function game:isDrowning(entity) -- Returns whether drowning as a boolean, and a
 	return
 		self:isEntitySwimming(entity) ~= not not entity.creatureType.aquatic,
 		entity.creatureType.aquatic and "airDrowning" or "noAir"
+end
+
+function game:getCurrentLiquid(entity)
+	local tile = self:getTile(entity.x, entity.y)
+	if not tile then
+		return
+	end
+	local liquid = tile.liquid
+	if not liquid then
+		return
+	end
+	return liquid.material
 end
 
 function game:shouldEntityFlee(entity, potentialFleeFromEntity)

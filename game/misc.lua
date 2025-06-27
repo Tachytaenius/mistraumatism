@@ -12,6 +12,7 @@ function game:setInitialNonPersistentVariables()
 			entity.initialBloodThisTick = entity.blood
 			entity.initialDrowningThisTick, entity.initialDrowningThisTickCause = self:isDrowning(entity)
 			entity.initialDrownTimerThisTick = entity.drownTimer
+			entity.initialSubmergedFluid = self:getCurrentLiquid(entity)
 		end
 	end
 
@@ -28,6 +29,7 @@ function game:clearNonPersistentVariables()
 			entity.initialBloodThisTick = nil
 			entity.initialDrowningThisTick, entity.initialDrowningThisTickCause = nil, nil
 			entity.initialDrownTimerThisTick = nil
+			entity.initialSubmergedFluid = nil
 		end
 	end
 

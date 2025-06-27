@@ -15,7 +15,7 @@ function game:loadCreatureTypes()
 
 		moveTimerLength = 6,
 		swimMoveTimerLength = 18,
-		breathingTimerLength = 900, -- 900 ticks / (18 ticks / step) = 50 steps when underwater. 0.03125 seconds / tick * 900 ticks = 28.125 seconds before drowning.
+		breathingTimerLength = 900, -- 900 ticks / (18 ticks / step) = 50 steps when submerged. 0.03125 seconds / tick * 900 ticks = 28.125 seconds before drowning.
 		sightDistance = 17,
 		maxHealth = 16,
 		maxBlood = 16,

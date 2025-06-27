@@ -169,7 +169,7 @@ function game:loadActionTypes()
 				if announcementType then
 					local texts = {
 						fired = nil,
-						inLiquid = "The gun won't work underwater.", -- NOTE: Assumed the liquid is water
+						inLiquid = "The gun won't work submerged.",
 						cooldown = "The gun won't fire that fast.",
 						click = "The gun just clicks.",
 						nothing = "The gun does nothing."
