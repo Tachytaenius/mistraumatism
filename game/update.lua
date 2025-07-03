@@ -24,6 +24,7 @@ function game:realtimeUpdate(dt)
 			end
 
 			if self:isPlayerInControl() then
+				self.state.playerWasInControl = true
 				self:updateCursor()
 				self.updateTimer = 0
 				local result = self:getPlayerInput()
@@ -39,6 +40,8 @@ function game:realtimeUpdate(dt)
 				self.updateTimer = 0
 
 				local startTime = love.timer.getTime()
+				self.state.playerLostControlThisTick = self.state.playerWasInControl
+				self.state.playerWasInControl = false
 				self:update()
 				local endTime = love.timer.getTime()
 				local tickTime = endTime - startTime

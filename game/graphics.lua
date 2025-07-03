@@ -628,17 +628,40 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local rows = {}
 	for i = #state.splitAnnouncements, 1, -1 do
 		local line = state.splitAnnouncements[i]
-		table.insert(rows, 1, {text = line.text, colour = line.announcement.colour})
+		table.insert(rows, 1, {
+			text = line.text,
+			colour = line.announcement.colour,
+			isContinuedLine = line.isContinuedLine,
+			isFirstOfTick = line.announcement.isFirstOfTick,
+			isFirstAfterPlayerControlLost = line.announcement.isFirstAfterPlayerControlLost
+		})
 		if #rows >= self.consoleHeight then
 			break
 		end
 	end
 	for rowI, row in ipairs(rows) do
 		local textI = 1
+		local icon
+		if row.isContinuedLine then
+			icon = " "
+		-- elseif row.isFirstAfterPlayerControlLost then
+		-- 	icon = "•"
+		-- elseif row.isFirstOfTick then
+		-- 	icon = "∙"
+		else
+			icon = "·"
+		end
+		drawCharacterFramebuffer(
+			1,
+			2 + self.viewportHeight + rowI - 1,
+			icon,
+			"darkGrey",
+			"black"
+		)
 		for _, code in utf8.codes(row.text) do
 			local char = utf8.char(code)
 			drawCharacterFramebuffer(
-				1 + textI - 1,
+				2 + textI - 1,
 				2 + self.viewportHeight + rowI - 1,
 				char,
 				row.colour,
