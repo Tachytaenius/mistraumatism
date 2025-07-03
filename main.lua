@@ -39,7 +39,11 @@ local function handleSettingsCommands()
 	end
 	if commands.checkCommand("toggleFullscreen") then
 		settings.graphics.fullscreen = not settings.graphics.fullscreen
-		shouldRemakeWindow = true
+		if settings.graphics.fullscreen then
+			love.window.setFullscreen(true, "desktop")
+		else
+			shouldRemakeWindow = true
+		end
 	end
 	if shouldRemakeWindow then
 		util.remakeWindow(game:getCanvasSize())
