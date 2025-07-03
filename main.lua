@@ -41,6 +41,9 @@ local function handleSettingsCommands()
 		settings.graphics.fullscreen = not settings.graphics.fullscreen
 		if settings.graphics.fullscreen then
 			love.window.setFullscreen(true, "desktop")
+			-- If you change canvas scale and toggle fullscreen at the same time, there can be some buggy behaviour about which display is selected.
+			-- But when entering fullscreen mode, you won't need to remake the window anyway, so:
+			shouldRemakeWindow = false
 		else
 			shouldRemakeWindow = true
 		end
