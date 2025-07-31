@@ -166,6 +166,32 @@ function game:loadTileTypes()
 			swapColours = true,
 			character = "≡",
 			allowIncomingConnectionTypeNames = {ornateCarpet = true}
+		},
+		meshWall = {
+			displayName = "mesh wall",
+			solidity = "projectilePassable",
+			blocksLight = false,
+			swapColours = false,
+			character = "#"
+		},
+		heavyPipes = {
+			displayName = "heavy pipes",
+			solidity = "solid",
+			character = "÷",
+			blocksLight = true,
+			lightSlipPast = true,
+			boxDrawingNumber = 2,
+			allowIncomingConnectionTypeNames = {wall = true}
+		},
+		lightPipes = {
+			displayName = "light pipes",
+			solidity = "solid",
+			character = "√",
+			blocksLight = true,
+			lightSlipPast = true,
+			boxDrawingNumber = 1,
+			pretendConnectionTypeName = "heavyPipes",
+			allowIncomingConnectionTypeNames = {wall = true}
 		}
 	}
 end

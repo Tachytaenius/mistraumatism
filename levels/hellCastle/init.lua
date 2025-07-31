@@ -105,7 +105,7 @@ function info:createLevel()
 		elseif value == 0xab then
 			self:placeMonster(x, y, "hellNoble")
 		elseif value == 0xbb then
-			self:placeMonster(x, y, "skeleton")
+			self:placeMonster(x, y, "skeleton", "scythe", "iron")
 		elseif value == 0xcc then
 			self:placeItem(x, y, "flower", "roseWithered")
 			self:placeItem(x, y, "flower", "roseWithered")

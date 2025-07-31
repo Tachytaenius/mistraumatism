@@ -76,32 +76,32 @@ function game:placeItem(x, y, itemTypeName, material)
 	return entity.itemData, entity
 end
 
-function game:placeCreatureTeam(x, y, creatureTypeName, team)
+function game:placeCreatureTeam(x, y, creatureTypeName, team, spawnItemType, spawnItemMaterial)
 	local entity = self:newCreatureEntity({
 		creatureTypeName = creatureTypeName,
 		team = team,
 		x = x, y = y
 	})
-	if entity.creatureType.spawnItemType and entity.creatureType.inventorySize >= 1 then
-		entity.inventory[1].item = self:newItemData({itemTypeName = entity.creatureType.spawnItemType, material = entity.creatureType.spawnItemMaterial})
+	if spawnItemType and entity.creatureType.inventorySize >= 1 then
+		entity.inventory[1].item = self:newItemData({itemTypeName = spawnItemType, material = spawnItemMaterial})
 		entity.inventory.selectedSlot = 1
 	end
 	return entity
 end
 
-function game:placeCorpseTeam(x, y, creatureTypeName, team)
-	local entity = self:placeCreatureTeam(x, y, creatureTypeName, team)
+function game:placeCorpseTeam(x, y, creatureTypeName, team, ...)
+	local entity = self:placeCreatureTeam(x, y, creatureTypeName, team, ...)
 	-- In case any complex behaviour is needed
 	entity.dead = true
 	return entity
 end
 
-function game:placeMonster(x, y, creatureTypeName)
-	return self:placeCreatureTeam(x, y, creatureTypeName, "monster")
+function game:placeMonster(x, y, creatureTypeName, ...)
+	return self:placeCreatureTeam(x, y, creatureTypeName, "monster", ...)
 end
 
-function game:placeCritter(x, y, creatureTypeName)
-	return self:placeCreatureTeam(x, y, creatureTypeName, "critter")
+function game:placeCritter(x, y, creatureTypeName, ...)
+	return self:placeCreatureTeam(x, y, creatureTypeName, "critter", ...)
 end
 
 function game:placeDoorItem(x, y, itemTypeName, material, open)

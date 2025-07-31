@@ -60,9 +60,7 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 3,
 		shootAggressiveness = 0.5,
 
-		inventorySize = 2,
-		spawnItemType = "scythe",
-		spawnItemMaterial = "iron"
+		inventorySize = 2
 	}
 
 	creatureTypes.slug = {

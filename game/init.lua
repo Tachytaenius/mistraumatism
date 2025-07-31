@@ -59,8 +59,8 @@ function game:newState(params)
 	state.announcements = {}
 	state.splitAnnouncements = {}
 
-	state.incrementEntityDisplaysTimerLength = 0.8
-	state.incrementEntityDisplaysSwitchIndicatorTime = 0.04
+	state.incrementEntityDisplaysTimerLength = 1
+	state.incrementEntityDisplaysSwitchIndicatorTime = 0.08
 	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimerLength
 
 	state.tileEntityLists = self:getTileEntityLists()

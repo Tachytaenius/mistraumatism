@@ -10,22 +10,41 @@ function info:createLevel() -- name should be the name of the directory containi
 	local types = {
 		[0x00] = "floor",
 		[0x55] = "wall",
-		[0xaa] = "drain"
+		[0x66] = "support",
+		[0xaa] = "drain",
+		[0xbb] = "heavyPipes",
+		[0xcc] = "lightPipes",
+		[0xff] = "meshWall"
 	}
 	local materials = {
 		[0x00] = "concrete",
 		[0x55] = "plaster",
 		[0xaa] = "lino",
+		[0xbb] = "copper",
 		[0xff] = "steel"
 	}
 	local spawnX, spawnY
 	local function decodeExtra(x, y, r, g, value, a)
-		if value == 0x55 then
+		if value == 0x22 then
+			self:placeItem(x, y, "bench", "plywood")
+		elseif value == 0x23 then
+			self:placeItem(x, y, "bigPlantPot", "plasticBrown")
+			self:placeItem(x, y, "sapling", "palm")
+		elseif value == 0x55 then
 			self:placeDoorItem(x, y, "doorWindow", "steel", false)
+		elseif value == 0x56 then
+			self:placeDoorItem(x, y, "doorWindow", "steel", true)
 		elseif value == 0xaa then
 			self:placeDoorItem(x, y, "door", "steel", false)
 		elseif value == 0xee then
 			self:placeMonster(x, y, "zombie")
+		elseif value == 0xef then
+			self:addSpatter(x, y, "bloodRed", 3)
+		elseif value == 0xf0 then
+			self:addSpatter(x, y, "bloodRed", 1)
+		elseif value == 0xf1 then
+			self:addSpatter(x, y, "bloodRed", 4)
+			self:placeDoorItem(x, y, "doorWindow", "steel", false)
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end
@@ -83,8 +102,50 @@ function info:createLevel() -- name should be the name of the directory containi
 		self:placeItem(48, y, "desk", "aluminium")
 		self:placeItem(49, y, "officeChair", "steel")
 	end
-	self:placeItem(48, 57, "filingCabinet", "steel")
-	self:placeItem(48, 58, "filingCabinet", "steel")
+	self:placeItem(48, 57, "filingCabinet", "aluminium")
+	self:placeItem(48, 58, "filingCabinet", "aluminium")
+
+	-- Make the corpse storage cages.
+	-- But they should be the same every time, so we'll use a random generator with a set seed.
+	local rng = love.math.newRandomGenerator(0)
+	local function makeGoreCage(goreX, goreY, goreWidth, goreHeight, goreMultiplier, noCorpses)
+		for ox = 0, goreWidth - 1 do
+			for oy = 0, goreHeight - 1 do
+				local x, y = ox + goreX, oy + goreY
+				-- local goreMultiplier = (oy / goreHeight) ^ 0.4
+				local baseBloodAmount = math.floor(goreMultiplier * 10)
+				local bloodAmount = baseBloodAmount + rng:random(0, 3)
+				self:addSpatter(x, y, "bloodRed", bloodAmount)
+
+				if noCorpses or not self:getWalkable(x, y) then
+					goto continue
+				end
+
+				local baseCorpseAmount = math.floor(goreMultiplier * 3)
+				local corpseAmount = baseCorpseAmount + rng:random(0, 2)
+				for _=1, corpseAmount do
+					if rng:random() < 0.4 then
+						local skeleton = love.math.random() < 0.125
+						local corpse = self:placeCorpseTeam(x, y, skeleton and "skeleton" or "human", "person")
+						if not skeleton then
+							corpse.blood = 0
+							corpse.bleedingAmount = love.math.random(4, 16)
+						end
+						corpse.health = love.math.random(skeleton and -1 or -5, 0)
+					end
+					if rng:random() < 0.5 then
+						local fleshAmount = rng:random(1, 8)
+						self:addSpatter(x, y, "fleshRed", fleshAmount)
+					end
+				end
+
+			    ::continue::
+			end
+		end
+	end
+	makeGoreCage(87, 18, 3, 5, 0.6, false)
+	makeGoreCage(95, 16, 5, 4, 0.8, false)
+	makeGoreCage(94, 25, 4, 3, 0.2, true)
 
 	return {
 		spawnX = spawnX,

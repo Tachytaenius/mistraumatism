@@ -362,7 +362,13 @@ function game:loadItemTypes()
 		tile = "♣",
 		displayName = "flower",
 		stackable = true,
-		maxStackSize = 6 
+		maxStackSize = 6
+	}
+	itemTypes.sapling = {
+		tile = "τ",
+		displayName = "sapling",
+		stackable = true,
+		maxStackSize = 3
 	}
 
 	itemTypes.labTable = {
@@ -515,6 +521,16 @@ function game:loadItemTypes()
 		openTile = "▌",
 		swapColours = true,
 		displayName = "castle door"
+	}
+	itemTypes.bench = {
+		noPickUp = true,
+		tile = "╤",
+		displayName = "bench"
+	}
+	itemTypes.bigPlantPot = {
+		noPickUp = true,
+		tile = "u",
+		displayName = "big plant pot"
 	}
 
 	itemTypes.button = {

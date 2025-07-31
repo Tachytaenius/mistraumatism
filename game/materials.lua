@@ -20,10 +20,12 @@ function game:loadMaterials()
 	addMaterial("bone", "bone", "white", "solid")
 
 	addMaterial("water", "water", "darkBlue", "liquid")
+	addMaterial("ice", "ice", "cyan", "solid")
 
 	addMaterial("steel", "steel", "darkGrey", "solid")
 	addMaterial("iron", "iron", "darkGrey", "solid")
 	addMaterial("gold", "gold", "yellow", "solid")
+	addMaterial("copper", "copper", "darkYellow", "solid")
 	addMaterial("concrete", "concrete", "lightGrey", "solid")
 	addMaterial("labTiles", "lab tiles", "white", "solid")
 	addMaterial("plaster", "plaster", "white", "solid")
@@ -49,6 +51,7 @@ function game:loadMaterials()
 
 	addMaterial("mahogany", "mahogany", "darkYellow", "solid")
 	addMaterial("ginkgo", "ginkgo", "darkYellow", "solid")
+	addMaterial("palm", "palm", "darkYellow", "solid")
 
 	addMaterial("paper", "paper", "white", "solid")
 	addMaterial("cloth", "cloth", "white", "solid")
