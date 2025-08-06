@@ -45,7 +45,7 @@ end
 
 function game:placeCrate(x, y, w, h, material)
 	if not self:isRectangleType(x, y, w, h, "floor") then
-		self:logError("Tried to place a crate but it wasn't all floor")
+		self:logError("Tried to place a crate at " .. x .. ", " .. y .. " with size " .. w .. ", " .. h .. " but it wasn't all floor")
 		return
 	end
 	self:placeRectangle(x, y, w, h, "crateWall", material)
@@ -74,6 +74,20 @@ function game:placeItem(x, y, itemTypeName, material)
 		material = material
 	}))
 	return entity.itemData, entity
+end
+
+function game:placeMagazineWithAmmo(x, y, magazineType, magazineMaterial, ammoType, ammoMaterial, ammoCount)
+	local magazine = self:placeItem(x, y, magazineType, magazineMaterial)
+	assert(magazine.itemType.magazine, magazineType .. " is not a magazine item type")
+	ammoCount = ammoCount or magazine.itemType.magazineCapacity
+	assert(ammoCount <= magazine.itemType.magazineCapacity, ammoCount .. " is too much ammo for magazine item type " .. magazineType)
+	assert(magazine.itemType.ammoClass == self.state.itemTypes[ammoType].ammoClass, "Magazine item type " .. magazineType .. " is not the same ammo class as ammo item type " .. ammoType)
+	for i = 1, ammoCount do
+		magazine.magazineData[i] = self:newItemData({
+			itemTypeName = ammoType,
+			material = ammoMaterial
+		})
+	end
 end
 
 function game:placeCreatureTeam(x, y, creatureTypeName, team, spawnItemType, spawnItemMaterial)

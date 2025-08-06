@@ -196,50 +196,52 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			end
 	
 			local right, up, left, down = getWallConnections(neighbours)
-	
-			-- Sever any connections that don't have the right visibility
-			local rightMask, upMask, leftMask, downMask = false, false, false, false
+		
+			if not tileType.alwaysShowConnections then
+				-- Sever any connections that don't have the right visibility
+				local rightMask, upMask, leftMask, downMask = false, false, false, false
 
-			local rightEdge = isEdgeVisible(x, y, "vertical")
-			if rightEdge then
-				rightMask = true
-				if not self:tileBlocksLight(x + 1, y, true) then
-					upMask = true
-					downMask = true
-				end
-			end
-	
-			local upEdge = isEdgeVisible(x, y - 1, "horizontal")
-			if upEdge then
-				upMask = true
-				if not self:tileBlocksLight(x, y - 1, true) then
+				local rightEdge = isEdgeVisible(x, y, "vertical")
+				if rightEdge then
 					rightMask = true
-					leftMask = true
+					if not self:tileBlocksLight(x + 1, y, true) then
+						upMask = true
+						downMask = true
+					end
 				end
-			end
-	
-			local leftEdge = isEdgeVisible(x - 1, y, "vertical")
-			if leftEdge then
-				leftMask = true
-				if not self:tileBlocksLight(x - 1, y, true) then
+		
+				local upEdge = isEdgeVisible(x, y - 1, "horizontal")
+				if upEdge then
 					upMask = true
-					downMask = true
+					if not self:tileBlocksLight(x, y - 1, true) then
+						rightMask = true
+						leftMask = true
+					end
 				end
-			end
-	
-			local downEdge = isEdgeVisible(x, y, "horizontal")
-			if downEdge then
-				downMask = true
-				if not self:tileBlocksLight(x, y + 1, true) then
-					rightMask = true
+		
+				local leftEdge = isEdgeVisible(x - 1, y, "vertical")
+				if leftEdge then
 					leftMask = true
+					if not self:tileBlocksLight(x - 1, y, true) then
+						upMask = true
+						downMask = true
+					end
 				end
+		
+				local downEdge = isEdgeVisible(x, y, "horizontal")
+				if downEdge then
+					downMask = true
+					if not self:tileBlocksLight(x, y + 1, true) then
+						rightMask = true
+						leftMask = true
+					end
+				end
+		
+				right = right and rightMask
+				up = up and upMask
+				left = left and leftMask
+				down = down and downMask
 			end
-	
-			local right = right and rightMask
-			local up = up and upMask
-			local left = left and leftMask
-			local down = down and downMask
 	
 			local num = tileType.boxDrawingNumber
 			local boxCharacter
@@ -390,17 +392,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					cell.foregroundColour = darker
 				end
 			end
-			local box
-			cell.character, box = getTileCharacter(tileX, tileY)
-			if tileType.swapColours and not (box and tileType.swapColoursSingleOnly) then
-				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
-			end
-			if tile.liquid then
-				cell.character = "≈" -- What about a more full tile?
-				cell.foregroundColour = state.materials[tile.liquid.material].colour
-				cell.backgroundColour = "black"
-			end
-
 			if not tileType.ignoreSpatter then
 				local largestSpatter
 				if tile.spatter then
@@ -427,6 +418,16 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						end
 					end
 				end
+			end
+			local box
+			cell.character, box = getTileCharacter(tileX, tileY)
+			if tileType.swapColours and not (box and tileType.swapColoursSingleOnly) then
+				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
+			end
+			if tile.liquid then
+				cell.character = "≈" -- What about a more full tile?
+				cell.foregroundColour = state.materials[tile.liquid.material].colour
+				cell.backgroundColour = "black"
 			end
 
 			::continue::

@@ -14,6 +14,13 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0xaa] = "drain",
 		[0xbb] = "heavyPipes",
 		[0xcc] = "lightPipes",
+		[0xdd] = "horizontalConveyorBelt",
+		[0xde] = "verticalConveyorBelt",
+		[0xed] = "conveyorIO",
+		[0xee] = "controlPanel",
+		[0xef] = "machineCasing",
+		[0xf0] = "floorWiring",
+		[0xf1] = "wallWiring",
 		[0xff] = "meshWall"
 	}
 	local materials = {
@@ -21,6 +28,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0x55] = "plaster",
 		[0xaa] = "lino",
 		[0xbb] = "copper",
+		[0xcc] = "plasticBlack",
 		[0xff] = "steel"
 	}
 	local spawnX, spawnY
@@ -30,12 +38,24 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0x23 then
 			self:placeItem(x, y, "bigPlantPot", "plasticBrown")
 			self:placeItem(x, y, "sapling", "palm")
+		elseif value == 0x33 then
+			self:placeItem(x, y, "bandage", "cloth")
+		elseif value == 0x34 then
+			self:placeItem(x, y, "pistol", "steel")
+		elseif value == 0x35 then
+			self:placeMagazineWithAmmo(x, y, "pistolMagazine", "steel", "smallBullet", "brass", 1)
+			self:placeItem(x, y, "smallBullet", "brass")
+			self:placeItem(x, y, "smallBullet", "brass")
+			self:placeItem(x + 1, y, "smallBullet", "brass")
+			self:addSpatter(x, y, "bloodRed", 2)
 		elseif value == 0x55 then
 			self:placeDoorItem(x, y, "doorWindow", "steel", false)
 		elseif value == 0x56 then
 			self:placeDoorItem(x, y, "doorWindow", "steel", true)
 		elseif value == 0xaa then
 			self:placeDoorItem(x, y, "door", "steel", false)
+		elseif value == 0xab then
+			self:placeDoorItem(x, y, "door", "steel", true)
 		elseif value == 0xee then
 			self:placeMonster(x, y, "zombie")
 		elseif value == 0xef then
@@ -125,13 +145,13 @@ function info:createLevel() -- name should be the name of the directory containi
 				local corpseAmount = baseCorpseAmount + rng:random(0, 2)
 				for _=1, corpseAmount do
 					if rng:random() < 0.4 then
-						local skeleton = love.math.random() < 0.125
+						local skeleton = rng:random() < 0.125
 						local corpse = self:placeCorpseTeam(x, y, skeleton and "skeleton" or "human", "person")
 						if not skeleton then
 							corpse.blood = 0
-							corpse.bleedingAmount = love.math.random(4, 16)
+							corpse.bleedingAmount = rng:random(4, 16)
 						end
-						corpse.health = love.math.random(skeleton and -1 or -5, 0)
+						corpse.health = rng:random(skeleton and -1 or -5, 0)
 					end
 					if rng:random() < 0.5 then
 						local fleshAmount = rng:random(1, 8)
@@ -146,6 +166,29 @@ function info:createLevel() -- name should be the name of the directory containi
 	makeGoreCage(87, 18, 3, 5, 0.6, false)
 	makeGoreCage(95, 16, 5, 4, 0.8, false)
 	makeGoreCage(94, 25, 4, 3, 0.2, true)
+
+	self:placeCrate(70, 31, 5, 5, "crateBrown")
+	self.state.map[72][31].type = "conveyorIO"
+
+	self:placeCrate(66, 33, 3, 4, "crateYellow")
+	self:placeCrate(77, 34, 2, 3, "crateYellow")
+	self:placeCrate(67, 39, 3, 2, "crateYellow")
+	self:placeCrate(72, 38, 3, 3, "crateBrown")
+	self:placeCrate(71, 42, 2, 3, "crateBrown")
+	self:placeCrate(66, 44, 2, 2, "crateYellow")
+	self:placeCrate(70, 47, 1, 1, "crateBrown")
+	self:placeCrate(75, 47, 1, 1, "crateBrown")
+	self:placeCrate(75, 48, 1, 1, "crateYellow")
+	self:placeCrate(71, 46, 4, 3, "crateBrown")
+	self:placeCrate(79, 39, 1, 1, "crateBrown")
+	self:placeCrate(78, 40, 1, 1, "crateYellow")
+	self:placeCrate(77, 41, 1, 1, "crateBrown")
+	self:placeCrate(78, 42, 1, 1, "crateYellow")
+	self:placeCrate(79, 44, 1, 1, "crateYellow")
+	self:placeCrate(79, 45, 1, 1, "crateYellow")
+	self:placeCrate(78, 45, 1, 1, "crateBrown")
+	self:placeCrate(78, 46, 1, 1, "crateBrown")
+	self:placeCrate(77, 47, 1, 1, "crateYellow")
 
 	return {
 		spawnX = spawnX,

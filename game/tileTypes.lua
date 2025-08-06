@@ -28,6 +28,7 @@ function game:loadTileTypes()
 			character = "╬",
 			blocksLight = true,
 			lightSlipPast = true,
+			alwaysShowConnections = true,
 			boxDrawingNumber = 2,
 			swapColours = true,
 			swapColoursSingleOnly = true
@@ -180,6 +181,7 @@ function game:loadTileTypes()
 			character = "÷",
 			blocksLight = true,
 			lightSlipPast = true,
+			alwaysShowConnections = true,
 			boxDrawingNumber = 2,
 			allowIncomingConnectionTypeNames = {wall = true}
 		},
@@ -189,9 +191,68 @@ function game:loadTileTypes()
 			character = "√",
 			blocksLight = true,
 			lightSlipPast = true,
+			alwaysShowConnections = true,
 			boxDrawingNumber = 1,
 			pretendConnectionTypeName = "heavyPipes",
 			allowIncomingConnectionTypeNames = {wall = true}
+		},
+		horizontalConveyorBelt = {
+			displayName = "conveyor belt",
+			solidity = "passable",
+			character = "║",
+			swapColours = true
+		},
+		verticalConveyorBelt = {
+			displayName = "conveyor belt",
+			solidity = "passable",
+			character = "═",
+			swapColours = true
+		},
+		controlPanel = {
+			displayName = "machine panel",
+			solidity = "solid",
+			blocksLight = true,
+			lightSlipPast = true,
+			character = "%",
+			secondaryColour = "cyan",
+			swapColours = true,
+			pretendConnectionTypeName = "machineCasing",
+			allowIncomingConnectionTypeNames = {floorWiring = true}
+		},
+		machineCasing = {
+			displayName = "machine casing",
+			solidity = "solid",
+			blocksLight = true,
+			lightSlipPast = true,
+			character = "┼",
+			secondaryColour = "lightGrey",
+			swapColours = true,
+			boxDrawingNumber = 1,
+			allowIncomingConnectionTypeNames = {floorWiring = true}
+		},
+		floorWiring = {
+			displayName = "floor wiring",
+			solidity = "passable",
+			character = "≥",
+			boxDrawingNumber = 2
+		},
+		wallWiring = {
+			displayName = "wall wiring",
+			solidity = "solid",
+			character = "≡",
+			boxDrawingNumber = 2,
+			blocksLight = true,
+			swapColours = true,
+			pretendConnectionTypeName = "floorWiring",
+			allowIncomingConnectionTypeNames = {wall = true}
+		},
+		conveyorIO = {
+			displayName = "conveyor I/O",
+			solidity = "solid",
+			character = "▀",
+			blocksLight = true,
+			lightSlipPast = true,
+			allowIncomingConnectionTypeNames = {machineCasing = true, crateWall = true}
 		}
 	}
 end

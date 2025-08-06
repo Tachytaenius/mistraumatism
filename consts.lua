@@ -3,7 +3,7 @@ local utf8 = require("utf8")
 local consts = {}
 
 consts.loveIdentity = "mistraumatism"
-consts.loveVersion = "11.0"
+consts.loveVersion = "11.5"
 consts.windowTitle = "Mistraumatism"
 
 local null = utf8.char(0)
