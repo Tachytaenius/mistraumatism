@@ -25,7 +25,7 @@ function game:loadItemTypes()
 	itemTypes.pistolMagazine = {
 		magazine = true,
 		tile = "■",
-		displayName = "pistol magazine",
+		displayName = "pistol mag",
 		magazineCapacity = 9,
 		magazineClass = "pistol",
 		ammoClass = "bulletSmall",

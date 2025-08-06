@@ -392,6 +392,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					cell.foregroundColour = darker
 				end
 			end
+			local box
+			cell.character, box = getTileCharacter(tileX, tileY)
+			if tileType.swapColours and not (box and tileType.swapColoursSingleOnly) then
+				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
+			end
 			if not tileType.ignoreSpatter then
 				local largestSpatter
 				if tile.spatter then
@@ -418,11 +423,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						end
 					end
 				end
-			end
-			local box
-			cell.character, box = getTileCharacter(tileX, tileY)
-			if tileType.swapColours and not (box and tileType.swapColoursSingleOnly) then
-				cell.foregroundColour, cell.backgroundColour = cell.backgroundColour, cell.foregroundColour
 			end
 			if tile.liquid then
 				cell.character = "≈" -- What about a more full tile?
