@@ -43,7 +43,7 @@ function game:newState(params)
 	state.particles = {}
 	state.entities = {}
 	state.airlockData = {}
-	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName or "start"})
+	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName or consts.startLevelName})
 	state.player = self:newCreatureEntity({
 		creatureTypeName = "human",
 		team = "person",

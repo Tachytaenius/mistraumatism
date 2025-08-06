@@ -106,4 +106,6 @@ consts.explosionVisualRapidDiminishThreshold = 40
 
 consts.itemDefaultMaxStackSize = 9
 
+consts.startLevelName = "facility"
+
 return consts
