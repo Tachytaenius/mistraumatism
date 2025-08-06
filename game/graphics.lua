@@ -649,8 +649,11 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		-- 	icon = "•"
 		-- elseif row.isFirstOfTick then
 		-- 	icon = "∙"
+		-- else
+			-- icon = "·"
+		-- end
 		else
-			icon = "·"
+			icon = "∙"
 		end
 		drawCharacterFramebuffer(
 			1,
