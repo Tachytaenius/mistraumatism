@@ -200,13 +200,15 @@ function game:loadTileTypes()
 			displayName = "conveyor belt",
 			solidity = "passable",
 			character = "║",
-			swapColours = true
+			swapColours = true,
+			liquidSpatterColourInvert = true
 		},
 		verticalConveyorBelt = {
 			displayName = "conveyor belt",
 			solidity = "passable",
 			character = "═",
-			swapColours = true
+			swapColours = true,
+			liquidSpatterColourInvert = true
 		},
 		controlPanel = {
 			displayName = "machine panel",
