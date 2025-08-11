@@ -141,13 +141,17 @@ function game:loadTileTypes()
 		closedHatch = {
 			displayName = "closed hatch",
 			solidity = "passable",
+			hatchState = "closed",
+			stateChangeSoundRange = 5,
 			character = "│",
 			swapColours = true
 		},
 		openHatch = {
 			displayName = "open hatch",
 			solidity = "fall",
+			hatchState = "open",
 			character = "║",
+			stateChangeSoundRange = 5,
 			deleteSpatter = "all"
 		},
 		diningTable = {

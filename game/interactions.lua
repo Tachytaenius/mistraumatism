@@ -9,6 +9,21 @@ function game:isDoorBlocked(doorEntity)
 	return false
 end
 
+function game:broadcastHatchStateChangedEvent(tile, opener, manual)
+	local hatchState = self.state.tileTypes[tile.type].hatchState
+	if not hatchState then
+		return
+	end
+	self:broadcastEvent({
+		sourceEntity = opener,
+		x = tile.x,
+		y = tile.y,
+		type = "hatchChangeState",
+		soundRange = self.state.tileTypes[tile.type].stateChangeSoundRange,
+		soundType = hatchState == "open" and "hatchOpening" or "hatchClosing"
+	})
+end
+
 function game:broadcastDoorStateChangedEvent(tile, opener, manual)
 	self:broadcastEvent({
 		sourceEntity = opener,

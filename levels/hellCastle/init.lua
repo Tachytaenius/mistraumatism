@@ -132,11 +132,13 @@ function info:createLevel()
 				local function onActivate(self, item, x, y)
 					for _, tile in ipairs(hatches) do
 						tile.type = "openHatch"
+						self:broadcastHatchStateChangedEvent(tile, nil, false)
 					end
 				end
 				local function onDeactivate(self, item, x, y)
 					for _, tile in ipairs(hatches) do
 						tile.type = "closedHatch"
+						self:broadcastHatchStateChangedEvent(tile, nil, false)
 					end
 				end
 				self:placeLever(x, y, "iron", true, onActivate, onDeactivate)

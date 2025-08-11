@@ -22,6 +22,10 @@ end
 function game:broadcastEvent(eventData)
 	-- For an event with sound, eventData.sourceEntity isn't always vocalising the sound. Especially if x and y aren't the entity's x and y
 	local state = self.state
+	assert(state.eventTypes[eventData.type], "Unknown event type " .. eventData.type)
+	if eventData.soundType then
+		assert(state.soundTypes[eventData.soundType], "Unknown sound type " .. eventData.soundType)
+	end
 	state.eventsQueue[#state.eventsQueue+1] = eventData
 end
 
@@ -69,6 +73,9 @@ function game:loadEventTypes()
 	eventTypes.doorChangeState = {
 		sourceEntityRelation = "objectUse"
 	}
+	eventTypes.hatchChangeState = {
+		sourceEntityRelation = "objectUse"
+	}
 
 	eventTypes.pain = {
 		isDamageTaken = true,
@@ -111,6 +118,8 @@ function game:loadSoundTypes()
 	soundTypes.explosion = {}
 	soundTypes.doorOpening = {}
 	soundTypes.doorClosing = {}
+	soundTypes.hatchOpening = {}
+	soundTypes.hatchClosing = {}
 end
 
 return game
