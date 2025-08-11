@@ -98,13 +98,18 @@ function game:update()
 
 	state.initialPlayerThisTick = state.player
 
+	state.eventsQueue = state.eventsQueue or {}
+
 	self:setInitialNonPersistentVariables()
 	self:tickGibs()
 	self:tickParticles()
 	self:updateEntitiesAndProjectiles()
-	self:announceDamages()
 	self:diminishExplosions()
 	self:dropSpatters()
+	self:announceDamages()
+	self:handleEventsQueue() -- Resets events queue
+	self:announceDeaths()
+
 	self:clearNonPersistentVariables()
 
 	if state.player then

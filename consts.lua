@@ -108,4 +108,6 @@ consts.itemDefaultMaxStackSize = 9
 
 consts.startLevelName = "facility"
 
+consts.investigationTimeoutThreshold = 40
+
 return consts

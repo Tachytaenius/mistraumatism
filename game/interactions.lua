@@ -9,6 +9,17 @@ function game:isDoorBlocked(doorEntity)
 	return false
 end
 
+function game:broadcastDoorStateChangedEvent(tile, opener, manual)
+	self:broadcastEvent({
+		sourceEntity = opener,
+		x = tile.x,
+		y = tile.y,
+		type = "doorChangeState",
+		soundRange = tile.doorData.entity.itemData.itemType.stateChangeSoundRange,
+		soundType = tile.doorData.open and "doorOpening" or "doorClosing"
+	})
+end
+
 function game:loadInteractionTypes()
 	local interactionTypes = {}
 
@@ -52,7 +63,12 @@ function game:loadInteractionTypes()
 			-- Disable closing, an entity is in the way
 			return
 		end
+		if doorData.open == info.doneDoorOpenState then
+			-- Avoid triggering an event
+			return
+		end
 		doorData.open = info.doneDoorOpenState
+		self:broadcastDoorStateChangedEvent(tile, interactor, true)
 	end
 
 	interactionTypes.readable = {}

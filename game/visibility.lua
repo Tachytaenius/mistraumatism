@@ -322,7 +322,7 @@ function game:computeVisibilityMap(startX, startY, rangeLimit, disableDistanceCh
 			self:computeVisibilityMapOctant(octant, startX, startY, rangeLimit, 1, 1, 1, 1, 0, disableDistanceCheck, visibilityMapInfo)
 		end
 	else
-		error("Haven't implemented edge visibility for allVisible computeVisibilityMap. Should be easy, though.")
+		
 	end
 
 	if edges then

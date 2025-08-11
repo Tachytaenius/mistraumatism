@@ -179,6 +179,7 @@ function game:mechanismOpenDoor(x, y)
 	local tile = self:getTile(x, y)
 	if tile.doorData then
 		tile.doorData.open = true
+		self:broadcastDoorStateChangedEvent(tile, nil, false)
 	end
 end
 
@@ -189,6 +190,7 @@ function game:mechanismShutDoor(x, y)
 	end
 	if tile.doorData then
 		tile.doorData.open = false
+		self:broadcastDoorStateChangedEvent(tile, nil, false)
 	end
 end
 
@@ -201,9 +203,11 @@ function game:getAirlockOnPress(airlockInfo)
 			end
 			if airlockInfo.airDoor.doorTile then
 				airlockInfo.airDoor.doorTile.doorData.open = false
+				self:broadcastDoorStateChangedEvent(airlockInfo.airDoor.doorTile, nil, false)
 			end
 			if airlockInfo.otherDoor.doorTile then
 				airlockInfo.otherDoor.doorTile.doorData.open = true
+				self:broadcastDoorStateChangedEvent(airlockInfo.otherDoor.doorTile, nil, false)
 			end
 			if airlockInfo.liquidMaterial then
 				for _, tile in ipairs(airlockInfo.liquidTiles) do
@@ -216,9 +220,11 @@ function game:getAirlockOnPress(airlockInfo)
 			end
 			if airlockInfo.otherDoor.doorTile then
 				airlockInfo.otherDoor.doorTile.doorData.open = false
+				self:broadcastDoorStateChangedEvent(airlockInfo.otherDoor.doorTile, nil, false)
 			end
 			if airlockInfo.airDoor.doorTile then
 				airlockInfo.airDoor.doorTile.doorData.open = true
+				self:broadcastDoorStateChangedEvent(airlockInfo.airDoor.doorTile, nil, false)
 			end
 			if airlockInfo.liquidMaterial then
 				for _, tile in ipairs(airlockInfo.liquidTiles) do

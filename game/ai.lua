@@ -19,16 +19,28 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 	return self:getWalkable(tileX, tileY, true, entity.creatureType.flying)
 end
 
-local function chaseTargetEntityLastKnownPosition(self, entity, sameTileMelee)
+local function chase(self, entity, sameTileMelee)
 	local state = self.state
 
 	local targetLocationX, targetLocationY, dontWalkInto
+	local onlyGoingToLastKnownLocation
+	local investigating
 	if entity.targetEntity then
 		if self:entityCanSeeEntity(entity, entity.targetEntity) then
 			targetLocationX, targetLocationY = entity.targetEntity.x, entity.targetEntity.y
 			dontWalkInto = not sameTileMelee
 		elseif entity.lastKnownTargetLocation then
+			onlyGoingToLastKnownLocation = true
 			targetLocationX, targetLocationY = entity.lastKnownTargetLocation.x, entity.lastKnownTargetLocation.y
+		end
+	end
+	if entity.investigateLocation and (not entity.targetEntity or onlyGoingToLastKnownLocation) then
+		investigating = true
+		if entity.investigateLocation.eventData and state.eventTypes[entity.investigateLocation.eventData.type].investigateLocationOverride then
+			local overrideLocation = entity.investigateLocation.eventData[state.eventTypes[entity.investigateLocation.eventData.type].investigateLocationOverride]
+			targetLocationX, targetLocationY = overrideLocation.x, overrideLocation.y
+		else
+			targetLocationX, targetLocationY = entity.investigateLocation.x, entity.investigateLocation.y
 		end
 	end
 
@@ -71,12 +83,21 @@ local function chaseTargetEntityLastKnownPosition(self, entity, sameTileMelee)
 				if nextTile and not (dontWalkInto and nextTile.x == targetLocationX and nextTile.y == targetLocationY) then
 					local direction = self:getDirection(nextTile.x - startTile.x, nextTile.y - startTile.y)
 					if direction then
+						local keepInvestigation = true
 						if nextTile.doorData and not nextTile.doorData.open then
 							return self.state.actionTypes.interact.construct(self, entity, nextTile.doorData.entity, direction)
 						elseif direction ~= "zero" then
 							return self.state.actionTypes.move.construct(self, entity, direction)
+						else
+							keepInvestigation = false
+						end
+						if investigating and keepInvestigation then
+							entity.investigateLocation.timeoutTimer = 0
 						end
 					end
+				end
+				if investigating and not nextTile then
+					entity.investigateLocation = nil
 				end
 			end
 		end
@@ -265,17 +286,76 @@ function game:getAIActions(entity)
 				end
 			end
 		end
-		if not fightAction then
-			fightAction = chaseTargetEntityLastKnownPosition(self, entity, waitForSameTileMelee)
-		end
 
 		if fightAction then
 			newAction = fightAction
 		end
 	end
 
+	if not newAction then
+		newAction = chase(self, entity, waitForSameTileMelee)
+	end
+
 	if newAction then
 		entity.actions[#entity.actions+1] = newAction
+	end
+end
+
+function game:getEventImportance(entity, eventData)
+	if not eventData.sourceEntity then
+		-- Nobody to investigate
+		return 0
+	end
+	if self:getTeamRelation(entity.team, eventData.sourceEntity.team) ~= "friendly" then
+		-- Investigate anything from non-friendly teams
+		if self.state.eventTypes[eventData.type].isCombat then
+			-- Don't be as inclined to investigae
+			if self.state.eventTypes[eventData.type].sourceEntityRelation == "remoteCause" then
+				return 25 -- Player rocket exploding
+			else
+				return 35 -- Player gunshot etc
+			end
+		end
+		return 20 -- Player opening doors etc
+	end
+	-- Only investigate combat from friendly teams
+	if self.state.eventTypes[eventData.type].isCombat then
+		return 30
+	end
+	return 0
+end
+
+function game:tryInvestigateEvent(entity, eventData, visible, audible)
+	if not (visible or audible) then
+		return
+	end
+
+	local function trySetInvestigation()
+		if self:getEventImportance(entity, eventData) <= 0 then
+			return
+		end
+		entity.investigateLocation = {
+			x = eventData.x,
+			y = eventData.y,
+			eventData = eventData,
+			timeoutTimer = 0
+		}
+	end
+
+	if entity == eventData.sourceEntity or not eventData.sourceEntity then
+		return
+	end
+
+	if not entity.investigateLocation then
+		trySetInvestigation()
+		return
+	end
+
+	if
+		self:getEventImportance(entity, eventData) >=
+		self:getEventImportance(entity, entity.investigateLocation.eventData)
+	then
+		trySetInvestigation()
 	end
 end
 

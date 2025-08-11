@@ -202,7 +202,40 @@ function game:updateEntitiesAndProjectiles()
 		assert(not (entity.targetEntity and entity.targetEntity.removed), "An entity is targetting a removed entity")
 
 		if entity == state.player then
+			-- TODO: Clear AI state?
 			goto continue
+		end
+
+		-- Maintain investigation info
+		if entity.investigateLocation then
+			-- Clear if irrelevant
+
+			local eventData = entity.investigateLocation.eventData
+			if not eventData then
+				entity.investigateLocation = nil
+			else
+				local wasFromCreature = eventData.sourceEntity and eventData.sourceEntity.entityType == "creature"
+
+				local wasFromNonFriendly = wasFromCreature and self:getTeamRelation(entity.team, eventData.sourceEntity.team) ~= "friendly"
+				local wasFromDeadNonFriendly = wasFromNonFriendly and eventData.sourceEntity.dead
+
+				local wasFromFriendly = wasFromCreature and self:getTeamRelation(entity.team, eventData.sourceEntity.team) == "friendly"
+				local wasAlert = eventData.type == "enemyAlert"
+				local wasAlertFromFriendlyAboutDeadNonFriendly = wasAlert and wasFromFriendly and eventData.spottedEntity.dead
+
+				if wasFromDeadNonFriendly or wasAlertFromFriendlyAboutDeadNonFriendly then
+					entity.investigateLocation = nil
+				end
+			end
+
+			if entity.investigateLocation then -- Check that we still have it
+				entity.investigateLocation.timeoutTimer = entity.investigateLocation.timeoutTimer + 1
+				if entity.investigateLocation.timeoutTimer >= consts.investigationTimeoutThreshold then
+					entity.investigateLocation = nil
+				else
+					-- Any other maintenance to do
+				end
+			end
 		end
 
 		-- Fleeing behaviour
@@ -273,7 +306,17 @@ function game:updateEntitiesAndProjectiles()
 				self:getTeamRelation(entity.team, potentialTarget.team) == "enemy" and
 				self:entityCanSeeEntity(entity, potentialTarget)
 			then
-				-- TODO: Announce monster wakeup etc?
+				local doSound = entity.creatureType.hasAlertSound
+				self:broadcastEvent({
+					x = entity.x,
+					y = entity.y,
+					sourceEntity = entity,
+					type = "enemyAlert",
+					soundType = doSound and "warcry" or nil,
+					soundRange = doSound and entity.creatureType.vocalisationRange or nil,
+					spottedEntity = potentialTarget,
+					spottedEntityLocation = {x = potentialTarget.x, y = potentialTarget.y}
+				})
 				entity.targetEntity = potentialTarget
 				entity.lastKnownTargetLocation = {
 					x = entity.targetEntity.x,
@@ -329,7 +372,7 @@ function game:updateEntitiesAndProjectiles()
 	end
 	flushEntityRemoval()
 
-	-- Damage, drowning, bleeding, explosions, gibbing, and falling down pits
+	-- Damage, drowning, bleeding, explosions, gibbing, falling down pits, and screaming
 	for _, entity in ipairs(state.entities) do
 		if entity.hangingFrom then
 			if not (entity.hangingFrom.x == entity.x and entity.hangingFrom.y == entity.y) then
@@ -428,7 +471,7 @@ function game:updateEntitiesAndProjectiles()
 		local tile = self:getTile(entity.x, entity.y)
 		if tile.explosionInfo then
 			for _, damageInfo in ipairs(tile.explosionInfo.damagesThisTick) do
-				self:damageEntity(entity, damageInfo.damage, damageInfo.cause, damageInfo.bleedRateAdd, damageInfo.instantBloodLoss)
+				self:damageEntity(entity, damageInfo.damage, damageInfo.sourceEntity, damageInfo.bleedRateAdd, damageInfo.instantBloodLoss)
 			end
 		end
 
@@ -493,8 +536,21 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 
+		local gibbed = false
 		local gibThreshold = -entity.creatureType.maxHealth * 2.2
 		if entity.health <= gibThreshold then
+			gibbed = true
+
+			self:broadcastEvent({
+				sourceEntity = entity,
+				x = entity.x,
+				y = entity.y,
+				type = "gibbing",
+				soundType = entity.creatureType.gibSoundType or "goreExplosion",
+				soundRange = 10,
+				isDeath = true
+			})
+
 			entitiesToRemove[entity] = true
 			local gibForce = (gibThreshold - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
 			local fleshAmount = math.floor(entity.creatureType.maxHealth ^ 0.85 * 2.8)
@@ -586,7 +642,22 @@ function game:updateEntitiesAndProjectiles()
 				end
 			end
 		end
-	    ::continue::
+
+		if not gibbed and entity.damageTakenThisTick and entity.creatureType.yellDamageThreshold and entity.damageTakenThisTick >= entity.creatureType.yellDamageThreshold then
+			if not entity.dead or entity.deathTick == state.tick then
+				self:broadcastEvent({
+					sourceEntity = entity,
+					x = entity.x,
+					y = entity.y,
+					type = "pain",
+					soundRange = entity.creatureType.vocalisationRange,
+					soundType = entity.dead and "deathScream" or "scream",
+					isDeath = entity.dead
+				})
+			end
+		end
+		
+		::continue::
 	end
 	flushEntityRemoval()
 
@@ -707,6 +778,10 @@ function game:damageEntity(entity, damage, sourceEntity, bleedRateAdd, instantBl
 		dealtDamageList[#dealtDamageList+1] = damageReceiverInfo
 	end
 	damageReceiverInfo.total = damageReceiverInfo.total + damage
+
+	-- Only damages paired with sources are recorded above, so we also need to aggregate all damage that a creature receives each tick
+	
+	entity.damageTakenThisTick = (entity.damageTakenThisTick or 0) + damage
 end
 
 function game:getTileEntityLists()

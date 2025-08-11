@@ -177,6 +177,17 @@ function game:loadActionTypes()
 					if texts[announcementType] then
 						self:announce(texts[announcementType], "darkGrey")
 					end
+					local soundRange = self:getHeldItem(entity).itemType.gunshotSoundRange
+					if announcementType == "fired" and soundRange then
+						self:broadcastEvent({
+							sourceEntity = entity,
+							x = entity.x,
+							y = entity.y,
+							type = "gunshot",
+							soundRange = soundRange,
+							soundType = "gunshot"
+						})
+					end
 				end
 			end
 		end

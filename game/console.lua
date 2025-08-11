@@ -37,7 +37,11 @@ function game:announceDamages()
 			if entity == player and sourceEntity == player then
 				self:announce("You hit yourself for " .. damage .. " damage!", "red")
 			elseif entity == player then
-				self:announce("The " .. self:getEntityDisplayName(sourceEntity) .. " hits you for " .. damage .. " damage!", "red")
+				if not entity.dead or entity.deathTick == self.state.tick then
+					self:announce("The " .. self:getEntityDisplayName(sourceEntity) .. " hits you for " .. damage .. " damage!", "red")
+				else
+					self:announce("The " .. self:getEntityDisplayName(sourceEntity) .. " hits your corpse for " .. damage .. " damage!", "red")
+				end
 			elseif sourceEntity == player then
 				if not entity.dead or entity.deathTick == self.state.tick then
 					self:announce("You hit the " .. self:getEntityDisplayName(entity) .. " for " .. damage .. " damage.", "cyan")
@@ -47,6 +51,10 @@ function game:announceDamages()
 			end
 		end
 	end
+end
+
+function game:announceDeaths()
+	local player = self.state.player or self.state.initialPlayerThisTick
 	for _, entity in ipairs(self.state.fallingEntities) do
 		if entity == player then
 			self:announce("You have fallen into a pit!", "red")

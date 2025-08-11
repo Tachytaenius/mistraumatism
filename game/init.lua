@@ -29,6 +29,8 @@ function game:newState(params)
 	self:loadMaterials()
 	self:loadCreatureTypes()
 	self:loadItemTypes()
+	self:loadEventTypes()
+	self:loadSoundTypes()
 
 	state.teams = {}
 	self:newTeam("person")

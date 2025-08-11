@@ -24,6 +24,11 @@ function game:loadCreatureTypes()
 		meleeDamage = 3,
 		meleeBleedRateAdd = 4,
 
+		hears = true,
+		hasAlertSound = true,
+		vocalisationRange = 14,
+		yellDamageThreshold = 3,
+
 		canOpenDoors = true,
 		inventorySize = 9
 	}
@@ -43,6 +48,11 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 3,
 		shootAggressiveness = 0.5,
 
+		hears = true,
+		hasAlertSound = true,
+		vocalisationRange = 8,
+		yellDamageThreshold = 2,
+
 		inventorySize = 2
 	}
 
@@ -51,6 +61,7 @@ function game:loadCreatureTypes()
 		tile = "s",
 		colour = "white",
 		fleshMaterialName = "bone",
+		gibSoundType = "boneExplosion",
 
 		moveTimerLength = 5,
 		sightDistance = 12,
@@ -125,6 +136,11 @@ function game:loadCreatureTypes()
 		meleeInstantBloodLoss = 1,
 		shootAggressiveness = 0.25,
 
+		hears = true,
+		hasAlertSound = true,
+		vocalisationRange = 16,
+		yellDamageThreshold = 4,
+
 		flying = true,
 		attackDeadTargets = true,
 		canOpenDoors = true,
@@ -159,6 +175,11 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 64,
 		meleeInstantBloodLoss = 5,
 		shootAggressiveness = 0.2,
+
+		hears = true,
+		hasAlertSound = true,
+		vocalisationRange = 18,
+		yellDamageThreshold = 16,
 
 		chargeMelee = true,
 		attackDeadTargets = true,
@@ -195,6 +216,11 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 256,
 		meleeInstantBloodLoss = 20,
 		shootAggressiveness = 0.25,
+
+		hears = true,
+		hasAlertSound = true,
+		vocalisationRange = 20,
+		yellDamageThreshold = 25,
 
 		chargeMelee = true,
 		canOpenDoors = true,
@@ -248,6 +274,8 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 80,
 		meleeInstantBloodLoss = 10,
 		attackDeadTargets = true,
+
+		hears = true
 	}
 	creatureTypes.smallFish1 = {
 		displayName = "small fish",
@@ -263,7 +291,9 @@ function game:loadCreatureTypes()
 		sightDistance = 9,
 		maxHealth = 1,
 		maxBlood = 1,
-		bleedHealRate = 12
+		bleedHealRate = 12,
+		
+		hears = true
 	}
 	creatureTypes.smallFish2 = {
 		displayName = "small fish",
@@ -279,7 +309,9 @@ function game:loadCreatureTypes()
 		sightDistance = 9,
 		maxHealth = 2,
 		maxBlood = 2,
-		bleedHealRate = 12
+		bleedHealRate = 12,
+
+		hears = true
 	}
 end
 

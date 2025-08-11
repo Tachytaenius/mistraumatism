@@ -2,7 +2,16 @@ local consts = require("consts")
 
 local game = {}
 
-function game:explode(x, y, radius, damage, cause)
+function game:explode(x, y, radius, damage, sourceEntity)
+	self:broadcastEvent({
+		sourceEntity = sourceEntity,
+		x = x,
+		y = y,
+		type = "explosion",
+		soundRange = radius * 4,
+		soundType = "explosion"
+	})
+
 	for tileX = x - radius, x + radius do
 		for tileY = y - radius, y + radius do
 			local tile = self:getTile(tileX, tileY)
@@ -35,7 +44,7 @@ function game:explode(x, y, radius, damage, cause)
 				damage = add,
 				bleedRateAdd = add * 8,
 				instantBloodLoss = math.floor(add / 80),
-				cause = cause
+				sourceEntity = sourceEntity
 			}
 
 		    ::continue::

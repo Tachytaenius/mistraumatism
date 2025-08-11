@@ -19,7 +19,8 @@ function game:loadItemTypes()
 		manual = false,
 		magazine = false,
 		magazineRequired = true,
-		magazineClass = "pistol"
+		magazineClass = "pistol",
+		gunshotSoundRange = 20
 	}
 
 	itemTypes.pistolMagazine = {
@@ -77,7 +78,8 @@ function game:loadItemTypes()
 		manual = false,
 		magazine = false,
 		magazineRequired = true,
-		magazineClass = "largeBox"
+		magazineClass = "largeBox",
+		gunshotSoundRange = 20
 	}
 
 	itemTypes.largeBoxMagazine = {
@@ -116,7 +118,8 @@ function game:loadItemTypes()
 		extraDamage = 1,
 		manual = true,
 		magazine = true,
-		magazineCapacity = 4
+		magazineCapacity = 4,
+		gunshotSoundRange = 20
 	}
 
 	itemTypes.huntingShotgun = {
@@ -136,7 +139,8 @@ function game:loadItemTypes()
 		cycleOnBreakActionClose = true,
 		alteredMagazineUse = "select", -- Implies multiple cocking components (number: magazineCapacity)
 		magazine = true,
-		magazineCapacity = 2
+		magazineCapacity = 2,
+		gunshotSoundRange = 20
 	}
 
 	itemTypes.sawnShotgun = {
@@ -156,7 +160,8 @@ function game:loadItemTypes()
 		manualCockTime = 1,
 		alteredMagazineUse = "select",
 		magazine = true,
-		magazineCapacity = 2
+		magazineCapacity = 2,
+		gunshotSoundRange = 20
 	}
 
 	itemTypes.buckshotShell = {
@@ -204,7 +209,8 @@ function game:loadItemTypes()
 		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore" or "select"
 		manual = true,
 		magazine = true,
-		magazineCapacity = 1
+		magazineCapacity = 1,
+		gunshotSoundRange = 20
 	}
 
 	itemTypes.rocket = {
@@ -303,7 +309,8 @@ function game:loadItemTypes()
 					lifetime = 1
 				}
 			}
-		}
+		},
+		gunshotSoundRange = 22
 	}
 
 	itemTypes.railgunEnergyCell = {
@@ -463,7 +470,8 @@ function game:loadItemTypes()
 		doorWindow = false,
 		tile = "│",
 		openTile = "╟",
-		displayName = "ornate door"
+		displayName = "ornate door",
+		stateChangeSoundRange = 5
 	}
 	itemTypes.heavyDoor = {
 		isDoor = true,
@@ -473,7 +481,8 @@ function game:loadItemTypes()
 		doorWindow = false,
 		tile = "│",
 		openTile = "╟",
-		displayName = "heavy door"
+		displayName = "heavy door",
+		stateChangeSoundRange = 12
 	}
 
 	itemTypes.door = {
@@ -484,7 +493,8 @@ function game:loadItemTypes()
 		doorWindow = false,
 		tile = "│",
 		openTile = "╟",
-		displayName = "door"
+		displayName = "door",
+		stateChangeSoundRange = 4
 	}
 	itemTypes.doorWindow = {
 		isDoor = true,
@@ -494,7 +504,8 @@ function game:loadItemTypes()
 		doorWindow = true,
 		tile = "│",
 		openTile = "╟",
-		displayName = "windowed door"
+		displayName = "windowed door",
+		stateChangeSoundRange = 4
 	}
 	itemTypes.airlockDoor = {
 		isDoor = true,
@@ -502,7 +513,8 @@ function game:loadItemTypes()
 		doorWindow = false,
 		tile = "╪",
 		openTile = "╡",
-		displayName = "airlock door"
+		displayName = "airlock door",
+		stateChangeSoundRange = 14
 	}
 	itemTypes.castleDoorLeft = {
 		isDoor = true,
@@ -511,7 +523,8 @@ function game:loadItemTypes()
 		tile = "║",
 		openTile = "▐", -- Material colour will be on the left side because of swapColours
 		swapColours = true,
-		displayName = "castle door"
+		displayName = "castle door",
+		stateChangeSoundRange = 14
 	}
 	itemTypes.castleDoorRight = {
 		isDoor = true,
@@ -520,7 +533,8 @@ function game:loadItemTypes()
 		tile = "║",
 		openTile = "▌",
 		swapColours = true,
-		displayName = "castle door"
+		displayName = "castle door",
+		stateChangeSoundRange = 14
 	}
 	itemTypes.bench = {
 		noPickUp = true,
