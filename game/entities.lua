@@ -345,6 +345,7 @@ function game:updateEntitiesAndProjectiles()
 	-- Actions (and other things)
 	processActions("useHeldItem")
 	processActions("shoot")
+	processActions("mindAttack")
 	self:updateProjectiles()
 	processActions("move")
 	processActions("melee")
@@ -468,6 +469,75 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 
+		if not entity.dead and entity.psychicDamage and entity.creatureType.psychicDamageDeathPoint then
+			local noPsychicDamageTimerJustFinished
+			if entity.psychicDamageTakenThisTick and entity.psychicDamageTakenThisTick > 0 then
+				entity.noPsychicDamageTimer = consts.noPsychicDamageTimerLength
+			else
+				local was = entity.noPsychicDamageTimer and entity.noPsychicDamageTimer > 0
+				entity.noPsychicDamageTimer = math.max(0, (entity.noPsychicDamageTimer or 0) - 1)
+				local is = entity.noPsychicDamageTimer == 0 or not entity.noPsychicDamageTimer
+				if was and not is then
+					noPsychicDamageTimerJustFinished = true
+				end
+			end
+
+			-- Damage should have been dealt at by this point in the tick
+			local before = entity.psychicDamage
+			if not entity.noPsychicDamageTimer or entity.noPsychicDamageTimer <= 0 then
+				entity.psychicDamage = math.max(0, entity.psychicDamage - consts.telepathicMindAttackRecoveryRate)
+			end
+			local damageJustHitZero
+			if before > 0 and entity.psychicDamage <= 0 then
+				damageJustHitZero = true
+			end
+			-- Death occurs later in the code
+
+			if entity == state.player then
+				local init = (entity.initialPsychicDamageThisTick or 0)
+				local cur = entity.psychicDamage
+				local max = entity.creatureType.psychicDamageDeathPoint
+
+				-- Escalating damage
+				-- if init < max * 0.05 and cur >= max * 0.05 then
+				if init <= 0 and cur > 0 then
+					self:announce("You feel a gnawing anxiety...", "darkYellow")
+				end
+				if init < max * 0.25 and cur >= max * 0.25 then
+					self:announce("You slip into a horrendous depression...", "darkYellow")
+				end
+				if init < max * 0.5 and cur >= max * 0.5 then
+					self:announce("You begin to hallucinate and can't think straight.", "yellow")
+				end
+				if init < max * 0.9 and cur >= max * 0.9 then
+					 -- Canon fact: the player is *never* "severed from love and the divine"; they merely are made to feel so by psychic attacks
+					self:announce("You feel severed from love and the divine.\nYou surrender yourself to meaninglessness.", "red")
+				end
+
+				-- De-escalating
+				-- if (entity.noPsychicDamageTimer or 0) <= 0 then
+				-- 	if cur == 0 and (init > 0 or noPsychicDamageTimerJustFinished) then
+				-- 		self:announce("Your perception returns to normal.", "lightGrey")
+				-- 	end
+				-- 	if init > max * 1/3 and cur <= max * 1/3 then
+				-- 		self:announce("You remember yourself.", "darkYellow")
+				-- 	end
+				-- 	if init > max * 2/3 and cur <= max * 2/3 then
+				-- 		self:announce("Your confusion begins to ease, ever so slightly.", "yellow")
+				-- 	end
+				-- end
+
+				local noPsychicDamageTimerAlreadyFinished = not noPsychicDamageTimerJustFinished and (entity.noPsychicDamageTimer or 0) <= 0
+				if
+					noPsychicDamageTimerJustFinished and cur == 0 or
+					(noPsychicDamageTimerAlreadyFinished and damageJustHitZero)
+				then
+					-- TODO: Will this always be announced?
+					self:announce("Your remember yourself.", "lightGrey")
+				end
+			end
+		end
+
 		local tile = self:getTile(entity.x, entity.y)
 		if tile.explosionInfo then
 			for _, damageInfo in ipairs(tile.explosionInfo.damagesThisTick) do
@@ -531,7 +601,12 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		if not entity.dead then
-			if entity.health <= 0 or (entity.blood and entity.blood <= 0) or (entity.drownTimer and entity.creatureType.breathingTimerLength and entity.drownTimer >= entity.creatureType.breathingTimerLength) then
+			if
+				entity.health <= 0 or
+				(entity.blood and entity.blood <= 0) or
+				(entity.drownTimer and entity.creatureType.breathingTimerLength and entity.drownTimer >= entity.creatureType.breathingTimerLength) or
+				(entity.psychicDamage and entity.creatureType.psychicDamageDeathPoint and entity.psychicDamage >= entity.creatureType.psychicDamageDeathPoint)
+			then
 				kill(entity)
 			end
 		end
@@ -643,7 +718,13 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 
-		if not gibbed and entity.damageTakenThisTick and entity.creatureType.yellDamageThreshold and entity.damageTakenThisTick >= entity.creatureType.yellDamageThreshold then
+		if
+			not gibbed and entity.damageTakenThisTick and
+			(
+				entity.dead or
+				entity.creatureType.yellDamageThreshold and entity.damageTakenThisTick >= entity.creatureType.yellDamageThreshold
+			)
+		then
 			if not entity.dead or entity.deathTick == state.tick then
 				self:broadcastEvent({
 					sourceEntity = entity,

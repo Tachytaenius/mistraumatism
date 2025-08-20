@@ -945,6 +945,42 @@ function game:loadActionTypes()
 		end
 		return interact.construct(self, player, targetEntity, direction)
 	end
+
+	local mindAttack = newActionType("mindAttack", "mind flay")
+	function mindAttack.validate(self, entity, action)
+		if not entity.creatureType.telepathicMindAttackDamageRate then
+			return false
+		end
+		if not (action.target and not action.target.dead) then
+			return false
+		end
+		if not self:entityCanSeeEntity(entity, action.target) then
+			return false
+		end
+		return true
+	end
+	function mindAttack.construct(self, entity, target)
+		local new = {type = "mindAttack"}
+		new.timer = 1
+		new.target = target
+		if mindAttack.validate(self, entity, new) then
+			return new
+		end
+	end
+	function mindAttack.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if mindAttack.validate(self, entity, action) then
+				if action.target.creatureType.psychicDamageDeathPoint then
+					action.target.psychicDamage = (action.target.psychicDamage or 0) + entity.creatureType.telepathicMindAttackDamageRate
+					action.target.psychicDamageTakenThisTick = (action.target.psychicDamageTakenThisTick or 0) + entity.creatureType.telepathicMindAttackDamageRate
+				end
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
 end
 
 return game

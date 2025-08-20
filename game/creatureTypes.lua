@@ -7,6 +7,8 @@ function game:loadCreatureTypes()
 	local creatureTypes = {}
 	state.creatureTypes = creatureTypes
 
+	-- NOTE: Like with gun behaviour variables in item types, the creature type AI control variables were designed to reach specific intended behaviours, and random combinations of the variables may not lead to good results. With certain combinations you may find monsters that act in nonsensical ways like running up to you and doing nothing.
+
 	creatureTypes.human = {
 		displayName = "human",
 		tile = "@",
@@ -30,7 +32,9 @@ function game:loadCreatureTypes()
 		yellDamageThreshold = 3,
 
 		canOpenDoors = true,
-		inventorySize = 9
+		inventorySize = 9,
+
+		psychicDamageDeathPoint = 240
 	}
 
 	creatureTypes.zombie = {
@@ -53,7 +57,9 @@ function game:loadCreatureTypes()
 		vocalisationRange = 8,
 		yellDamageThreshold = 2,
 
-		inventorySize = 2
+		inventorySize = 2,
+
+		psychicDamageDeathPoint = 24
 	}
 
 	creatureTypes.skeleton = {
@@ -71,7 +77,9 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 3,
 		shootAggressiveness = 0.5,
 
-		inventorySize = 2
+		inventorySize = 2,
+
+		psychicDamageDeathPoint = 16
 	}
 
 	creatureTypes.slug = {
@@ -145,6 +153,8 @@ function game:loadCreatureTypes()
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
+		psychicDamageDeathPoint = 240,
+
 		projectileAbilities = {
 			{
 				name = "fireball",
@@ -157,6 +167,39 @@ function game:loadCreatureTypes()
 				range = 12
 			}
 		}
+	}
+
+	creatureTypes.demonicPriest = {
+		displayName = "demonic priest",
+		tile = "Å",
+		colour = "darkBlue",
+		bloodMaterialName = "bloodGreen",
+
+		moveTimerLength = 3,
+		sightDistance = 18,
+		maxHealth = 40,
+		maxBlood = 24,
+		bleedHealRate = 384,
+		-- meleeTimerLength = 1,
+		-- meleeDamage = 1,
+		-- meleeBleedRateAdd = 0,
+		-- meleeInstantBloodLoss = 1,
+
+		engagesAtRange = true,
+		preferredEngagementRange = 7,
+
+		hears = true,
+		hasAlertSound = true,
+		vocalisationRange = 20,
+		yellDamageThreshold = 4,
+
+		flying = true,
+		attackDeadTargets = true,
+		canOpenDoors = true,
+
+		shootAggressiveness = 1,
+		wrongRangeShootAggressiveness = 0.2,
+		telepathicMindAttackDamageRate = 1
 	}
 
 	creatureTypes.hellNoble = {
@@ -184,6 +227,8 @@ function game:loadCreatureTypes()
 		chargeMelee = true,
 		attackDeadTargets = true,
 		canOpenDoors = true,
+
+		psychicDamageDeathPoint = 240,
 
 		projectileAbilities = {
 			{

@@ -45,7 +45,9 @@ function game:loadItemTypes()
 		instantBloodLoss = 2,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 18,
-		range = 17
+		range = 17,
+		projectileTile = "∙",
+		projectileColour = "darkGrey"
 	}
 
 	itemTypes.mediumBullet = {
@@ -61,7 +63,9 @@ function game:loadItemTypes()
 		instantBloodLoss = 3,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 16,
-		range = 18
+		range = 18,
+		projectileTile = "∙",
+		projectileColour = "darkGrey"
 	}
 
 	itemTypes.rotaryCannon = {
@@ -104,7 +108,9 @@ function game:loadItemTypes()
 		instantBloodLoss = 5,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 14,
-		range = 19
+		range = 19,
+		projectileTile = "∙",
+		projectileColour = "darkGrey"
 	}
 
 	itemTypes.pumpShotgun = {
@@ -177,7 +183,9 @@ function game:loadItemTypes()
 		bleedRateAdd = 4,
 		instantBloodLoss = 1,
 		projectileSubtickMoveTimerLength = 20,
-		range = 16
+		range = 16,
+		projectileTile = "∙",
+		projectileColour = "darkGrey"
 	}
 
 	itemTypes.slugShell = {
@@ -192,7 +200,9 @@ function game:loadItemTypes()
 		bleedRateAdd = 100,
 		instantBloodLoss = 7,
 		projectileSubtickMoveTimerLength = 32,
-		range = 18
+		range = 18,
+		projectileTile = "∙",
+		projectileColour = "darkGrey"
 	}
 
 	itemTypes.rocketLauncher = {
@@ -291,7 +301,8 @@ function game:loadItemTypes()
 		worksInLiquid = true,
 		magazineClass = "railgun",
 		projectile = {
-			tile = "°",
+			projectileTile = "°",
+			projectileColour = "white",
 			spread = 0,
 			damage = 200,
 			bleedRateAdd = 1000,
@@ -324,6 +335,143 @@ function game:loadItemTypes()
 		secondaryColour = "cyan",
 		magazineClass = "railgun"
 	}
+
+	itemTypes.plasmaShotgun = {
+		isGun = true,
+		tile = "⌐",
+		maxEnergy = 12,
+		energyPerShot = 8,
+		energyChargeRate = 1,
+		energyDischargeRate = 1,
+		energyWeapon = true,
+		displayName = "plasma shotgun",
+		extraSpread = nil,
+		shotCooldownTimerLength = 4,
+		operationTimerLength = 1,
+		manual = false,
+		magazine = false,
+		magazineRequired = true,
+		worksInLiquid = false,
+		magazineClass = "plasma",
+		projectile = {
+			projectileTile = "*",
+			projectileColour = "lightGrey",
+			spread = 0.12,
+			damage = 3,
+			bleedRateAdd = 20,
+			instantBloodLoss = 1,
+			bulletCount = 12,
+			projectileSubtickMoveTimerLength = 64,
+			range = 14,
+			maxPierces = 2,
+			trailParticleInfo = {
+				{
+					count = 1,
+					tile = "▓",
+					foregroundColour = "cyan",
+					backgroundColour = "lightGrey",
+					lifetime = 1
+				}
+			}
+		},
+		gunshotSoundRange = 20
+	}
+
+	itemTypes.plasmaRifle = {
+		isGun = true,
+		tile = "⌐",
+		maxEnergy = 2,
+		energyPerShot = 2,
+		energyChargeRate = 2,
+		energyDischargeRate = 1,
+		energyWeapon = true,
+		displayName = "plasma rifle",
+		extraSpread = nil,
+		shotCooldownTimerLength = 1,
+		operationTimerLength = 1,
+		manual = false,
+		magazine = false,
+		magazineRequired = true,
+		worksInLiquid = false,
+		magazineClass = "plasma",
+		projectile = {
+			projectileTile = "☼",
+			projectileColour = "lightGrey",
+			spread = 0,
+			damage = 16,
+			bleedRateAdd = 100,
+			instantBloodLoss = 3,
+			bulletCount = 1,
+			projectileSubtickMoveTimerLength = 48,
+			range = 15,
+			maxPierces = 3,
+			trailParticleInfo = {
+				{
+					count = 1,
+					tile = "▓",
+					foregroundColour = "cyan",
+					backgroundColour = "lightGrey",
+					lifetime = 1
+				}
+			}
+		},
+		gunshotSoundRange = 20
+	}
+
+	itemTypes.plasmathrower = {
+		isGun = true,
+		tile = "⌐",
+		maxEnergy = 1,
+		energyPerShot = 1,
+		energyChargeRate = 1,
+		energyDischargeRate = 1,
+		energyWeapon = true,
+		displayName = "plasmathrower",
+		extraSpread = nil,
+		shotCooldownTimerLength = 1,
+		operationTimerLength = 1,
+		manual = false,
+		magazine = false,
+		magazineRequired = true,
+		worksInLiquid = false,
+		magazineClass = "plasma",
+		projectile = {
+			projectileTile = nil,
+			projectileColour = "yellow",
+			spread = 0.5,
+			damage = 1,
+			bleedRateAdd = 1,
+			instantBloodLoss = 0,
+			bulletCount = 8,
+			projectileSubtickMoveTimerLength = 128,
+			range = 6,
+			maxPierces = 1,
+			trailParticleInfo = {
+				{
+					count = 1,
+					tile = "▒",
+					foregroundColour = "yellow",
+					backgroundColour = "red",
+					lifetime = 3
+				}
+			}
+		},
+		gunshotSoundRange = nil
+	}
+
+	itemTypes.plasmaEnergyCell = {
+		energyBattery = true,
+		maxEnergy = 64,
+		energyDischargeRate = 2,
+		energyChargeRate = 2, -- Weapon back into cell
+		displayName = "plasma cell",
+		tile = "=",
+		swapColours = true,
+		secondaryColour = "darkCyan",
+		magazineClass = "plasma"
+	}
+
+
 
 	itemTypes.boxCutter = {
 		tile = "`",

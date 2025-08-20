@@ -533,7 +533,13 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local foreground = getCreatureColour(entity)
 			local background = entity.dead and (entity.creatureType.bloodMaterialName and state.materials[entity.creatureType.bloodMaterialName].colour or (foreground == "darkGrey" and "lightGrey" or "darkGrey")) or "black"
 			drawnEntities[entity] = drawCharacterWorldToViewportVisibleOnly(entity.x, entity.y, entity.creatureType.tile, foreground, background)
-			if drawEntityWarnings and entity ~= state.player and entity.actions[1] and entity.actions[1].type == "shoot" then
+			if
+				drawEntityWarnings and entity ~= state.player and entity.actions[1] and
+				(
+					entity.actions[1].type == "shoot" or
+					entity.actions[1].type == "mindAttack"
+				)
+			then
 				drawIndicator(entity.x, entity.y, "!", "red", "black")
 			end
 		else
@@ -564,7 +570,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		drawCharacterWorldToViewportVisibleOnly(gib.currentX, gib.currentY, tile, colour, "black")
 	end
 	for _, projectile in ipairs(state.projectiles) do
-		drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+		if projectile.tile then
+			drawCharacterWorldToViewportVisibleOnly(projectile.currentX, projectile.currentY, projectile.tile, projectile.colour, "black")
+		end
 	end
 	for tile in pairs(state.map.explosionTiles) do
 		local gradientValue = tile.explosionInfo.visual * #consts.explosionGradient / consts.explosionGradientMax
@@ -744,7 +752,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			if not action then
 				actionInfo = "No action"
 			else
-				if action.type == "shoot" or action.type == "melee" then
+				if action.type == "shoot" or action.type == "melee" or action.type == "mindAttack" then
 					actionColour = "red"
 				else
 					actionColour = "darkCyan"
