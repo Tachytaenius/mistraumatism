@@ -1,6 +1,7 @@
 local util = require("util")
 local consts = require("consts")
 local commands = require("commands")
+local settings = require("settings")
 
 local game = {}
 
@@ -100,12 +101,14 @@ function game:init(args)
 			paletteName = arg:gsub(paletteArg, "")
 		end
 	end
-	fontName = fontName or "modifiedKelora"
-	paletteName = paletteName or "main"
+	fontName = fontName or "azoth_acorn_8x8"
+	paletteName = paletteName or "natural"
 
 	local fontLocation = "fonts/" .. fontName .. ".png"
 	local fontImageData = love.image.newImageData(fontLocation)
-	util.remakeWindow(self:getCanvasSize(fontImageData:getDimensions()))
+	local canvasWidth, canvasHeight = self:getCanvasSize(fontImageData:getDimensions())
+	settings.graphics.canvasScale = settings.graphics.canvasScale or util.getLargestAllowableCanvasScale(canvasWidth, canvasHeight)
+	util.remakeWindow(canvasWidth, canvasHeight)
 	self.fontImage = love.graphics.newImage(fontLocation)
 	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
 	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values

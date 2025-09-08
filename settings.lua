@@ -2,7 +2,7 @@
 
 return {
 	graphics = {
-		canvasScale = 1,
+		-- canvasScale = 1, -- Automatically filled with largest allowable size
 		fullscreen = false
 	},
 	controls = {
