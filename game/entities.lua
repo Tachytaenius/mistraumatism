@@ -187,6 +187,7 @@ function game:updateEntitiesAndProjectiles()
 			if item.onUnpress then
 				item.onUnpress(self, item, x, y)
 			end
+			self:broadcastButtonStateChangedEvent(item, nil, false, x, y)
 		elseif item.itemType.isLever then
 			if item.active and item.onTickActive then
 				item.onTickActive(self, item, x, y)
@@ -504,10 +505,10 @@ function game:updateEntitiesAndProjectiles()
 					self:announce("You feel a gnawing anxiety...", "darkYellow")
 				end
 				if init < max * 0.25 and cur >= max * 0.25 then
-					self:announce("You slip into a horrendous depression...", "darkYellow")
+					self:announce("You begin to hallucinate and can't think straight.", "darkYellow")
 				end
 				if init < max * 0.5 and cur >= max * 0.5 then
-					self:announce("You begin to hallucinate and can't think straight.", "yellow")
+					self:announce("You slip into abject depression.", "yellow")
 				end
 				if init < max * 0.9 and cur >= max * 0.9 then
 					 -- Canon fact: the player is *never* "severed from love and the divine"; they merely are made to feel so by psychic attacks

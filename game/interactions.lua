@@ -35,6 +35,28 @@ function game:broadcastDoorStateChangedEvent(tile, opener, manual)
 	})
 end
 
+function game:broadcastButtonStateChangedEvent(item, interactor, manual, x, y)
+	self:broadcastEvent({
+		sourceEntity = interactor,
+		x = x,
+		y = y,
+		type = "buttonChangeState",
+		soundRange = item.itemType.stateChangeSoundRange,
+		soundType = item.pressed and "buttonPressed" or "buttonReset"
+	})
+end
+
+function game:broadcastLeverStateChangedEvent(item, interactor, manual, x, y)
+	self:broadcastEvent({
+		sourceEntity = interactor,
+		x = x,
+		y = y,
+		type = "leverChangeState",
+		soundRange = item.itemType.stateChangeSoundRange,
+		soundType = item.active and "leverActivated" or "leverDeactivated"
+	})
+end
+
 function game:loadInteractionTypes()
 	local interactionTypes = {}
 
@@ -142,16 +164,17 @@ function game:loadInteractionTypes()
 		if item.pressed or item.frozenState then
 			return
 		end
+		local x, y
+		if interactionType == "world" then
+			x, y = interactee.x, interactee.y
+		elseif interactor then
+			x, y = interactor.x, interactor.y
+		end
 		if item.onPress then
-			local x, y
-			if interactionType == "world" then
-				x, y = interactee.x, interactee.y
-			elseif interactor then
-				x, y = interactor.x, interactor.y
-			end
 			item.onPress(self, item, x, y)
 		end
 		item.pressed = true
+		self:broadcastButtonStateChangedEvent(item, interactor, true, x, y)
 	end
 	interactionTypes.button.startInfoHeld = interactionTypes.button.startInfoWorld
 	interactionTypes.button.resultHeld = interactionTypes.button.resultWorld
@@ -169,14 +192,14 @@ function game:loadInteractionTypes()
 		if info.doneState == not not item.active then
 			return
 		end
+		local x, y
+		if interactionType == "world" then
+			x, y = interactee.x, interactee.y
+		elseif interactor then
+			x, y = interactor.x, interactor.y
+		end
 		if item.active then
 			if item.onDeactivate then
-				local x, y
-				if interactionType == "world" then
-					x, y = interactee.x, interactee.y
-				elseif interactor then
-					x, y = interactor.x, interactor.y
-				end
 				item.onDeactivate(self, item, x, y)
 			end
 			item.active = false
@@ -185,16 +208,11 @@ function game:loadInteractionTypes()
 				if item.itemType.onActivateMessage and interactor == self.state.player and self.state.player then
 					self:announce(item.itemType.onActivateMessage, "lightGrey")
 				end
-				local x, y
-				if interactionType == "world" then
-					x, y = interactee.x, interactee.y
-				elseif interactor then
-					x, y = interactor.x, interactor.y
-				end
 				item.onActivate(self, item, x, y)
 			end
 			item.active = true
 		end
+		self:broadcastLeverStateChangedEvent(item, interactor, true, x, y)
 	end
 	interactionTypes.lever.startInfoHeld = interactionTypes.lever.startInfoWorld
 	interactionTypes.lever.resultHeld = interactionTypes.lever.resultWorld

@@ -702,7 +702,8 @@ function game:loadItemTypes()
 		activeTile = "○",
 		displayName = "button",
 		interactable = true,
-		interactionType = state.interactionTypes.button
+		interactionType = state.interactionTypes.button,
+		stateChangeSoundRange = 2
 	}
 
 	itemTypes.lever = {
@@ -712,7 +713,8 @@ function game:loadItemTypes()
 		activeTile = "ó",
 		displayName = "lever",
 		interactable = true,
-		interactionType = state.interactionTypes.lever
+		interactionType = state.interactionTypes.lever,
+		stateChangeSoundRange = 2
 	}
 
 	itemTypes.smallBook = {
@@ -736,7 +738,8 @@ function game:loadItemTypes()
 		isLever = true,
 		inactiveHidden = true, -- Hide "inactive" status
 		onActivateMessage = "The book was a hidden lever!",
-		noPickUp = true
+		noPickUp = true,
+		stateChangeSoundRange = 2
 	}
 	itemTypes.largeBook = {
 		tile = "∞",

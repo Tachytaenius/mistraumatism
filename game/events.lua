@@ -76,6 +76,12 @@ function game:loadEventTypes()
 	eventTypes.hatchChangeState = {
 		sourceEntityRelation = "objectUse"
 	}
+	eventTypes.buttonChangeState = {
+		sourceEntityRelation = "objectUse"
+	}
+	eventTypes.leverChangeState = {
+		sourceEntityRelation = "objectUse"
+	}
 
 	eventTypes.pain = {
 		isDamageTaken = true,
@@ -120,6 +126,10 @@ function game:loadSoundTypes()
 	soundTypes.doorClosing = {}
 	soundTypes.hatchOpening = {}
 	soundTypes.hatchClosing = {}
+	soundTypes.buttonPressed = {}
+	soundTypes.buttonReset = {}
+	soundTypes.leverActivated = {}
+	soundTypes.leverDeactivated = {}
 end
 
 return game
