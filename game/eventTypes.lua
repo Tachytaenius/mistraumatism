@@ -14,11 +14,36 @@ function game:loadEventTypes()
 
 	-- NOTE: (At time of writing) audioRevealsSource only works if sourceEntityRelation is not remoteCause
 
+	local function doorAnnounce(doorType) -- Doors or hatches
+		local announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
+			local verb, verbs
+			if eventData.wasOpening then
+				verb = "open"
+				verbs = "opens"
+			else
+				verb = "shut"
+				verbs = "shuts"
+			end
+
+			if playerSource then
+				return "You " .. verb .. " the " .. doorType .. ".", "darkGrey"
+			elseif sourceKnown then
+				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " " .. verbs .. " the " .. doorType .. ".", "darkGrey"
+			elseif visible then
+				return "You see a " .. doorType .. " " .. verb .. ".", "darkGrey"
+			elseif audible then
+				return "You hear a " .. doorType .. " " .. verb .. ".", "darkGrey"
+			end
+		end
+		return announceToPlayer
+	end
 	eventTypes.doorChangeState = {
-		sourceEntityRelation = "objectUse"
+		sourceEntityRelation = "objectUse",
+		announceToPlayer = doorAnnounce("door")
 	}
 	eventTypes.hatchChangeState = {
-		sourceEntityRelation = "objectUse"
+		sourceEntityRelation = "objectUse",
+		announceToPlayer = doorAnnounce("hatch")
 	}
 	eventTypes.buttonChangeState = {
 		sourceEntityRelation = "objectUse"
@@ -173,7 +198,7 @@ function game:loadEventTypes()
 			if playerSource then
 				return "Your gun fires.", "lightGrey"
 			elseif sourceKnown then
-				return self:getEntityDisplayName(eventData.sourceEntity) .. " fires a gun!", "red"
+				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " fires a gun!", "red"
 			elseif visible then
 				return "You see a gunshot!", "red"
 			elseif audible then

@@ -57,6 +57,7 @@ function game:loadCreatureTypes()
 		vocalisationRange = 8,
 		painDamageThreshold = 2,
 
+		canOpenDoors = true,
 		inventorySize = 2,
 
 		psychicDamageDeathPoint = 24
@@ -78,6 +79,7 @@ function game:loadCreatureTypes()
 
 		painDamageThreshold = 1,
 
+		canOpenDoors = true,
 		inventorySize = 2,
 
 		psychicDamageDeathPoint = 16

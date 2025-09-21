@@ -679,7 +679,7 @@ function game:loadItemTypes()
 		openTile = "▐", -- Material colour will be on the left side because of swapColours
 		swapColours = true,
 		displayName = "castle door",
-		stateChangeSoundRange = 14
+		stateChangeSoundRange = 22
 	}
 	itemTypes.castleDoorRight = {
 		isDoor = true,
@@ -689,7 +689,7 @@ function game:loadItemTypes()
 		openTile = "▌",
 		swapColours = true,
 		displayName = "castle door",
-		stateChangeSoundRange = 14
+		stateChangeSoundRange = 22
 	}
 	itemTypes.bench = {
 		noPickUp = true,

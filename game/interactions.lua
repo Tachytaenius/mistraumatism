@@ -20,7 +20,7 @@ function game:broadcastHatchStateChangedEvent(tile, opener, manual)
 		y = tile.y,
 		type = "hatchChangeState",
 		soundRange = self.state.tileTypes[tile.type].stateChangeSoundRange,
-		toState = hatchState
+		wasOpening = hatchState == "open"
 	})
 end
 

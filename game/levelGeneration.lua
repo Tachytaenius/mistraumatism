@@ -196,7 +196,7 @@ end
 
 function game:getAirlockOnPress(airlockInfo)
 	return function(self, item, x, y)
-		-- TODO: Delay
+		-- TODO: Delay. Even more important now that door open/close events are announced
 		if airlockInfo.airDoorOpen then
 			if self:isDoorBlocked(airlockInfo.airDoor) then
 				return
