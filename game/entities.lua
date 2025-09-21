@@ -313,7 +313,7 @@ function game:updateEntitiesAndProjectiles()
 					y = entity.y,
 					sourceEntity = entity,
 					type = "enemyAlert",
-					soundType = doSound and "warcry" or nil,
+					alertType = doSound and "warcry" or "point",
 					soundRange = doSound and entity.creatureType.vocalisationRange or nil,
 					spottedEntity = potentialTarget,
 					spottedEntityLocation = {x = potentialTarget.x, y = potentialTarget.y}
@@ -601,6 +601,35 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 
+		for _, sourceInfo in ipairs(state.damagesQueue) do
+			local done = false
+			for _, destination in ipairs(sourceInfo) do
+				if entity ~= destination.entity then
+					goto continue
+				end
+
+				local sourceEntityOrTypeName = sourceInfo.source
+				local damage = destination.total
+				self:broadcastEvent({
+					-- sourceEntity means "entity associated with the event" in broadcastEvent, and in damageEntity it means "entity which is the source of damage". They're not the same here!
+					sourceEntity = entity,
+					damageDealer = sourceEntityOrTypeName,
+					x = entity.x,
+					y = entity.y,
+					type = "damageReceived",
+					damageDealt = damage,
+				})
+				done = true
+				do break end
+
+			    ::continue::
+			end
+			if done then
+				break
+			end
+		end
+		-- state.damagesQueue is set to a new table after all entities are handled by this loop
+
 		if not entity.dead then
 			if
 				entity.health <= 0 or
@@ -617,12 +646,14 @@ function game:updateEntitiesAndProjectiles()
 		if entity.health <= gibThreshold then
 			gibbed = true
 
+			local entityFleshMaterial = entity.creatureType.fleshMaterialName or "fleshRed"
+
 			self:broadcastEvent({
 				sourceEntity = entity,
 				x = entity.x,
 				y = entity.y,
 				type = "gibbing",
-				soundType = entity.creatureType.gibSoundType or "goreExplosion",
+				gibMaterial = entityFleshMaterial,
 				soundRange = 10,
 				isDeath = true
 			})
@@ -657,7 +688,7 @@ function game:updateEntitiesAndProjectiles()
 					subtickMoveTimerLength = subtickMoveTimerLength,
 					subtickMoveTimerLengthChange = 24,
 					subtickMoveTimerLengthMax = subtickMoveTimerLength * 2,
-					fleshMaterial = entity.creatureType.fleshMaterialName or "fleshRed",
+					fleshMaterial = entityFleshMaterial,
 					fleshAmount = 0,
 					bloodMaterial = entity.creatureType.bloodMaterialName,
 					bloodAmount = 0,
@@ -723,7 +754,7 @@ function game:updateEntitiesAndProjectiles()
 			not gibbed and entity.damageTakenThisTick and
 			(
 				entity.dead or
-				entity.creatureType.yellDamageThreshold and entity.damageTakenThisTick >= entity.creatureType.yellDamageThreshold
+				entity.creatureType.painDamageThreshold and entity.damageTakenThisTick >= entity.creatureType.painDamageThreshold
 			)
 		then
 			if not entity.dead or entity.deathTick == state.tick then
@@ -733,14 +764,15 @@ function game:updateEntitiesAndProjectiles()
 					y = entity.y,
 					type = "pain",
 					soundRange = entity.creatureType.vocalisationRange,
-					soundType = entity.dead and "deathScream" or "scream",
+					painSound = entity.creatureType.vocalisationRange and "scream",
 					isDeath = entity.dead
 				})
 			end
 		end
-		
+
 		::continue::
 	end
+	state.damagesQueue = {} -- Accumulate anything for next tick
 	flushEntityRemoval()
 
 	for _, entity in ipairs(state.entities) do
@@ -822,7 +854,7 @@ function game:getEntityDisplayName(entity)
 	end
 end
 
-function game:damageEntity(entity, damage, sourceEntity, bleedRateAdd, instantBloodLoss)
+function game:damageEntity(entity, damage, source, bleedRateAdd, instantBloodLoss)
 	-- Deal
 
 	local state = self.state
@@ -834,18 +866,16 @@ function game:damageEntity(entity, damage, sourceEntity, bleedRateAdd, instantBl
 
 	-- Record
 
-	-- TODO: Non-entity sources
-
 	local dealtDamageList
-	for _, sourceEntityList in ipairs(state.damagesThisTick) do
-		if sourceEntityList.sourceEntity == sourceEntity then
-			dealtDamageList = sourceEntityList
+	for _, sourceList in ipairs(state.damagesQueue) do
+		if sourceList.source == source then
+			dealtDamageList = sourceList
 			break
 		end
 	end
 	if not dealtDamageList then
-		dealtDamageList = {sourceEntity = sourceEntity}
-		state.damagesThisTick[#state.damagesThisTick+1] = dealtDamageList
+		dealtDamageList = {source = source}
+		state.damagesQueue[#state.damagesQueue+1] = dealtDamageList
 	end
 
 	local damageReceiverInfo
@@ -862,7 +892,7 @@ function game:damageEntity(entity, damage, sourceEntity, bleedRateAdd, instantBl
 	damageReceiverInfo.total = damageReceiverInfo.total + damage
 
 	-- Only damages paired with sources are recorded above, so we also need to aggregate all damage that a creature receives each tick
-	
+
 	entity.damageTakenThisTick = (entity.damageTakenThisTick or 0) + damage
 end
 

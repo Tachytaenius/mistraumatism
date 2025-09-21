@@ -46,17 +46,17 @@ function info:createLevel()
 	local secretLibraryBookDoorCoord
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x22 then
-			self:placeExaminable(x, y, "statue2", "marble", "The statue's smug self-complicity angers your animal\nheart. It is vile.")
+			self:placeExaminable(x, y, "statue3", "marble", "The statue's smug self-complicity angers your animal\nheart. It is vile.")
 		elseif value == 0x23 then
-			self:placeExaminable(x, y, "statue2", "marble", "The statue depicts a deeply insulting scene.\nYou feel terrible.")
+			self:placeExaminable(x, y, "statue3", "marble", "The statue depicts a deeply insulting scene.\nYou feel terrible.")
 		elseif value == 0x24 then
 			self:placeExaminable(x, y, "statue1", "marble", "This statue was not made by compassionate hands...\nHow could anyone be so cruel to feel such a thing?")
 		elseif value == 0x25 then
-			self:placeExaminable(x, y, "statue1", "marble", "You avert your gaze. The statue makes you sick.")
+			self:placeExaminable(x, y, "statue2", "marble", "You avert your gaze. The statue makes you sick.")
 		elseif value == 0x26 then
 			self:placeExaminable(x, y, "statue1", "marble", "This art is a form of violence.")
 		elseif value == 0x27 then
-			self:placeExaminable(x, y, "statue1", "marble", "Whoever created the sculpture wanted to cause harm.\nIt may be a masterpiece, but it has no value.")
+			self:placeExaminable(x, y, "statue2", "marble", "Whoever created the sculpture wanted to cause harm.\nIt may be a masterpiece, but it has no value.")
 		elseif value == 0x28 then
 			self:placeDoorItem(x, y, "ornateDoor", "mahogany", false)
 		elseif value == 0x29 then

@@ -29,7 +29,7 @@ function game:loadCreatureTypes()
 		hears = true,
 		hasAlertSound = true,
 		vocalisationRange = 14,
-		yellDamageThreshold = 3,
+		painDamageThreshold = 3,
 
 		canOpenDoors = true,
 		inventorySize = 9,
@@ -55,7 +55,7 @@ function game:loadCreatureTypes()
 		hears = true,
 		hasAlertSound = true,
 		vocalisationRange = 8,
-		yellDamageThreshold = 2,
+		painDamageThreshold = 2,
 
 		inventorySize = 2,
 
@@ -67,7 +67,6 @@ function game:loadCreatureTypes()
 		tile = "s",
 		colour = "white",
 		fleshMaterialName = "bone",
-		gibSoundType = "boneExplosion",
 
 		moveTimerLength = 5,
 		sightDistance = 12,
@@ -76,6 +75,8 @@ function game:loadCreatureTypes()
 		meleeDamage = 2,
 		meleeBleedRateAdd = 3,
 		shootAggressiveness = 0.5,
+
+		painDamageThreshold = 1,
 
 		inventorySize = 2,
 
@@ -147,7 +148,7 @@ function game:loadCreatureTypes()
 		hears = true,
 		hasAlertSound = true,
 		vocalisationRange = 16,
-		yellDamageThreshold = 4,
+		painDamageThreshold = 4,
 
 		flying = true,
 		attackDeadTargets = true,
@@ -191,7 +192,7 @@ function game:loadCreatureTypes()
 		hears = true,
 		hasAlertSound = true,
 		vocalisationRange = 20,
-		yellDamageThreshold = 4,
+		painDamageThreshold = 4,
 
 		flying = true,
 		attackDeadTargets = true,
@@ -222,7 +223,7 @@ function game:loadCreatureTypes()
 		hears = true,
 		hasAlertSound = true,
 		vocalisationRange = 18,
-		yellDamageThreshold = 16,
+		painDamageThreshold = 16,
 
 		chargeMelee = true,
 		attackDeadTargets = true,
@@ -265,7 +266,7 @@ function game:loadCreatureTypes()
 		hears = true,
 		hasAlertSound = true,
 		vocalisationRange = 20,
-		yellDamageThreshold = 25,
+		painDamageThreshold = 25,
 
 		chargeMelee = true,
 		canOpenDoors = true,

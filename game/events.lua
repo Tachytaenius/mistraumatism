@@ -1,7 +1,7 @@
 local game = {}
 
 function game:getSoundHeard(entity, eventData)
-	if not (eventData.soundType and eventData.soundRange) then
+	if not eventData.soundRange then
 		return false
 	end
 	if not entity.creatureType.hears then
@@ -15,17 +15,26 @@ function game:handleEventForPlayer(eventData, visible, audible)
 	if not player then
 		return
 	end
-	-- TODO (or not!): Filter out player-made events that don't need to be announced
-	self:announce("(TODO) Event: " .. eventData.type .. ", " .. (audible and eventData.soundType or "???") .. ", " .. (eventData.sourceEntity and eventData.sourceEntity.creatureType.displayName or "???"), "lightGrey")
+	local eventType = self.state.eventTypes[eventData.type]
+	if not eventType.announceToPlayer then
+		return
+	end
+	local isPlayer = eventData.sourceEntity == player
+	local sourceKnown = isPlayer or (
+		eventType.sourceEntityRelation ~= "remoteCause" and
+		eventData.sourceEntity and (visible or eventType.audioRevealsSource and audible)
+	)
+	local text, colour = eventType.announceToPlayer(
+		self, eventData, isPlayer, sourceKnown, visible, audible
+	)
+	if text then
+		self:announce(text, colour)
+	end
 end
 
 function game:broadcastEvent(eventData)
-	-- For an event with sound, eventData.sourceEntity isn't always vocalising the sound. Especially if x and y aren't the entity's x and y
 	local state = self.state
 	assert(state.eventTypes[eventData.type], "Unknown event type " .. eventData.type)
-	if eventData.soundType then
-		assert(state.soundTypes[eventData.soundType], "Unknown sound type " .. eventData.soundType)
-	end
 	state.eventsQueue[#state.eventsQueue+1] = eventData
 end
 
@@ -34,102 +43,53 @@ function game:handleEventsQueue()
 	local builtUpEventsQueue = state.eventsQueue
 	state.eventsQueue = {} -- Accumulate anything for next tick
 	for _, eventData in ipairs(builtUpEventsQueue) do
-		for _, entity in ipairs(state.entities) do
+		local handledEntities = {}
+		local function handleEntity(entity, direct)
+			if handledEntities[entity] then
+				return
+			end
+			handledEntities[entity] = true
+
 			if entity == state.player then -- Allowed if entity is source entity
-				-- No events will be seen/heard when dead
 				local visible = self:entityCanSeeTile(entity, eventData.x, eventData.y)
 				local audible = self:getSoundHeard(entity, eventData)
-				if visible or audible then
+				if direct or visible or audible then
 					self:handleEventForPlayer(eventData, visible, audible)
 				end
-				goto continue
+				return
 			end
+
 			if eventData.sourceEntity == entity then
-				goto continue
+				return
 			end
 			if entity.entityType ~= "creature" or entity.dead then
-				goto continue
+				return
 			end
+
 			local visible = self:entityCanSeeTile(entity, eventData.x, eventData.y)
 			local audible = self:getSoundHeard(entity, eventData)
-			if visible or audible then
+			if direct or visible or audible then
 				self:tryInvestigateEvent(entity, eventData, visible, audible)
 			end
-			::continue::
+		end
+
+		if state.player and eventData.sourceEntity == state.player and state.eventTypes[eventData.type].sourceEntityRelation ~= "remoteCause" then
+			-- If an event happens about an entity's person, the entity should automatically know about it. This also skips death checks for the player.
+			handleEntity(state.player, true)
+		end
+
+		if eventData.directSignalEntities then
+			for _, entity in ipairs(eventData.directSignalEntities) do
+				handleEntity(entity, true)
+			end
+		end
+
+		if not eventData.directSignalOnly then
+			for _, entity in ipairs(state.entities) do
+				handleEntity(entity, false)
+			end
 		end
 	end
-end
-
-function game:loadEventTypes()
-	local eventTypes = {}
-	self.state.eventTypes = eventTypes
-
-	-- sourceEntityRelation describes the meaning of the sourceEntity:
-	-- self: the event was done directly by the source entity (such as a vocalisation or a point). Such as a scream.
-	-- objectUse: the event was done by the source entity doing something to something else. Such as a gunshot.
-	-- remoteCause: the event was caused by the entity but not physically using the entity's body or an object. eventData x and y would probably be different to the source entity's position.
-	-- doneTo: the event was done to the source entity.
-
-	eventTypes.doorChangeState = {
-		sourceEntityRelation = "objectUse"
-	}
-	eventTypes.hatchChangeState = {
-		sourceEntityRelation = "objectUse"
-	}
-	eventTypes.buttonChangeState = {
-		sourceEntityRelation = "objectUse"
-	}
-	eventTypes.leverChangeState = {
-		sourceEntityRelation = "objectUse"
-	}
-
-	eventTypes.pain = {
-		isDamageTaken = true,
-		isCombat = true,
-		sourceEntityRelation = "self"
-	}
-	eventTypes.enemyAlert = {
-		isCombat = true,
-		investigateLocationOverride = "spottedEntityLocation",
-		sourceEntityRelation = "self"
-	}
-	eventTypes.gunshot = {
-		isAttack = true,
-		isCombat = true,
-		sourceEntityRelation = "objectUse"
-	}
-	eventTypes.explosion = {
-		isAttack = true,
-		isCombat = true,
-		sourceEntityRelation = "remoteCause"
-		-- investigateLocationOverride = "explosionLocation" -- No need, the explosion event broadcast has x and y set to the explosion's location
-	}
-	eventTypes.gibbing = {
-		isDamageTaken = true,
-		isCombat = true,
-		sourceEntityRelation = "doneTo"
-	}
-end
-
-function game:loadSoundTypes()
-	local soundTypes = {}
-	self.state.soundTypes = soundTypes
-
-	soundTypes.gunshot = {}
-	soundTypes.warcry = {}
-	soundTypes.scream = {}
-	soundTypes.deathScream = {}
-	soundTypes.goreExplosion = {}
-	soundTypes.boneExplosion = {}
-	soundTypes.explosion = {}
-	soundTypes.doorOpening = {}
-	soundTypes.doorClosing = {}
-	soundTypes.hatchOpening = {}
-	soundTypes.hatchClosing = {}
-	soundTypes.buttonPressed = {}
-	soundTypes.buttonReset = {}
-	soundTypes.leverActivated = {}
-	soundTypes.leverDeactivated = {}
 end
 
 return game

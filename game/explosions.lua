@@ -8,8 +8,7 @@ function game:explode(x, y, radius, damage, sourceEntity)
 		x = x,
 		y = y,
 		type = "explosion",
-		soundRange = radius * 4,
-		soundType = "explosion"
+		soundRange = radius * 4
 	})
 
 	for tileX = x - radius, x + radius do

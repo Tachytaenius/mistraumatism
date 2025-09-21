@@ -31,7 +31,7 @@ function game:newState(params)
 	self:loadCreatureTypes()
 	self:loadItemTypes()
 	self:loadEventTypes()
-	self:loadSoundTypes()
+	self:loadDamageSourceTypes()
 
 	state.teams = {}
 	self:newTeam("person")

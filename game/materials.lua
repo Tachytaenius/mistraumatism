@@ -5,37 +5,67 @@ function game:loadMaterials()
 
 	state.materials = {}
 	local function addMaterial(name, displayName, colour, matterState)
-		state.materials[name] = {
+		local newMaterial = {
 			displayName = displayName,
 			colour = colour,
 			matterState = matterState
 		}
+		state.materials[name] = newMaterial
+		return newMaterial
 	end
 
-	addMaterial("bloodRed", "blood", "darkRed", "liquid")
-	addMaterial("bloodBlue", "blue blood", "darkBlue", "liquid")
-	addMaterial("bloodGreen", "green blood", "darkGreen", "liquid")
-	addMaterial("fleshRed", "flesh", "red", "solid")
-	addMaterial("fleshYellow", "yellow flesh", "yellow", "solid")
-	addMaterial("bone", "bone", "white", "solid")
+	state.materialSoundCategories = {}
+	local function addMaterialSoundCategory(name, displayName)
+		local newMaterialSoundCategory = {
+			displayName = displayName
+		}
+		state.materialSoundCategories[name] = newMaterialSoundCategory
+		return newMaterialSoundCategory
+	end
+
+	local function applySoundCategory(soundCategory, ...)
+		for i = 1, select("#", ...) do
+			select(i, ...).soundCategory = soundCategory
+		end
+	end
+
+	applySoundCategory(addMaterialSoundCategory("blood", "blood"),
+		addMaterial("bloodRed", "blood", "darkRed", "liquid"),
+		addMaterial("bloodBlue", "blue blood", "darkBlue", "liquid"),
+		addMaterial("bloodGreen", "green blood", "darkGreen", "liquid")
+	)
+	applySoundCategory(addMaterialSoundCategory("flesh", "flesh"),
+		addMaterial("fleshRed", "flesh", "red", "solid"),
+		addMaterial("fleshYellow", "yellow flesh", "yellow", "solid")
+	)
+	applySoundCategory(addMaterialSoundCategory("bone", "bone"),
+		addMaterial("bone", "bone", "white", "solid")
+	)
 
 	addMaterial("water", "water", "darkBlue", "liquid")
 	addMaterial("ice", "ice", "cyan", "solid")
 
-	addMaterial("steel", "steel", "darkGrey", "solid")
-	addMaterial("iron", "iron", "darkGrey", "solid")
-	addMaterial("gold", "gold", "yellow", "solid")
-	addMaterial("copper", "copper", "darkYellow", "solid")
+	applySoundCategory(addMaterialSoundCategory("metal", "metal"),
+		addMaterial("steel", "steel", "darkGrey", "solid"),
+		addMaterial("iron", "iron", "darkGrey", "solid"),
+		addMaterial("gold", "gold", "yellow", "solid"),
+		addMaterial("copper", "copper", "darkYellow", "solid"),
+		addMaterial("brass", "brass", "yellow", "solid"),
+		addMaterial("aluminium", "aluminium", "lightGrey", "solid")
+	)
+
 	addMaterial("concrete", "concrete", "lightGrey", "solid")
 	addMaterial("labTiles", "lab tiles", "white", "solid")
 	addMaterial("plaster", "plaster", "white", "solid")
 	addMaterial("leather", "leather", "darkYellow", "solid")
 	addMaterial("polymer", "polymer", "darkGrey", "solid")
 
-	addMaterial("slate", "slate", "darkGrey", "solid")
-	addMaterial("granite", "granite", "lightGrey", "solid")
-	addMaterial("marble", "marble", "white", "solid")
-	addMaterial("marbleGreen", "green marble", "darkGreen", "solid")
+	applySoundCategory(addMaterialSoundCategory("stone", "stone"),
+		addMaterial("slate", "slate", "darkGrey", "solid"),
+		addMaterial("granite", "granite", "lightGrey", "solid"),
+		addMaterial("marble", "marble", "white", "solid"),
+		addMaterial("marbleGreen", "green marble", "darkGreen", "solid")
+	)
 
 	addMaterial("porcelain", "porcelain", "white", "solid")
 	addMaterial("plywood", "plywood", "darkYellow", "solid")
@@ -49,20 +79,21 @@ function game:loadMaterials()
 	addMaterial("soilLoamless", "loamless soil", "darkYellow", "solid")
 	addMaterial("roseWithered", "withered rose", "darkYellow", "solid")
 
-	addMaterial("mahogany", "mahogany", "darkYellow", "solid")
-	addMaterial("ginkgo", "ginkgo", "darkYellow", "solid")
-	addMaterial("palm", "palm", "darkYellow", "solid")
+	applySoundCategory(addMaterialSoundCategory("wood", "wood"),
+		addMaterial("mahogany", "mahogany", "darkYellow", "solid"),
+		addMaterial("ginkgo", "ginkgo", "darkYellow", "solid"),
+		addMaterial("palm", "palm", "darkYellow", "solid")
+	)
 
 	addMaterial("paper", "paper", "white", "solid")
 	addMaterial("cloth", "cloth", "white", "solid")
 
-	addMaterial("plasticRed", "red plastic", "darkRed", "solid")
-	addMaterial("plasticGreen", "green plastic", "darkGreen", "solid")
-	addMaterial("plasticBlack", "black plastic", "darkGrey", "solid")
-	addMaterial("plasticBrown", "brown plastic", "darkYellow", "solid")
-
-	addMaterial("brass", "brass", "yellow", "solid")
-	addMaterial("aluminium", "aluminium", "lightGrey", "solid")
+	applySoundCategory(addMaterialSoundCategory("plastic", "plastic"),
+		addMaterial("plasticRed", "red plastic", "darkRed", "solid"),
+		addMaterial("plasticGreen", "green plastic", "darkGreen", "solid"),
+		addMaterial("plasticBlack", "black plastic", "darkGrey", "solid"),
+		addMaterial("plasticBrown", "brown plastic", "darkYellow", "solid")
+	)
 end
 
 return game

@@ -659,13 +659,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			icon = " "
 		-- elseif row.isFirstAfterPlayerControlLost then
 		-- 	icon = "•"
-		-- elseif row.isFirstOfTick then
-		-- 	icon = "∙"
-		-- else
-			-- icon = "·"
-		-- end
-		else
+		elseif row.isFirstOfTick then
 			icon = "∙"
+		else
+			icon = "·"
 		end
 		drawCharacterFramebuffer(
 			1,

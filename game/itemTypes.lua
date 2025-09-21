@@ -577,14 +577,21 @@ function game:loadItemTypes()
 
 	itemTypes.statue1 = {
 		noPickUp = true,
-		tile = "☺",
+		tile = "≥",
 		displayName = "statue",
 		interactable = true,
 		interactionType = state.interactionTypes.observable
 	}
 	itemTypes.statue2 = {
 		noPickUp = true,
-		tile = "☻",
+		tile = "≤",
+		displayName = "statue",
+		interactable = true,
+		interactionType = state.interactionTypes.observable
+	}
+	itemTypes.statue3 = {
+		noPickUp = true,
+		tile = "±",
 		displayName = "statue",
 		interactable = true,
 		interactionType = state.interactionTypes.observable

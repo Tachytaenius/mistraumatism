@@ -20,7 +20,7 @@ function game:broadcastHatchStateChangedEvent(tile, opener, manual)
 		y = tile.y,
 		type = "hatchChangeState",
 		soundRange = self.state.tileTypes[tile.type].stateChangeSoundRange,
-		soundType = hatchState == "open" and "hatchOpening" or "hatchClosing"
+		toState = hatchState
 	})
 end
 
@@ -31,7 +31,7 @@ function game:broadcastDoorStateChangedEvent(tile, opener, manual)
 		y = tile.y,
 		type = "doorChangeState",
 		soundRange = tile.doorData.entity.itemData.itemType.stateChangeSoundRange,
-		soundType = tile.doorData.open and "doorOpening" or "doorClosing"
+		wasOpening = tile.doorData.open -- Rather than closing
 	})
 end
 
@@ -42,7 +42,7 @@ function game:broadcastButtonStateChangedEvent(item, interactor, manual, x, y)
 		y = y,
 		type = "buttonChangeState",
 		soundRange = item.itemType.stateChangeSoundRange,
-		soundType = item.pressed and "buttonPressed" or "buttonReset"
+		wasPressing = item.pressed -- Rather than un-pressing
 	})
 end
 
@@ -53,7 +53,7 @@ function game:broadcastLeverStateChangedEvent(item, interactor, manual, x, y)
 		y = y,
 		type = "leverChangeState",
 		soundRange = item.itemType.stateChangeSoundRange,
-		soundType = item.active and "leverActivated" or "leverDeactivated"
+		wasActivating = item.active -- Rather than deactivating
 	})
 end
 

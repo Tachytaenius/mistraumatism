@@ -184,8 +184,7 @@ function game:loadActionTypes()
 							x = entity.x,
 							y = entity.y,
 							type = "gunshot",
-							soundRange = soundRange,
-							soundType = "gunshot"
+							soundRange = soundRange
 						})
 					end
 				end
