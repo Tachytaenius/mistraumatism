@@ -307,17 +307,18 @@ function game:updateEntitiesAndProjectiles()
 				self:getTeamRelation(entity.team, potentialTarget.team) == "enemy" and
 				self:entityCanSeeEntity(entity, potentialTarget)
 			then
-				local doSound = entity.creatureType.hasAlertSound
-				self:broadcastEvent({
-					x = entity.x,
-					y = entity.y,
-					sourceEntity = entity,
-					type = "enemyAlert",
-					alertType = doSound and "warcry" or "point",
-					soundRange = doSound and entity.creatureType.vocalisationRange or nil,
-					spottedEntity = potentialTarget,
-					spottedEntityLocation = {x = potentialTarget.x, y = potentialTarget.y}
-				})
+				if entity.creatureType.alertAction then
+					self:broadcastEvent({
+						x = entity.x,
+						y = entity.y,
+						sourceEntity = entity,
+						type = "enemyAlert",
+						alertType = entity.creatureType.alertAction,
+						soundRange = entity.creatureType.alertActionUsesVocalisation and entity.creatureType.vocalisationRange or nil,
+						spottedEntity = potentialTarget,
+						spottedEntityLocation = {x = potentialTarget.x, y = potentialTarget.y}
+					})
+				end
 				entity.targetEntity = potentialTarget
 				entity.lastKnownTargetLocation = {
 					x = entity.targetEntity.x,

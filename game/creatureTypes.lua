@@ -27,7 +27,8 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 4,
 
 		hears = true,
-		hasAlertSound = true,
+		alertAction = "warcry",
+		alertActionUsesVocalisation = true,
 		vocalisationRange = 14,
 		painDamageThreshold = 3,
 
@@ -53,7 +54,8 @@ function game:loadCreatureTypes()
 		shootAggressiveness = 0.5,
 
 		hears = true,
-		hasAlertSound = true,
+		alertAction = "snarl",
+		alertActionUsesVocalisation = true,
 		vocalisationRange = 8,
 		painDamageThreshold = 2,
 
@@ -77,6 +79,7 @@ function game:loadCreatureTypes()
 		meleeBleedRateAdd = 3,
 		shootAggressiveness = 0.5,
 
+		alertAction = "point",
 		painDamageThreshold = 1,
 
 		canOpenDoors = true,
@@ -148,7 +151,8 @@ function game:loadCreatureTypes()
 		shootAggressiveness = 0.25,
 
 		hears = true,
-		hasAlertSound = true,
+		alertAction = "hiss",
+		alertActionUsesVocalisation = true,
 		vocalisationRange = 16,
 		painDamageThreshold = 4,
 
@@ -192,7 +196,8 @@ function game:loadCreatureTypes()
 		preferredEngagementRange = 7,
 
 		hears = true,
-		hasAlertSound = true,
+		alertAction = "chant",
+		alertActionUsesVocalisation = true,
 		vocalisationRange = 20,
 		painDamageThreshold = 4,
 
@@ -223,7 +228,8 @@ function game:loadCreatureTypes()
 		shootAggressiveness = 0.2,
 
 		hears = true,
-		hasAlertSound = true,
+		alertAction = "warcry",
+		alertActionUsesVocalisation = true,
 		vocalisationRange = 18,
 		painDamageThreshold = 16,
 
@@ -266,7 +272,8 @@ function game:loadCreatureTypes()
 		shootAggressiveness = 0.25,
 
 		hears = true,
-		hasAlertSound = true,
+		alertAction = "warcry",
+		alertActionUsesVocalisation = true,
 		vocalisationRange = 20,
 		painDamageThreshold = 25,
 

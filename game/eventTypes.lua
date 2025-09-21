@@ -171,6 +171,15 @@ function game:loadEventTypes()
 			if eventData.alertType == "warcry" then
 				a = "lets out a war cry"
 				b = "let out a war cry"
+			elseif eventData.alertType == "snarl" then
+				a = "snarls aggressively"
+				b = "snarl aggressively"
+			elseif eventData.alertType == "chant" then
+				a = "begins a sinister chant"
+				b = "begin a sinister chant"
+			elseif eventData.alertType == "hiss" then
+				a = "hisses savagely"
+				b = "hiss savagely"
 			elseif eventData.alertType == "point" then
 				a = "points at an enemy"
 				b = "point at an enemy"
@@ -226,11 +235,12 @@ function game:loadEventTypes()
 		announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
 			local material = self.state.materials[eventData.gibMaterial]
 			local shownMaterialName = audible and not visible and material.soundCategory and material.soundCategory.displayName or material.displayName -- Fall back to material display name if material has no sound category, even if the explosion was heard and not seen
-			local explodesIntoText = "body bursts into a shower of " .. shownMaterialName
+			-- local explodesIntoText = "body bursts into a shower of " .. shownMaterialName -- Too long for some names
+			local explodesText = "body bursts open"
 			if playerSource then
-				return "Your " .. explodesIntoText .. ".", "red"
+				return "Your " .. explodesText .. ".", "red"
 			elseif sourceKnown then
-				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. "'s " .. explodesIntoText .. ".", "red"
+				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. "'s " .. explodesText .. ".", "red"
 			elseif visible then
 				return "You see an explosion of " .. shownMaterialName .. ".", "red"
 			elseif audible then
