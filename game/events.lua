@@ -10,8 +10,7 @@ function game:getSoundHeard(entity, eventData)
 	return self:distance(eventData.x, eventData.y, entity.x, entity.y) <= eventData.soundRange
 end
 
-function game:handleEventForPlayer(eventData, visible, audible)
-	local player = self.state.player
+function game:handleEventForPlayer(player, eventData, visible, audible)
 	if not player then
 		return
 	end
@@ -42,6 +41,7 @@ function game:handleEventsQueue()
 	local state = self.state
 	local builtUpEventsQueue = state.eventsQueue
 	state.eventsQueue = {} -- Accumulate anything for next tick
+	local player = state.player or state.playerBeforeRemoval
 	for _, eventData in ipairs(builtUpEventsQueue) do
 		local handledEntities = {}
 		local function handleEntity(entity, direct)
@@ -50,11 +50,11 @@ function game:handleEventsQueue()
 			end
 			handledEntities[entity] = true
 
-			if entity == state.player then -- Allowed if entity is source entity
+			if entity == player then -- Allowed if entity is source entity
 				local visible = self:entityCanSeeTile(entity, eventData.x, eventData.y)
 				local audible = self:getSoundHeard(entity, eventData)
 				if direct or visible or audible then
-					self:handleEventForPlayer(eventData, visible, audible)
+					self:handleEventForPlayer(player, eventData, visible, audible)
 				end
 				return
 			end
@@ -73,9 +73,9 @@ function game:handleEventsQueue()
 			end
 		end
 
-		if state.player and eventData.sourceEntity == state.player and state.eventTypes[eventData.type].sourceEntityRelation ~= "remoteCause" then
-			-- If an event happens about an entity's person, the entity should automatically know about it. This also skips death checks for the player.
-			handleEntity(state.player, true)
+		if player and eventData.sourceEntity == player and state.eventTypes[eventData.type].sourceEntityRelation ~= "remoteCause" then
+			-- If an event happens about an entity's person, the entity should automatically know about it. This also skips death checks for the player and works even if you're totally gibbed.
+			handleEntity(player, true)
 		end
 
 		if eventData.directSignalEntities then

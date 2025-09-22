@@ -21,7 +21,6 @@ function game:setInitialNonPersistentVariables()
 	end
 
 	state.announcementMadeThisTick = false
-	state.fallingEntities = {}
 end
 
 function game:clearNonPersistentVariables()
@@ -42,7 +41,6 @@ function game:clearNonPersistentVariables()
 	end
 
 	state.announcementMadeThisTick = nil
-	state.fallingEntities = nil
 end
 
 function game:newTeam(name)

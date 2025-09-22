@@ -170,11 +170,11 @@ function game:loadInteractionTypes()
 		elseif interactor then
 			x, y = interactor.x, interactor.y
 		end
+		item.pressed = true
+		self:broadcastButtonStateChangedEvent(item, interactor, true, x, y)
 		if item.onPress then
 			item.onPress(self, item, x, y)
 		end
-		item.pressed = true
-		self:broadcastButtonStateChangedEvent(item, interactor, true, x, y)
 	end
 	interactionTypes.button.startInfoHeld = interactionTypes.button.startInfoWorld
 	interactionTypes.button.resultHeld = interactionTypes.button.resultWorld
@@ -198,21 +198,25 @@ function game:loadInteractionTypes()
 		elseif interactor then
 			x, y = interactor.x, interactor.y
 		end
+		local function doEvent()
+			self:broadcastLeverStateChangedEvent(item, interactor, true, x, y)
+		end
 		if item.active then
+			item.active = false
+			doEvent()
 			if item.onDeactivate then
 				item.onDeactivate(self, item, x, y)
 			end
-			item.active = false
 		else
+			item.active = true
+			if item.itemType.onActivateMessage and interactor == self.state.player and self.state.player then
+				self:announce(item.itemType.onActivateMessage, "lightGrey")
+			end
+			doEvent()
 			if item.onActivate then
-				if item.itemType.onActivateMessage and interactor == self.state.player and self.state.player then
-					self:announce(item.itemType.onActivateMessage, "lightGrey")
-				end
 				item.onActivate(self, item, x, y)
 			end
-			item.active = true
 		end
-		self:broadcastLeverStateChangedEvent(item, interactor, true, x, y)
 	end
 	interactionTypes.lever.startInfoHeld = interactionTypes.lever.startInfoWorld
 	interactionTypes.lever.resultHeld = interactionTypes.lever.resultWorld

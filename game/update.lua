@@ -96,8 +96,6 @@ function game:update()
 	local state = self.state
 	state.waiting = false -- No longer needed
 
-	state.initialPlayerThisTick = state.player
-
 	state.damagesQueue = state.damagesQueue or {}
 	state.eventsQueue = state.eventsQueue or {}
 
@@ -108,12 +106,12 @@ function game:update()
 	self:diminishExplosions()
 	self:dropSpatters()
 	self:handleEventsQueue() -- Resets events queue
-	self:announceDeaths()
 
 	self:clearNonPersistentVariables()
 
 	if state.player then
 		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = state.player.x, state.player.y, state.player.creatureType.sightDistance
+		state.playerBeforeRemoval = state.player
 	end
 
 	self.state.previousTileEntityLists, self.state.tileEntityLists = self.state.tileEntityLists, nil

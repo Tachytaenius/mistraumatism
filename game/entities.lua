@@ -79,7 +79,7 @@ function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
 	local entitiesToRemove = {}
-	local function kill(entity, forceRemove)
+	local function kill(entity, forceRemove, cause, broadcastEventNow)
 		assert(not entity.dead, "Entity is already dead")
 		assert(entity.entityType == "creature", "Can't kill non-creatures")
 		entity.dead = true
@@ -92,6 +92,20 @@ function game:updateEntitiesAndProjectiles()
 		end
 		if forceRemove then
 			entitiesToRemove[entity] = true
+		end
+
+		local eventData = {
+			sourceEntity = entity,
+			x = entity.x,
+			y = entity.y,
+			type = "death",
+			deathCause = cause,
+			wasPlayer = entity == state.player
+		}
+		if broadcastEventNow then
+			self:broadcastEvent(eventData)
+		else
+			return eventData
 		end
 	end
 	local function flushEntityRemoval()
@@ -184,10 +198,10 @@ function game:updateEntitiesAndProjectiles()
 	tickItems(function(item, x, y)
 		if item.itemType.isButton and item.pressed and not item.frozenState then
 			item.pressed = false
+			self:broadcastButtonStateChangedEvent(item, nil, false, x, y)
 			if item.onUnpress then
 				item.onUnpress(self, item, x, y)
 			end
-			self:broadcastButtonStateChangedEvent(item, nil, false, x, y)
 		elseif item.itemType.isLever then
 			if item.active and item.onTickActive then
 				item.onTickActive(self, item, x, y)
@@ -377,6 +391,8 @@ function game:updateEntitiesAndProjectiles()
 
 	-- Damage, drowning, bleeding, explosions, gibbing, falling down pits, and screaming
 	for _, entity in ipairs(state.entities) do
+		local deathEventData
+
 		if entity.hangingFrom then
 			if not (entity.hangingFrom.x == entity.x and entity.hangingFrom.y == entity.y) then
 				entity.hangingFrom = nil
@@ -399,11 +415,10 @@ function game:updateEntitiesAndProjectiles()
 			not anchored
 		then
 			if entity.entityType == "creature" and not entity.dead then
-				kill(entity, true)
+				deathEventData = kill(entity, true, "fell")
 			else
 				entitiesToRemove[entity] = true
 			end
-			state.fallingEntities[#state.fallingEntities+1] = entity
 		end
 
 		if entity.entityType ~= "creature" then
@@ -632,13 +647,18 @@ function game:updateEntitiesAndProjectiles()
 		-- state.damagesQueue is set to a new table after all entities are handled by this loop
 
 		if not entity.dead then
-			if
-				entity.health <= 0 or
-				(entity.blood and entity.blood <= 0) or
-				(entity.drownTimer and entity.creatureType.breathingTimerLength and entity.drownTimer >= entity.creatureType.breathingTimerLength) or
-				(entity.psychicDamage and entity.creatureType.psychicDamageDeathPoint and entity.psychicDamage >= entity.creatureType.psychicDamageDeathPoint)
-			then
-				kill(entity)
+			local cause
+			if entity.health <= 0 then
+				cause = "struckDown"
+			elseif entity.blood and entity.blood <= 0 then
+				cause = "bledOut"
+			elseif entity.drownTimer and entity.creatureType.breathingTimerLength and entity.drownTimer >= entity.creatureType.breathingTimerLength then
+				cause = "drowned"
+			elseif entity.psychicDamage and entity.creatureType.psychicDamageDeathPoint and entity.psychicDamage >= entity.creatureType.psychicDamageDeathPoint then
+				cause = "psychicDamage"
+			end
+			if cause then
+				deathEventData = kill(entity, false, cause)
 			end
 		end
 
@@ -655,8 +675,7 @@ function game:updateEntitiesAndProjectiles()
 				y = entity.y,
 				type = "gibbing",
 				gibMaterial = entityFleshMaterial,
-				soundRange = 10,
-				isDeath = true
+				soundRange = 10
 			})
 
 			entitiesToRemove[entity] = true
@@ -769,6 +788,10 @@ function game:updateEntitiesAndProjectiles()
 					isDeath = entity.dead
 				})
 			end
+		end
+
+		if deathEventData then
+			self:broadcastEvent(deathEventData)
 		end
 
 		::continue::

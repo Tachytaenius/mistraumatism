@@ -7,49 +7,52 @@ function game:loadEventTypes()
 	self.state.eventTypes = eventTypes
 
 	-- sourceEntityRelation describes the meaning of the sourceEntity:
-	-- self: the event was done directly by the source entity (such as a vocalisation or a point). Such as a scream.
+	-- self: the event was done directly by the source entity. Such as a vocalisation or a point.
 	-- objectUse: the event was done by the source entity doing something to something else. Such as a gunshot.
 	-- remoteCause: the event was caused by the entity but not physically using the entity's body or an object. eventData x and y would probably be different to the source entity's position.
 	-- doneTo: the event was done to the source entity.
 
 	-- NOTE: (At time of writing) audioRevealsSource only works if sourceEntityRelation is not remoteCause
 
-	local function doorAnnounce(doorType) -- Doors or hatches
-		local announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
-			local verb, verbs
-			if eventData.wasOpening then
-				verb = "open"
-				verbs = "opens"
-			else
-				verb = "shut"
-				verbs = "shuts"
-			end
+	-- NOTE: Be sure to use state.playerBeforeRemoval instead of state.player since events propagate to the player even if they've been destroyed
 
-			if playerSource then
-				return "You " .. verb .. " the " .. doorType .. ".", "darkGrey"
-			elseif sourceKnown then
-				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " " .. verbs .. " the " .. doorType .. ".", "darkGrey"
-			elseif visible then
-				return "You see a " .. doorType .. " " .. verb .. ".", "darkGrey"
-			elseif audible then
-				return "You hear a " .. doorType .. " " .. verb .. ".", "darkGrey"
-			end
+	local function announceVerbObject(eventData, playerSource, sourceKnown, visible, audible, verb, verbs, an, object)
+		if playerSource then
+			return "You " .. verb .. " the " .. object .. ".", "darkGrey"
+		elseif sourceKnown then
+			return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " " .. verbs .. " the " .. object .. ".", "darkGrey"
+		elseif visible then
+			return "You see " .. (an and "an " or "a ") .. object .. " " .. verb .. ".", "darkGrey"
+		elseif audible then
+			return "You hear " .. (an and "an " or "a ") .. object .. " " .. verb .. ".", "darkGrey"
+		end
+	end
+	local function makeSimpleStateToggleAnnouncer(an, object, eventDataStateKey, trueVerb, trueVerbs, falseVerb, falseVerbs)
+		local announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
+			local state = eventData[eventDataStateKey]
+			return announceVerbObject(
+				eventData, playerSource, sourceKnown, visible, audible,
+				state and trueVerb or falseVerb,
+				state and trueVerbs or falseVerbs,
+				an, object
+			)
 		end
 		return announceToPlayer
 	end
 	eventTypes.doorChangeState = {
 		sourceEntityRelation = "objectUse",
-		announceToPlayer = doorAnnounce("door")
+		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "door", "wasOpening", "open", "opens", "close", "closes")
 	}
 	eventTypes.hatchChangeState = {
 		sourceEntityRelation = "objectUse",
-		announceToPlayer = doorAnnounce("hatch")
+		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "hatch", "wasOpening", "open", "opens", "shut", "shuts")
 	}
 	eventTypes.buttonChangeState = {
-		sourceEntityRelation = "objectUse"
+		sourceEntityRelation = "objectUse",
+		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "button", "wasPressing", "press", "presses", "reset", "resets")
 	}
 	eventTypes.leverChangeState = {
-		sourceEntityRelation = "objectUse"
+		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "lever", "wasActivating", "activate", "activates", "deactivate", "deactivates")
 	}
 
 	eventTypes.damageReceived = {
@@ -60,7 +63,7 @@ function game:loadEventTypes()
 			-- damageDealer is damage source
 			-- sourceEntity is damage receiver (source of the event)
 
-			local player = self.state.player
+			local player = self.state.playerBeforeRemoval
 
 			local dealerKnown = false
 			local dealtByNonEntity = type(eventData.damageDealer) ~= "table"
@@ -92,7 +95,10 @@ function game:loadEventTypes()
 					not eventData.sourceEntity.dead or
 					eventData.sourceEntity.deathTick == self.state.tick
 				if playerSource then
-					receiverName = living and "you" or "your corpse"
+					receiverName =
+						player and eventData.damageDealer == player and
+						(living and "yourself" or "your own corpse") or
+						(living and "you" or "your corpse")
 				else
 					receiverName = (living and "the " or "the dead ") .. self:getEntityDisplayName(eventData.sourceEntity)
 				end
@@ -111,7 +117,7 @@ function game:loadEventTypes()
 				outColour = "cyan"
 				punctuation = "!"
 			else
-				outColour = "darkGrey"
+				outColour = "lightGrey"
 				punctuation = "."
 			end
 
@@ -123,6 +129,40 @@ function game:loadEventTypes()
 				punctuation
 
 			return util.capitalise(outText, false), outColour
+		end
+	}
+	local deathTexts = {
+		fell = "fallen into a pit",
+		bledOut = "bled out",
+		drowned = "drowned",
+		airDrowned = "air-drowned",
+		struckDown = "been killed",
+		psychicDamage = "faded away"
+	}
+	eventTypes.death = {
+		isDamageTaken = true,
+		isCombat = true,
+		sourceEntityRelation = "doneTo",
+		announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
+			local textStart
+			local colour, punctuation
+			if eventData.wasPlayer then
+				textStart = "You have "
+				colour = "red"
+				punctuation = "."
+			elseif sourceKnown then
+				textStart = "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " has "
+				colour = "cyan"
+				punctuation = "."
+			else
+				textStart = "Something has "
+				colour = "lightGrey"
+				punctuation = "."
+			end
+
+			local deathText = eventData.deathCause and deathTexts[eventData.deathCause] or "has died"
+
+			return textStart .. deathText .. punctuation, colour
 		end
 	}
 	eventTypes.pain = {
@@ -151,13 +191,13 @@ function game:loadEventTypes()
 			end
 
 			if playerSource then
-				return "You " .. b .. ".", "darkCyan"
+				return "You " .. b .. ".", "darkRed"
 			elseif sourceKnown then
-				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " " .. a .. ".", "darkRed"
+				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " " .. a .. ".", "darkCyan"
 			elseif visible then
-				return "You see something " .. b .. ".", "darkRed"
+				return "You see something " .. b .. ".", "darkGrey"
 			elseif audible then
-				return "You hear something " .. b .. ".", "darkRed"
+				return "You hear something " .. b .. ".", "darkGrey"
 			end
 		end
 	}

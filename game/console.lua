@@ -27,16 +27,4 @@ function game:announce(text, colour)
 	end
 end
 
-function game:announceDeaths()
-	local player = self.state.player or self.state.initialPlayerThisTick
-	for _, entity in ipairs(self.state.fallingEntities) do
-		if entity == player then
-			self:announce("You have fallen into a pit!", "red")
-		end
-	end
-	if player and player.dead and player.deathTick == self.state.tick then
-		self:announce("You have died.", "darkRed")
-	end
-end
-
 return game
