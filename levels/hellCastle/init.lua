@@ -62,7 +62,7 @@ function info:createLevel()
 		elseif value == 0x29 then
 			self:placeItem(x, y, "altar", "granite")
 		elseif value == 0x2a then
-			self:placeExaminable(x, y, "statue2", "granite", "They worship an icon of abuse.")
+			self:placeExaminable(x, y, "statue3", "granite", "They worship an icon of abuse.")
 		elseif value == 0x2c then
 			self:placeDoorItem(x, y, "heavyDoor", "mahogany", false)
 			secretLibraryBookDoorCoord = {x = x, y = y}
