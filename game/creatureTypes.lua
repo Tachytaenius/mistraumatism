@@ -35,7 +35,7 @@ function game:loadCreatureTypes()
 		canOpenDoors = true,
 		inventorySize = 9,
 
-		psychicDamageDeathPoint = 240
+		psychicDamageDeathPoint = 120
 	}
 
 	creatureTypes.zombie = {
@@ -160,7 +160,7 @@ function game:loadCreatureTypes()
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
-		psychicDamageDeathPoint = 240,
+		psychicDamageDeathPoint = 120,
 
 		projectileAbilities = {
 			{
@@ -237,7 +237,7 @@ function game:loadCreatureTypes()
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
-		psychicDamageDeathPoint = 240,
+		psychicDamageDeathPoint = 120,
 
 		projectileAbilities = {
 			{

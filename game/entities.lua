@@ -520,10 +520,10 @@ function game:updateEntitiesAndProjectiles()
 				if init <= 0 and cur > 0 then
 					self:announce("You feel a gnawing anxiety...", "darkYellow")
 				end
-				if init < max * 0.25 and cur >= max * 0.25 then
+				if init < max * 0.3 and cur >= max * 0.3 then
 					self:announce("You begin to hallucinate and can't think straight.", "darkYellow")
 				end
-				if init < max * 0.5 and cur >= max * 0.5 then
+				if init < max * 0.6 and cur >= max * 0.6 then
 					self:announce("You slip into abject depression.", "yellow")
 				end
 				if init < max * 0.9 and cur >= max * 0.9 then
