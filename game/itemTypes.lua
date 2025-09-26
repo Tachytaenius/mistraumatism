@@ -514,7 +514,8 @@ function game:loadItemTypes()
 	}
 
 	itemTypes.flower = {
-		tile = "♣",
+		tile = " ",
+		readMaterialTileField = "flowerTile",
 		displayName = "flower",
 		stackable = true,
 		maxStackSize = 6
@@ -524,6 +525,12 @@ function game:loadItemTypes()
 		displayName = "sapling",
 		stackable = true,
 		maxStackSize = 3
+	}
+	itemTypes.vines = {
+		tile = "½",
+		displayName = "vines",
+		stackable = true,
+		maxStackSize = 4
 	}
 
 	itemTypes.labTable = {

@@ -75,14 +75,24 @@ function game:loadMaterials()
 	addMaterial("crateYellow", "yellow crate", "yellow", "solid")
 
 	addMaterial("ornateCarpet", "gold and cloth", "red", "solid")
-	addMaterial("grass", "grass", "green", "solid")
 	addMaterial("soilLoamless", "loamless soil", "darkYellow", "solid")
-	addMaterial("roseWithered", "withered rose", "darkYellow", "solid")
+
+	applySoundCategory(addMaterial("grass", "grass"),
+		addMaterial("zoysia", "zoysia", "green", "solid"),
+		addMaterial("fescue", "fescue", "green", "solid")
+	)
+
+	addMaterial("ivy", "ivy", "darkGreen", "solid")
+	local borage = addMaterial("borage", "borage", "blue", "solid")
+	borage.flowerTile = "*"
+	local roseWithered = addMaterial("roseWithered", "withered rose", "darkYellow", "solid")
+	roseWithered.flowerTile = "♣"
 
 	applySoundCategory(addMaterialSoundCategory("wood", "wood"),
 		addMaterial("mahogany", "mahogany", "darkYellow", "solid"),
 		addMaterial("ginkgo", "ginkgo", "darkYellow", "solid"),
-		addMaterial("palm", "palm", "darkYellow", "solid")
+		addMaterial("palm", "palm", "darkYellow", "solid"),
+		addMaterial("elder", "elder", "darkYellow", "solid")
 	)
 
 	addMaterial("paper", "paper", "white", "solid")

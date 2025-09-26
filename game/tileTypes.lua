@@ -39,10 +39,20 @@ function game:loadTileTypes()
 			deleteSpatter = "liquid",
 			character = "#"
 		},
-		turf = {
-			displayName = "turf",
+		shortGrass = {
+			displayName = "short grass",
 			solidity = "passable",
-			-- secondaryColour = "darkGreen",
+			character = "▒"
+		},
+		grass = {
+			displayName = "grass",
+			solidity = "passable",
+			character = "▒"
+		},
+		longGrass = {
+			displayName = "long grass",
+			solidity = "passable",
+			secondaryColour = "darkGreen", -- Make a system to take the colour from the material (and invert its brightness) if non-green grasses are needed
 			character = "▒"
 		},
 		flowerbed = {
@@ -101,12 +111,27 @@ function game:loadTileTypes()
 			character = "═",
 			swapColours = true
 		},
-		roughWall = {
+		wornWall = { -- Eroded
+			displayName = "worn wall",
+			solidity = "solid",
+			character = "░",
+			swapColours = true,
+			pretendConnectionTypeName = "wall",
+			allowIncomingConnectionTypeNames = {wall = true},
+			blocksLight = true
+		},
+		roughWall = {  -- Natural
 			displayName = "rough wall",
 			solidity = "solid",
 			character = "▓",
 			pretendConnectionTypeName = "wall",
 			blocksLight = true
+		},
+		wornFloor = {
+			displayName = "worn floor",
+			solidity = "passable",
+			character = "▓",
+			swapColours = true
 		},
 		roughFloor = {
 			displayName = "rough floor",

@@ -543,12 +543,17 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				drawIndicator(entity.x, entity.y, "!", "red", "black")
 			end
 		else
+			local itemMaterial = state.materials[entity.itemData.material]
 			local background = entity.itemData.itemType.secondaryColour or "black"
-			local foreground = state.materials[entity.itemData.material].colour
+			local foreground = itemMaterial.colour
 			if entity.itemData.itemType.swapColours then
 				foreground, background = background, foreground
 			end
 			local tile = entity.itemData.itemType.tile
+			local readMaterialTileField = entity.itemData.itemType.readMaterialTileField
+			if readMaterialTileField then
+				tile = itemMaterial[readMaterialTileField]
+			end
 			if entity.doorTile and entity.doorTile.doorData.open then
 				tile = entity.itemData.itemType.openTile
 			end
@@ -772,6 +777,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			end
 		elseif entity and entity.entityType == "item" then
 			local tile = entity.itemData.itemType.tile
+			local readMaterialTileField = entity.itemData.itemType.readMaterialTileField
+			if readMaterialTileField then
+				tile = state.materials[entity.itemData.material][readMaterialTileField]
+			end
 			if entity.doorTile and entity.doorTile.doorData.open then
 				tile = entity.itemData.itemType.openTile
 			end
@@ -894,6 +903,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				end
 				if slot.item then
 					local tile = slot.item.itemType.tile
+					local readMaterialTileField = slot.item.itemType.readMaterialTileField
+					if readMaterialTileField then
+						tile = state.materials[slot.item.material][readMaterialTileField]
+					end
 					if slot.item.itemType.isButton and slot.item.pressed or slot.item.itemType.isLever and slot.item.active then
 						tile = slot.item.itemType.activeTile
 					end
@@ -1001,6 +1014,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						colour = getCreatureColour(entity)
 					elseif entity.entityType == "item" then
 						character = entity.itemData.itemType.tile
+						local readMaterialTileField = entity.itemData.itemType.readMaterialTileField
+						if readMaterialTileField then
+							character = state.materials[entity.itemData.material][readMaterialTileField]
+						end
 						if entity.doorTile and entity.doorTile.doorData.open then
 							character = entity.itemData.itemType.openTile
 						end

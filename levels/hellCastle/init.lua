@@ -23,7 +23,7 @@ function info:createLevel()
 		[0x57] = "wall",
 		[0x66] = "arrowSlit",
 		[0x77] = "glassWindow",
-		[0xaa] = "turf",
+		[0xaa] = "shortGrass",
 		[0xbb] = "flowerbed",
 		[0xcc] = "livingFloor",
 		[0xdd] = "livingWall",
@@ -35,7 +35,7 @@ function info:createLevel()
 		[0x55] = "marbleGreen",
 		[0x56] = "marble",
 		[0x66] = "mahogany",
-		[0xaa] = "grass",
+		[0xaa] = "zoysia",
 		[0xbb] = "soilLoamless",
 		[0xcc] = "fleshRed",
 		[0xff] = "ornateCarpet"
