@@ -40,6 +40,7 @@ return {
 	operateBarrel2 = "hold",
 	energyWeaponChargeMode = "hold",
 	energyWeaponDischargeMode = "hold",
+	changeWornItemMode = "hold",
 	handleInventorySlot1 = "pressed",
 	handleInventorySlot2 = "pressed",
 	handleInventorySlot3 = "pressed",

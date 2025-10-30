@@ -288,6 +288,52 @@ function game:loadEventTypes()
 			end
 		end
 	}
+
+	eventTypes.armourBroke = {
+		isDamageTaken = true,
+		isCombat = true,
+		sourceEntityRelation = "doneTo",
+		announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
+			local material = self.state.materials[eventData.armourItem.material]
+			local shownMaterialName = audible and not visible and material.soundCategory and material.soundCategory.displayName or material.displayName
+			local armourItemDisplayName = eventData.armourItem.itemType.displayName
+			local sourceEntityItemHoldType = eventData.sourceEntityItemHoldType
+			local sourceCreatureDisplayName = sourceEntityItemHoldType == "inventory" or sourceEntityItemHoldType == "worn" and self:getEntityDisplayName(eventData.sourceEntity)
+
+			if sourceEntityItemHoldType == "ground" then
+				if playerSource then
+					-- ???
+					-- The player can't be an armour item!
+				elseif sourceKnown then
+					return "The " .. armourItemDisplayName .. " breaks.", "darkGrey"
+				elseif visible then
+					return "You see something made of " .. shownMaterialName .. " break.", "darkGrey"
+				elseif audible then
+					return "You hear something made of " .. shownMaterialName .. " break.", "darkGrey"
+				end
+			elseif sourceEntityItemHoldType == "inventory" then
+				if playerSource then
+					return "Your held " .. armourItemDisplayName .. " breaks!", "red"
+				elseif sourceKnown then
+					return "The " .. sourceCreatureDisplayName .. "'s held " .. armourItemDisplayName .. " breaks.", "lightGrey"
+				elseif visible then
+					return "You see a held item made of " .. shownMaterialName .. " break.", "darkGrey"
+				elseif audible then
+					return "You hear something made of " .. shownMaterialName .. " break.", "darkGrey"
+				end
+			elseif sourceEntityItemHoldType == "worn" then
+				if playerSource then
+					return "Your worn " .. armourItemDisplayName .. " breaks!", "red"
+				elseif sourceKnown then
+					return "The " .. sourceCreatureDisplayName .. "'s worn " .. armourItemDisplayName .. " breaks.", "lightGrey"
+				elseif visible then
+					return "You see a worn item made of " .. shownMaterialName .. " break.", "darkGrey"
+				elseif audible then
+					return "You hear something made of " .. shownMaterialName .. " break.", "darkGrey"
+				end
+			end
+		end
+	}
 end
 
 return game

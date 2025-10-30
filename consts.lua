@@ -112,4 +112,7 @@ consts.startLevelName = "facility"
 
 consts.investigationTimeoutThreshold = 40
 
+consts.armourDefenceAtBreakPoint = 0.1
+consts.defenceMax = 26
+
 return consts

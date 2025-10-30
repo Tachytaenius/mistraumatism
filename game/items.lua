@@ -269,7 +269,11 @@ function game:takeItemFromSlot(entity, slotNumber)
 end
 
 function game:isItemStackable(itemA, itemB)
-	if itemA.itemType.stackable and itemA.itemType == itemB.itemType then
+	if
+		itemA.itemType.stackable and
+		itemA.itemType == itemB.itemType and
+		itemA.material == itemB.material
+	then
 		if itemA.itemType.isAmmo and itemA.fired ~= itemB.fired then
 			return false
 		end
@@ -364,6 +368,23 @@ function game:getSlotStackSize(entity, slotNumber)
 		return
 	end
 	return (slot.item and 1 or 0) + #slot.otherItems
+end
+
+function game:getTotalArmourInfo(item)
+	local armourInfo = self.state.materials[item.material].armourInfo
+	local matDefence = armourInfo and armourInfo.defence or 0
+	local matDurability = armourInfo and armourInfo.durability or 0
+
+	local itemDefence = item.itemType.armourDefence or 0
+	local itemDurability = item.itemType.armourDurability or 0
+
+	local durability = matDurability + itemDurability
+	local wear = item.armourWear or 0
+	local wearDefenceMultiplier = durability <= 0 and 0 or
+		(1 - consts.armourDefenceAtBreakPoint) * (1 - wear / durability) + consts.armourDefenceAtBreakPoint
+	local defence = math.max(0, math.floor(matDefence * itemDefence * wearDefenceMultiplier))
+
+	return {defence = defence, durability = durability}
 end
 
 return game

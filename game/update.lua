@@ -35,8 +35,14 @@ function game:realtimeUpdate(dt)
 				end
 			end
 
-			self.updateTimer = self.updateTimer + dt
-			if self.updateTimer >= consts.fixedUpdateTickLength then -- Not doing multiple
+			local run = false
+			if self.fastForward then
+				run = true
+			else
+				self.updateTimer = self.updateTimer + dt
+				run = self.updateTimer >= consts.fixedUpdateTickLength
+			end
+			if run then
 				self.updateTimer = 0
 
 				local startTime = love.timer.getTime()
@@ -100,6 +106,9 @@ function game:update()
 	state.eventsQueue = state.eventsQueue or {}
 
 	self:setInitialNonPersistentVariables()
+
+	self:debugOnTick()
+
 	self:tickGibs()
 	self:tickParticles()
 	self:updateEntitiesAndProjectiles() -- Resets damages queue

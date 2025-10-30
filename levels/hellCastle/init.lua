@@ -170,7 +170,7 @@ function info:createLevel()
 		elseif value == 0xef then
 			self:placeItem(x, y, "bandage", "cloth")
 		elseif value == 0xf0 then
-			self:placeNote(x, y, "TODO: Armour?")
+			self:placeItem(x, y, "tacticalArmour", "superPolymer")
 		elseif value == 0xf1 then
 			self:placeItem(x, y, "rocket", "plasticBrown")
 		elseif value == 0xf2 then

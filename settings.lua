@@ -48,6 +48,7 @@ return {
 		operateBarrel2 = "lalt",
 		energyWeaponChargeMode = "lctrl",
 		energyWeaponDischargeMode = "lalt",
+		changeWornItemMode = "o",
 		handleInventorySlot1 = "1",
 		handleInventorySlot2 = "2",
 		handleInventorySlot3 = "3",

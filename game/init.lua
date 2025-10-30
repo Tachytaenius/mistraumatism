@@ -5,6 +5,11 @@ local settings = require("settings")
 
 local game = {}
 
+function game:debugOnNewState()
+	-- Anything you want to set for debug purposes once the game state is created goes here
+	-- self:enableArmourTesting()
+end
+
 for _, itemName in ipairs(love.filesystem.getDirectoryItems("game")) do
 	if itemName == "init.lua" then
 		goto continue
@@ -47,16 +52,20 @@ function game:newState(params)
 	state.entities = {}
 	state.airlockData = {}
 	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName or consts.startLevelName})
-	state.player = self:newCreatureEntity({
-		creatureTypeName = "human",
-		team = "person",
-		x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY
-	})
-	if levelGenerationResult.playerBleedRate then
-		state.player.bleedingAmount = levelGenerationResult.playerBleedRate
-	end
-	if levelGenerationResult.playerHealth then
-		state.player.health = levelGenerationResult.playerHealth
+	if params.noPlayer then
+		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = levelGenerationResult.spawnX, levelGenerationResult.spawnY, 10
+	else
+		state.player = self:newCreatureEntity({
+			creatureTypeName = "human",
+			team = "person",
+			x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY
+		})
+		if levelGenerationResult.playerBleedRate then
+			state.player.bleedingAmount = levelGenerationResult.playerBleedRate
+		end
+		if levelGenerationResult.playerHealth then
+			state.player.health = levelGenerationResult.playerHealth
+		end
 	end
 
 	state.announcements = {}
@@ -115,7 +124,7 @@ function game:init(args)
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
 	-- TEMP, change as needed
-	local skipIntro, flickerIntro, startLevelName
+	local skipIntro, flickerIntro, startLevelName, noPlayer
 	for _, arg in ipairs(args) do
 		if arg == "--skipIntro" then
 			skipIntro = true
@@ -123,6 +132,8 @@ function game:init(args)
 			flickerIntro = true
 		elseif arg == "--drawTickTimes" then
 			self.drawTickTimes = true
+		elseif arg == "--noPlayer" then
+			noPlayer = true
 		end
 		local startLevelArg = "^--startLevel="
 		if arg:match(startLevelArg) then
@@ -132,8 +143,10 @@ function game:init(args)
 
 	local function makeState()
 		self:newState({
-			startLevelName = startLevelName
+			startLevelName = startLevelName,
+			noPlayer = noPlayer
 		})
+		self:debugOnNewState()
 	end
 	if skipIntro then
 		makeState()

@@ -425,7 +425,7 @@ function game:getAIActions(entity)
 					entity.creatureType.wrongRangeShootAggressiveness
 				) or
 				entity.creatureType.shootAggressiveness
-			if love.math.random() >= (aggressiveness or 1) then
+			if state.meleeOnly or love.math.random() >= (aggressiveness or 1) then
 				shootType = nil
 			end
 			if shootType then

@@ -5,26 +5,32 @@ local game = {}
 
 function game:setInitialNonPersistentVariables()
 	local state = self.state
+	state.nonPersistentVariablesOn = true
 
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType == "creature" then
-			entity.initialHealthThisTick = entity.health
-			entity.initialBloodThisTick = entity.blood
-			entity.initialDrowningThisTick, entity.initialDrowningThisTickCause = self:isDrowning(entity)
-			entity.initialDrownTimerThisTick = entity.drownTimer
-			entity.initialSubmergedFluid = self:getCurrentLiquid(entity)
-			entity.initialPsychicDamageThisTick = entity.psychicDamage
-
-			entity.psychicDamageTakenThisTick = nil
-			entity.damageTakenThisTick = nil
+			self:setCreatureInitNonPersistentVariables(entity)
 		end
 	end
 
 	state.announcementMadeThisTick = false
 end
 
+function game:setCreatureInitNonPersistentVariables(entity)
+	entity.initialHealthThisTick = entity.health
+	entity.initialBloodThisTick = entity.blood
+	entity.initialDrowningThisTick, entity.initialDrowningThisTickCause = self:isDrowning(entity)
+	entity.initialDrownTimerThisTick = entity.drownTimer
+	entity.initialSubmergedFluid = self:getCurrentLiquid(entity)
+	entity.initialPsychicDamageThisTick = entity.psychicDamage
+
+	entity.psychicDamageTakenThisTick = nil
+	entity.damageTakenThisTick = nil
+end
+
 function game:clearNonPersistentVariables()
 	local state = self.state
+	state.nonPersistentVariablesOn = false
 
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType == "creature" then

@@ -53,6 +53,11 @@ function game:newCreatureEntity(parameters)
 	end
 
 	state.entities[#state.entities+1] = new
+
+	if self.state.nonPersistentVariablesOn then
+		self:setCreatureInitNonPersistentVariables(new)
+	end
+
 	return new
 end
 
@@ -89,6 +94,11 @@ function game:updateEntitiesAndProjectiles()
 			for i = 1, #entity.inventory do
 				self:dropAllItemsFromSlot(entity, i, entity.x, entity.y)
 			end
+		end
+		local armourItem = entity.currentWornItem
+		entity.currentWornItem = nil
+		if armourItem then
+			self:newItemEntity(entity.x, entity.y, armourItem)
 		end
 		if forceRemove then
 			entitiesToRemove[entity] = true
@@ -157,6 +167,9 @@ function game:updateEntitiesAndProjectiles()
 				local action = entity.actions[i]
 				local removed = false
 				if action.type == actionTypeName then
+					if self.state.fastActions then -- Debug
+						action.timer = 1
+					end
 					local resultInfo = processFunction(self, entity, action)
 					if resultInfo then
 						if actionTypeName == "interact" then -- or actionTypeName == "useHeldItem" then -- useHeldItem removes interactee by itself
@@ -180,16 +193,41 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end
 
+	-- NOTE: Good to flush entity removal if removing items
 	local function tickItems(tickFunction)
 		for _, entity in ipairs(state.entities) do
-			if entity.inventory then
-				for _, slot in ipairs(entity.inventory) do
-					if slot.item then
-						tickFunction(slot.item, entity.x, entity.y)
+			if entity.entityType == "creature" then
+				if entity.inventory then
+					for slotNumber, slot in ipairs(entity.inventory) do
+						if slot.item then
+							local remove = tickFunction(slot.item, entity.x, entity.y, "inventory", entity)
+							if remove then
+								self:takeItemFromSlot(entity, slotNumber)
+							end
+						end
+						local i = 1
+						while i <= #slot.otherItems do
+							local item = slot.otherItems[i]
+							local remove = tickFunction(item, entity.x, entity.y, "inventory", entity)
+							if remove then
+								table.remove(slot.otherItems, i)
+							else
+								i = i + 1
+							end
+						end
 					end
 				end
-			elseif entity.itemData then
-				tickFunction(entity.itemData, entity.x, entity.y)
+				if entity.currentWornItem then
+					local remove = tickFunction(entity.currentWornItem, entity.x, entity.y, "worn", entity)
+					if remove then
+						entity.currentWornItem = nil
+					end
+				end
+			elseif entity.entityType == "item" then
+				local remove = tickFunction(entity.itemData, entity.x, entity.y, "ground", entity)
+				if remove then
+					entitiesToRemove[entity] = true
+				end
 			end
 		end
 	end
@@ -199,7 +237,7 @@ function game:updateEntitiesAndProjectiles()
 		if item.itemType.isButton and item.pressed and not item.frozenState then
 			item.pressed = false
 			self:broadcastButtonStateChangedEvent(item, nil, false, x, y)
-			if item.onUnpress then
+			if item.onUnpress then 
 				item.onUnpress(self, item, x, y)
 			end
 		elseif item.itemType.isLever then
@@ -211,12 +249,11 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end)
 
-
 	-- AI visibility etc
 	for _, entity in ipairs(state.entities) do
 		assert(not (entity.targetEntity and entity.targetEntity.removed), "An entity is targetting a removed entity")
 
-		if entity == state.player then
+		if entity == state.player or entity.noAI then
 			-- TODO: Clear AI state?
 			goto continue
 		end
@@ -312,33 +349,38 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		-- No target
-		local potentialTarget = state.player -- Just look for player for now
-		if not potentialTarget then
-			goto continue
-		end
-		if not potentialTarget.dead then -- potentialTarget could be from a for loop
+		-- Targetting system would (probably) need a bit of work if it wasn't all many-on-one (monsters vs player). I'll say "TODO" (for searching the code for such comments)
+		for _, potentialTarget in ipairs(state.entities) do
 			if
-				self:getTeamRelation(entity.team, potentialTarget.team) == "enemy" and
-				self:entityCanSeeEntity(entity, potentialTarget)
+				potentialTarget.dead or
+				potentialTarget == entity or
+				not (
+					self:getTeamRelation(entity.team, potentialTarget.team) == "enemy" and
+					self:entityCanSeeEntity(entity, potentialTarget)
+				)
 			then
-				if entity.creatureType.alertAction then
-					self:broadcastEvent({
-						x = entity.x,
-						y = entity.y,
-						sourceEntity = entity,
-						type = "enemyAlert",
-						alertType = entity.creatureType.alertAction,
-						soundRange = entity.creatureType.alertActionUsesVocalisation and entity.creatureType.vocalisationRange or nil,
-						spottedEntity = potentialTarget,
-						spottedEntityLocation = {x = potentialTarget.x, y = potentialTarget.y}
-					})
-				end
-				entity.targetEntity = potentialTarget
-				entity.lastKnownTargetLocation = {
-					x = entity.targetEntity.x,
-					y = entity.targetEntity.y
-				}
+				goto continue
 			end
+
+			if entity.creatureType.alertAction then
+				self:broadcastEvent({
+					x = entity.x,
+					y = entity.y,
+					sourceEntity = entity,
+					type = "enemyAlert",
+					alertType = entity.creatureType.alertAction,
+					soundRange = entity.creatureType.alertActionUsesVocalisation and entity.creatureType.vocalisationRange or nil,
+					spottedEntity = potentialTarget,
+					spottedEntityLocation = {x = potentialTarget.x, y = potentialTarget.y}
+				})
+			end
+			entity.targetEntity = potentialTarget
+			entity.lastKnownTargetLocation = {
+				x = entity.targetEntity.x,
+				y = entity.targetEntity.y
+			}
+
+			::continue::
 		end
 
 	    ::continue::
@@ -348,7 +390,7 @@ function game:updateEntitiesAndProjectiles()
 		if entity.entityType ~= "creature" then
 			goto continue
 		end
-		if #entity.actions > 0 or entity == state.player then
+		if #entity.actions > 0 or entity == state.player or entity.noAI then
 			goto continue
 		end
 		if entity.dead then
@@ -369,6 +411,8 @@ function game:updateEntitiesAndProjectiles()
 	processActions("reload")
 	processActions("unload")
 	processActions("drop")
+	processActions("doffItem")
+	processActions("donItem")
 	self.entityPickUps = {}
 	processActions("pickUp")
 	processActions("interact")
@@ -845,6 +889,28 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end)
 
+	tickItems(function(item, x, y, locationType, locationEntity)
+		if item.armourWearToAdd then
+			local armourInfo = self:getTotalArmourInfo(item)
+			item.armourWear = math.min(armourInfo.durability, (item.armourWear or 0) + item.armourWearToAdd)
+			item.armourWearToAdd = nil
+			if item.armourWear >= armourInfo.durability then
+				self:broadcastEvent({
+					sourceEntity = locationEntity,
+					type = "armourBroke",
+					armourItem = item,
+					sourceEntityItemHoldType = locationType,
+					soundRange = 3,
+					x = x,
+					y = y
+				})
+				return true -- Destroy
+			end
+			return false
+		end
+	end)
+	flushEntityRemoval()
+
 	for _, actionType in ipairs(state.actionTypes) do
 		assert(processedActions[actionType.name], "Did not process action type " .. actionType.name)
 	end
@@ -878,14 +944,46 @@ function game:getEntityDisplayName(entity)
 	end
 end
 
-function game:damageEntity(entity, damage, source, bleedRateAdd, instantBloodLoss)
+function game:getDefenceMultiplier(defence)
+	-- Makes a reasonable-looking curve...
+	-- The quantities here have no set meaning, I just made something over a process in Desmos
+	-- local m = 0.5
+	-- local i = 0.063
+	-- local j = 0 -- This being zero cancels out b to 1
+	-- local k = 0.53
+	-- local x = defence ^ (1 + m)
+	-- local a = 1 / (1 + i * x)
+	-- local b = 1 / (1 + j * x)
+	-- local l = 1 / (1 + k * x)
+	-- local defenceMultiplier = a + l * (b - a) -- Linear interpolation
+	-- defenceMultiplier = math.max(0, math.min(1, defenceMultiplier)) -- Just in case
+	-- return defenceMultiplier
+
+	return math.max(0, math.min(1, 1 - defence / consts.defenceMax))
+end
+
+function game:damageEntity(entity, damage, source, bleedRateAdd, instantBloodLoss, ignoreArmour)
 	-- Deal
 
+	local effectiveDamage = damage or 0
+	local effectiveBleedRateAdd = bleedRateAdd or 0
+	local effectiveInstantBloodLoss = instantBloodLoss or 0
+	if not ignoreArmour and entity.currentWornItem then
+		local armourInfo = self:getTotalArmourInfo(entity.currentWornItem)
+		entity.currentWornItem.armourWearToAdd = (entity.currentWornItem.armourWearToAdd or 0) + damage -- damage is not multiplied down by defenceMultiplier here
+
+		local defenceMultiplier = self:getDefenceMultiplier(armourInfo.defence)
+
+		effectiveDamage = math.floor(effectiveDamage * defenceMultiplier)
+		effectiveBleedRateAdd = math.floor(effectiveBleedRateAdd * defenceMultiplier)
+		effectiveInstantBloodLoss = math.floor(effectiveInstantBloodLoss * defenceMultiplier)
+	end
+
 	local state = self.state
-	entity.health = entity.health - damage
+	entity.health = entity.health - effectiveDamage
 	if entity.blood then
-		entity.blood = math.max(0, entity.blood - (instantBloodLoss or 0))
-		entity.bleedingAmount = math.min(consts.maxBleedingAmount, entity.bleedingAmount + (bleedRateAdd or 0))
+		entity.blood = math.max(0, entity.blood - (effectiveInstantBloodLoss or 0))
+		entity.bleedingAmount = math.min(consts.maxBleedingAmount, entity.bleedingAmount + (effectiveBleedRateAdd or 0))
 	end
 
 	-- Record
@@ -913,11 +1011,11 @@ function game:damageEntity(entity, damage, source, bleedRateAdd, instantBloodLos
 		damageReceiverInfo = {entity = entity, total = 0}
 		dealtDamageList[#dealtDamageList+1] = damageReceiverInfo
 	end
-	damageReceiverInfo.total = damageReceiverInfo.total + damage
+	damageReceiverInfo.total = damageReceiverInfo.total + effectiveDamage
 
 	-- Only damages paired with sources are recorded above, so we also need to aggregate all damage that a creature receives each tick
 
-	entity.damageTakenThisTick = (entity.damageTakenThisTick or 0) + damage
+	entity.damageTakenThisTick = (entity.damageTakenThisTick or 0) + effectiveDamage
 end
 
 function game:getTileEntityLists()

@@ -1,5 +1,13 @@
 local game = {}
 
+function game:validateItemTypes()
+	for itemTypeName, itemType in pairs(self.state.itemTypes) do
+		if itemType.isHealItem and not itemType.healItemDeleteOnUse and itemType.stackable and not itemType.healItemEndlessUse then
+			error(itemTypeName .. " is a healing item type that will set an entire stack of it to be used")
+		end
+	end
+end
+
 function game:loadItemTypes()
 	local state = self.state
 	local itemTypes = {}
@@ -493,9 +501,9 @@ function game:loadItemTypes()
 		tile = "ƒ",
 		displayName = "scythe",
 		isMeleeWeapon = true,
-		meleeDamage = 10,
+		meleeDamage = 7,
 		meleeBleedRateAdd = 32,
-		meleeTimerAdd = 4
+		meleeTimerAdd = 5
 	}
 
 	itemTypes.crowbar = {
@@ -780,7 +788,7 @@ function game:loadItemTypes()
 	itemTypes.smallMedkit = {
 		isHealItem = true,
 		tile = "+",
-		displayName = "small medkit",
+		displayName = "small medkit", 
 		swapColours = true,
 		secondaryColour = "white",
 		interactable = true,
@@ -793,7 +801,7 @@ function game:loadItemTypes()
 		healItemDeleteOnUse = false,
 		interactionType = state.interactionTypes.healItem
 	}
-	itemTypes.largeMedkit = {
+	itemTypes.largeMedkit = { 
 		isHealItem = true,
 		tile = "±",
 		displayName = "large medkit",
@@ -831,11 +839,22 @@ function game:loadItemTypes()
 	}
 	-- TODO: Stimpacks for short-term mitigation of shock and exhaustion?
 
-	for itemTypeName, itemType in pairs(itemTypes) do
-		if itemType.isHealItem and not itemType.healItemDeleteOnUse and itemType.stackable and not itemType.healItemEndlessUse then
-			error(itemTypeName .. " is a healing item type that will set an entire stack of it to be used")
-		end
-	end
+	itemTypes.knightlyArmour = {
+		tile = "┬",
+		swapColours = true,
+		wearable = true,
+		armourDefence = 3,
+		armourDurability = 10
+	}
+	itemTypes.tacticalArmour = {
+		tile = "Ω",
+		displayName = "tactic armour",
+		wearable = true,
+		armourDefence = 4,
+		armourDurability = 20
+	}
+
+	self:validateItemTypes()
 end
 
 return game

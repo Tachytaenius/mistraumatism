@@ -47,13 +47,14 @@ function game:loadTileTypes()
 		grass = {
 			displayName = "grass",
 			solidity = "passable",
+			secondaryColour = "darkGreen", -- Make a system to take the colour from the material (and invert its brightness) if non-green grasses are needed
 			character = "▒"
 		},
 		longGrass = {
 			displayName = "long grass",
 			solidity = "passable",
 			secondaryColour = "darkGreen", -- Make a system to take the colour from the material (and invert its brightness) if non-green grasses are needed
-			character = "▒"
+			character = "▓"
 		},
 		flowerbed = {
 			displayName = "flowerbed",

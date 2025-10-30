@@ -420,6 +420,7 @@ function game:loadActionTypes()
 			if not new.timer then
 				return
 			end
+			new.displayNameOverride = new.useInfo and new.useInfo.actionDisplayName
 			return new
 		elseif self:getHeldItem(entity).itemType.isGun then
 			if self:getHeldItem(entity).itemType.energyWeapon then
@@ -548,7 +549,7 @@ function game:loadActionTypes()
 		if not player.inventory then
 			return
 		end
-		if commands.checkCommand("unloadMode") then
+		if commands.checkCommand("unloadMode") or commands.checkCommand("changeWornItemMode") then
 			return
 		end
 		if commands.checkCommand("deselectInventorySlot") then
@@ -903,7 +904,8 @@ function game:loadActionTypes()
 		if not (targetEntity.itemData.itemType.interactionType and targetEntity.itemData.itemType.interactionType.startInfoWorld) then
 			return
 		end
-		new.timer, new.interactionIntent = targetEntity.itemData.itemType.interactionType.startInfoWorld(self, entity, "world", targetEntity)
+		new.timer, new.useInfo = targetEntity.itemData.itemType.interactionType.startInfoWorld(self, entity, "world", targetEntity)
+		new.displayNameOverride = new.useInfo and new.useInfo.actionDisplayName
 		if not new.timer then
 			return
 		end
@@ -918,7 +920,7 @@ function game:loadActionTypes()
 			if action.targetEntity.x == targetX and action.targetEntity.y == targetY then
 				action.doneType = "completed"
 				if action.targetEntity.itemData.itemType.interactionType and action.targetEntity.itemData.itemType.interactionType.resultWorld then
-					local resultInfo = action.targetEntity.itemData.itemType.interactionType.resultWorld(self, entity, "world", action.targetEntity, action.interactionIntent)
+					local resultInfo = action.targetEntity.itemData.itemType.interactionType.resultWorld(self, entity, "world", action.targetEntity, action.useInfo)
 					return resultInfo -- processActions has special handling
 				end
 			else
@@ -979,6 +981,144 @@ function game:loadActionTypes()
 				action.doneType = "cancelled"
 			end
 		end
+	end
+
+		local doffItem = newActionType("doffItem", "doff item")
+	function doffItem.validate(self, entity, action)
+		local itemToDoff = entity.currentWornItem
+		if not itemToDoff then
+			return false
+		end
+		if action.slot then
+			if not (
+				entity.inventory and
+				entity.inventory[action.slot] and
+				(
+					not entity.inventory[action.slot].item or
+					(
+						self:isItemStackable(entity.inventory[action.slot].item, itemToDoff) and
+						self:getSlotStackSize(entity, action.slot) < self:getMaxStackSize(entity.inventory[action.slot].item)
+					)
+				)
+			) then
+				return false
+			end
+		else
+			local ox, oy = self:getDirectionOffset(action.direction)
+			local targetX, targetY = entity.x + ox, entity.y + oy
+			if self:tileBlocksAirMotion(targetX, targetY) then
+				return false
+			end
+		end
+		return true
+	end
+	function doffItem.construct(self, entity, slot, floorX, floorY)
+		local new = {type = "doffItem"}
+		if slot then
+			new.slot = slot
+		else
+			new.direction = self:getDirection(floorX - entity.x, floorY - entity.y)
+		end
+		new.timer = 40
+		if doffItem.validate(self, entity, new) then
+			return new
+		end
+	end
+	function doffItem.process(self, entity, action)
+		action.timer = action.timer - 1
+		if not doffItem.validate(self, entity, action) then
+			action.doneType = "cancelled"
+			return
+		end
+		if action.timer <= 0 then
+			local doffedItem = entity.currentWornItem
+			entity.currentWornItem = nil
+			if action.slot then
+				local added = self:addItemToSlot(entity, action.slot, doffedItem)
+				assert(added, "Couldn't add item to slot for doff item action, even though the action was(?) validated")
+			else
+				local ox, oy = self:getDirectionOffset(action.direction)
+				local targetX, targetY = entity.x + ox, entity.y + oy
+				self:newItemEntity(targetX, targetY, doffedItem)
+			end
+			action.doneType = "completed"
+		end
+	end
+	function doffItem.fromInput(self, player)
+		if not commands.checkCommand("changeWornItemMode") then
+			return
+		end
+
+		if commands.checkCommand("deselectInventorySlot") then
+			local x, y
+			if not self.state.cursor then
+				x, y = player.x, player.y
+			else
+				x, y = self.state.cursor.x, self.state.cursor.y
+				local dx, dy = x - player.x, y - player.y
+				if math.abs(dx) > 1 or math.abs(dy) > 1 then
+					-- return
+					x, y = player.x, player.y
+				end
+			end
+			return doffItem.construct(self, player, nil, x, y)
+		end
+
+		local number
+		for i = 1, 9 do
+			if i > #player.inventory then
+				break
+			end
+			if commands.checkCommand("handleInventorySlot" .. i) then
+				number = i
+			end
+		end
+		if not number then
+			return
+		end
+		return doffItem.construct(self, player, number, nil, nil)
+	end
+
+	local donItem = newActionType("donItem", "don item")
+	function donItem.validate(self, entity, action)
+		if not entity.inventory then
+			return false
+		end
+		local heldItem = self:getHeldItem(entity)
+		if not heldItem then
+			return false
+		end
+		if not heldItem.itemType.wearable then
+			return false
+		end
+		if entity.currentWornItem then
+			return false
+		end
+		return true
+	end
+	function donItem.construct(self, entity)
+		local new = {type = "donItem"}
+		new.timer = 40
+		if donItem.validate(self, entity, new) then
+			return new
+		end
+	end
+	function donItem.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if donItem.validate(self, entity, action) then
+				entity.currentWornItem = self:takeItemFromSlot(entity, entity.inventory.selectedSlot)
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
+	function donItem.fromInput(self, player)
+		if not commands.checkCommand("changeWornItemMode") then
+			return
+		end
+		return donItem.construct(self, player) -- If valid
 	end
 end
 

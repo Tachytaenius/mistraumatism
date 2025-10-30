@@ -45,9 +45,19 @@ function game:loadMaterials()
 	addMaterial("water", "water", "darkBlue", "liquid")
 	addMaterial("ice", "ice", "cyan", "solid")
 
+	local steel = addMaterial("steel", "steel", "darkGrey", "solid")
+	steel.armourInfo = {
+		defence = 2,
+		durability = 6
+	}
+	local iron = addMaterial("iron", "iron", "darkGrey", "solid")
+	iron.armourInfo = {
+		defence = 2,
+		durability = 4
+	}
 	applySoundCategory(addMaterialSoundCategory("metal", "metal"),
-		addMaterial("steel", "steel", "darkGrey", "solid"),
-		addMaterial("iron", "iron", "darkGrey", "solid"),
+		steel,
+		iron,
 		addMaterial("gold", "gold", "yellow", "solid"),
 		addMaterial("copper", "copper", "darkYellow", "solid"),
 		addMaterial("brass", "brass", "yellow", "solid"),
@@ -58,7 +68,18 @@ function game:loadMaterials()
 	addMaterial("labTiles", "lab tiles", "white", "solid")
 	addMaterial("plaster", "plaster", "white", "solid")
 	addMaterial("leather", "leather", "darkYellow", "solid")
+
 	addMaterial("polymer", "polymer", "darkGrey", "solid")
+	local superPolymer = addMaterial("superPolymer", "super polymer", "darkCyan", "solid")
+	superPolymer.armourInfo = {
+		defence = 4,
+		durability = 8
+	}
+	local hyperPolymer = addMaterial("hyperPolymer", "hyper polymer", "darkMagenta", "solid")
+	hyperPolymer.armourInfo = {
+		defence = 6,
+		durability = 14
+	}
 
 	applySoundCategory(addMaterialSoundCategory("stone", "stone"),
 		addMaterial("slate", "slate", "darkGrey", "solid"),
@@ -85,8 +106,10 @@ function game:loadMaterials()
 	addMaterial("ivy", "ivy", "darkGreen", "solid")
 	local borage = addMaterial("borage", "borage", "blue", "solid")
 	borage.flowerTile = "*"
+	local roseWithered = addMaterial("rose", "rose", "red", "solid")
+	roseWithered.flowerTile = "@"
 	local roseWithered = addMaterial("roseWithered", "withered rose", "darkYellow", "solid")
-	roseWithered.flowerTile = "♣"
+	roseWithered.flowerTile = "§"
 
 	applySoundCategory(addMaterialSoundCategory("wood", "wood"),
 		addMaterial("mahogany", "mahogany", "darkYellow", "solid"),

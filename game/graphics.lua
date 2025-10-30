@@ -22,6 +22,10 @@ function game:clearFramebuffer()
 end
 
 function game:draw()
+	if self.noDraw then
+		return
+	end
+
 	self.currentFramebuffer, self.otherFramebuffer = self.otherFramebuffer, self.currentFramebuffer
 	local framebuffer = self.currentFramebuffer
 	self:clearFramebuffer()
@@ -697,7 +701,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local statusHeight = self.framebufferHeight - self.consoleHeight - 3
 
 	local entityStatusHeight = 6
-	local function drawEntityStatus(entity, title, yShift)
+	local function drawEntityStatus(entity, title, yShift, noText)
 		local rectangles = {
 			{x = 0, y = yShift, w = statusWidth, h = 6},
 			{x = 0, y = yShift, w = 3, h = 3}
@@ -736,45 +740,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		if entity and entity.entityType == "item" then
 			titleColour = "lightGrey"
 		end
-		drawStringFramebuffer(statusX + 3, statusY + yShift, title, titleColour, "black")
 		if entity and entity.entityType == "creature" then
 			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, entity.creatureType.tile, getCreatureColour(entity), "black")
-			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
-			local healthInfo = entity.health .. "H"
-			if entity.dead then
-				healthInfo = "Dead"
-			end
-			if entity.blood then
-				healthInfo = healthInfo .. "∙" .. entity.blood .. "B" .. "∙-" .. entity.bleedingAmount
-			end
-			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, healthInfo, "lightGrey", "black")
-			local actionInfo
-			local actionColour = "lightGrey"
-			local action = entity.actions[1]
-			if not action then
-				actionInfo = "No action"
-			else
-				if action.type == "shoot" or action.type == "melee" or action.type == "mindAttack" then
-					actionColour = "red"
-				else
-					actionColour = "darkCyan"
-				end
-				actionInfo = util.capitalise(state.actionTypes[action.type].displayName) .. "∙" .. action.timer .. "T"
-				if action.type == "move" or action.type == "melee" then
-					local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
-					if action.type == "melee" and action.charge then
-						symbol = "Charge" .. symbol
-					end
-					if symbol then
-						actionInfo = actionInfo .. "∙" .. symbol
-					end
-				end
-			end
-			drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
-			if self:getHeldItem(entity) then
-				local itemName = util.capitalise(self:getHeldItem(entity).itemType.displayName, false)
-				drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, itemName, "lightGrey", "black")
-			end
 		elseif entity and entity.entityType == "item" then
 			local tile = entity.itemData.itemType.tile
 			local readMaterialTileField = entity.itemData.itemType.readMaterialTileField
@@ -788,74 +755,126 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				tile = entity.itemData.itemType.activeTile
 			end
 			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, entity.itemData.itemType.secondaryColour or "black", entity.itemData.itemType.swapColours))
-			drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.itemData.itemType.displayName, false), "lightGrey", "black")
-			drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, util.capitalise(state.materials[entity.itemData.material].displayName, false), "lightGrey", "black")
-			local item = entity.itemData
-			local itemType = item.itemType
-			if itemType.isDoor then
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, entity.doorTile.doorData.open and "Open" or "Closed", "lightGrey", "black")
-			elseif itemType.isLever and not (not item.active and itemType.inactiveHidden) then
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.active and "Active" or "Inactive", "lightGrey", "black")
-			elseif itemType.isButton then
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.pressed and "Pressed" or "Not pressed", "lightGrey", "black")
-			elseif itemType.isHealItem and not (item.itemType.healItemEndlessUse or item.itemType.healItemDeleteOnUse) then
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.healingUsed and "Used" or "Unused", "lightGrey", "black")
-			elseif itemType.isGun then
-				local gunStatus
-				if itemType.energyWeapon then
-					local energyStatus = item.storedEnergy >= item.itemType.energyPerShot
-					local energyStatusLine =
-						(item.shotCooldownTimer and "Working" or "Ready") ..
-						"∙" ..
-						"Energy "
-					local energyStatusChar = energyStatus and "√" or "X"
-					local energyStatusColour = energyStatus and "green" or "red"
-					energyStatusColour = "lightGrey"
-					drawCharacterFramebuffer(statusX + 1 + utf8.len(energyStatusLine), statusY + 3 + yShift, energyStatusChar, energyStatusColour, "black")
-					gunStatus =
-						energyStatusLine ..
-						"\n" ..
-						(item.storedEnergy .. "/" .. item.itemType.maxEnergy) ..
-						(item.chargeState == "fromBattery" and "«" or item.chargeState == "toBattery" and "»" or "│") ..
-						(item.insertedMagazine and ("C" .. item.insertedMagazine.storedEnergy .. "/" .. item.insertedMagazine.itemType.maxEnergy) or "No cell")
-				elseif itemType.displayAsDoubleShotgun then
-					local a, b = item.magazineData[1], item.magazineData[2]
-					gunStatus =
-						(a and (a.fired and "Fired" or "Live") or "Empty") .. "∙" .. (b and (b.fired and "Fired" or "Live") or "Empty") ..
-						"∙" ..
-						(item.actionOpen and "Open" or "Shut") ..
-						"\n" ..
-						(not item.cockedStates[1] and not item.cockedStates[2] and "Both uncocked" or (item.cockedStates[1] and "Cocked" or "Uncocked") .. "∙" .. (item.cockedStates[2] and "Cocked" or "Uncocked"))
-				else
-					local magazineItem = item.magazineData and item or item.insertedMagazine or nil -- The gun itself, an inserted magazine, or nothing
-					local nextRound = item.itemType.noChamber and magazineItem and magazineItem.magazineData[#magazineItem.magazineData] or item.chamberedRound
-					gunStatus =
-						(nextRound and (nextRound.fired and "Fired" or "Live") or "Empty") ..
-						"∙" ..
-						(item.shotCooldownTimer and "Working" or (item.itemType.noCocking and "Ready" or (item.cocked and "Cocked" or "Uncocked"))) ..
-						"\n" ..
-						(item.itemType.alteredMagazineUse == "ignore" and (item.itemType.breakAction and (item.actionOpen and "Open" or "Shut") or "") or (magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine"))
+		end
+		if not noText then
+			drawStringFramebuffer(statusX + 3, statusY + yShift, title, titleColour, "black")
+			if entity and entity.entityType == "creature" then
+				drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.creatureType.displayName, false), "lightGrey", "black")
+				local healthInfo = entity.health .. "H"
+				if entity.dead then
+					healthInfo = "Dead"
 				end
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, gunStatus, "lightGrey", "black")
-			elseif itemType.energyBattery then
-				local cellStatus = "Energy: " .. item.storedEnergy .. "/" .. item.itemType.maxEnergy
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, cellStatus, "lightGrey", "black")
-			elseif itemType.magazine then -- Would have gone into the block above if it was a gun with its own magazine data
-				local magazineStatus = "Magazine: " .. #item.magazineData .. "/" .. item.itemType.magazineCapacity
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, magazineStatus, "lightGrey", "black")
-			elseif itemType.isAmmo then
-				local ammoStatus = item.fired and "Fired" or "Live"
-				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, ammoStatus, "lightGrey", "black")
+				if entity.blood then
+					healthInfo = healthInfo .. "∙" .. entity.blood .. "B" .. "∙-" .. entity.bleedingAmount
+				end
+				drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, healthInfo, "lightGrey", "black")
+				local actionInfo
+				local actionColour = "lightGrey"
+				local action = entity.actions[1]
+				if not action then
+					actionInfo = "No action"
+				else
+					if action.type == "shoot" or action.type == "melee" or action.type == "mindAttack" then
+						actionColour = "red"
+					else
+						actionColour = "darkCyan"
+					end
+					local actionDisplayName = action.displayNameOverride or state.actionTypes[action.type].displayName
+					actionInfo = util.capitalise(actionDisplayName) .. "∙" .. action.timer .. "T"
+					if action.type == "move" or action.type == "melee" then
+						local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
+						if action.type == "melee" and action.charge then
+							symbol = "Charge" .. symbol
+						end
+						if symbol then
+							actionInfo = actionInfo .. "∙" .. symbol
+						end
+					end
+				end
+				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
+				if self:getHeldItem(entity) then
+					local itemName = util.capitalise(self:getHeldItem(entity).itemType.displayName, false)
+					drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, itemName, "lightGrey", "black")
+				end
+			elseif entity and entity.entityType == "item" then
+				drawStringFramebuffer(statusX + 3, statusY + 1 + yShift, util.capitalise(entity.itemData.itemType.displayName, false), "lightGrey", "black")
+				drawStringFramebuffer(statusX + 3, statusY + 2 + yShift, util.capitalise(state.materials[entity.itemData.material].displayName, false), "lightGrey", "black")
+				local item = entity.itemData
+				local itemType = item.itemType
+				if itemType.isDoor then
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, entity.doorTile.doorData.open and "Open" or "Closed", "lightGrey", "black")
+				elseif itemType.isLever and not (not item.active and itemType.inactiveHidden) then
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.active and "Active" or "Inactive", "lightGrey", "black")
+				elseif itemType.isButton then
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.pressed and "Pressed" or "Not pressed", "lightGrey", "black")
+				elseif itemType.isHealItem and not (item.itemType.healItemEndlessUse or item.itemType.healItemDeleteOnUse) then
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.healingUsed and "Used" or "Unused", "lightGrey", "black")
+				elseif itemType.wearable then
+					local info = self:getTotalArmourInfo(item)
+					local defence = info and info.defence or 0
+					local durability = info and info.durability or 0
+					local wear = item.armourWear or 0
+					local damageMultiplier = self:getDefenceMultiplier(defence)
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, "Wear: " .. wear .. "/" .. durability, "lightGrey", "black")
+					drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, defence .. " def∙" .. math.floor(damageMultiplier * 100 + 0.5) .. "% dmg", "lightGrey", "black")
+				elseif itemType.isGun then
+					local gunStatus
+					if itemType.energyWeapon then
+						local energyStatus = item.storedEnergy >= item.itemType.energyPerShot
+						local energyStatusLine =
+							(item.shotCooldownTimer and "Working" or "Ready") ..
+							"∙" ..
+							"Energy "
+						local energyStatusChar = energyStatus and "√" or "X"
+						local energyStatusColour = energyStatus and "green" or "red"
+						energyStatusColour = "lightGrey"
+						drawCharacterFramebuffer(statusX + 1 + utf8.len(energyStatusLine), statusY + 3 + yShift, energyStatusChar, energyStatusColour, "black")
+						gunStatus =
+							energyStatusLine ..
+							"\n" ..
+							(item.storedEnergy .. "/" .. item.itemType.maxEnergy) ..
+							(item.chargeState == "fromBattery" and "«" or item.chargeState == "toBattery" and "»" or "│") ..
+							(item.insertedMagazine and ("C" .. item.insertedMagazine.storedEnergy .. "/" .. item.insertedMagazine.itemType.maxEnergy) or "No cell")
+					elseif itemType.displayAsDoubleShotgun then
+						local a, b = item.magazineData[1], item.magazineData[2]
+						gunStatus =
+							(a and (a.fired and "Fired" or "Live") or "Empty") .. "∙" .. (b and (b.fired and "Fired" or "Live") or "Empty") ..
+							"∙" ..
+							(item.actionOpen and "Open" or "Shut") ..
+							"\n" ..
+							(not item.cockedStates[1] and not item.cockedStates[2] and "Both uncocked" or (item.cockedStates[1] and "Cocked" or "Uncocked") .. "∙" .. (item.cockedStates[2] and "Cocked" or "Uncocked"))
+					else
+						local magazineItem = item.magazineData and item or item.insertedMagazine or nil -- The gun itself, an inserted magazine, or nothing
+						local nextRound = item.itemType.noChamber and magazineItem and magazineItem.magazineData[#magazineItem.magazineData] or item.chamberedRound
+						gunStatus =
+							(nextRound and (nextRound.fired and "Fired" or "Live") or "Empty") ..
+							"∙" ..
+							(item.shotCooldownTimer and "Working" or (item.itemType.noCocking and "Ready" or (item.cocked and "Cocked" or "Uncocked"))) ..
+							"\n" ..
+							(item.itemType.alteredMagazineUse == "ignore" and (item.itemType.breakAction and (item.actionOpen and "Open" or "Shut") or "") or (magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine"))
+					end
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, gunStatus, "lightGrey", "black")
+				elseif itemType.energyBattery then
+					local cellStatus = "Energy: " .. item.storedEnergy .. "/" .. item.itemType.maxEnergy
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, cellStatus, "lightGrey", "black")
+				elseif itemType.magazine then -- Would have gone into the block above if it was a gun with its own magazine data
+					local magazineStatus = "Magazine: " .. #item.magazineData .. "/" .. item.itemType.magazineCapacity
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, magazineStatus, "lightGrey", "black")
+				elseif itemType.isAmmo then
+					local ammoStatus = item.fired and "Fired" or "Live"
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, ammoStatus, "lightGrey", "black")
+				end
 			end
 		end
 	end
 
 	local inventoryHeight = 7
-	local function drawInventory()
+	local function drawInventory(wornItemMode)
+		local indent = wornItemMode and 5 or 2
 		local rectangles = {}
 		for x = 0, 2 do
 			for y = 0, 2 do
-				rectangles[#rectangles+1] = {x = x * 4 + 2, y = y * 2 + 2 * (entityStatusHeight + 1), w = 5, h = 3}
+				rectangles[#rectangles+1] = {x = x * 4 + indent, y = y * 2 + 2 * (entityStatusHeight + 1), w = 5, h = 3}
 			end
 		end
 		local function isBorder(x, y)
@@ -887,10 +906,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				::continue::
 			end
 		end
-		drawStringFramebuffer(statusX + 4, 2 * (entityStatusHeight + 1) + 1, "INVENTORY", "lightGrey", "black")
+		drawStringFramebuffer(statusX + 2 + indent, 2 * (entityStatusHeight + 1) + 1, "INVENTORY", "lightGrey", "black")
 		if state.player and state.player.inventory then
 			for i, slot in ipairs(state.player.inventory) do
-				local x = statusX + (i - 1) % 3 * 4 + 4
+				local x = statusX + (i - 1) % 3 * 4 + 2 + indent
 				local y = 2 * (entityStatusHeight + 1) + 2 + math.floor((i - 1) / 3) * 2
 				local isSelectedSlot = i == state.player.inventory.selectedSlot
 				drawCharacterFramebuffer(x - 1, y, tostring(i), isSelectedSlot and "lightGrey" or "darkGrey", "black")
@@ -930,7 +949,46 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	drawEntityStatus(state.player and not state.player.dead and state.player or nil, "YOU", 0)
 	local entity = self:getCursorEntity()
 	drawEntityStatus(state.player and self:getHeldItem(state.player) and {entityType = "item", itemData = self:getHeldItem(state.player)} or nil, "POSSESSION", inventoryHeight) -- HACK
-	drawInventory()
+	if state.player and state.player.currentWornItem then
+		if commands.checkCommand("changeWornItemMode") then
+			drawEntityStatus({entityType = "item", itemData = state.player.currentWornItem} or nil, "ARMOUR", inventoryHeight * 2) -- HACK
+		else
+			drawEntityStatus({entityType = "item", itemData = state.player.currentWornItem} or nil, nil, inventoryHeight * 2, true) -- HACK
+			for x = statusX + 5, statusX + statusWidth - 1 do
+				for y = inventoryHeight * 2, inventoryHeight * 2 + 6 do
+					drawCharacterFramebuffer(x, y, " ", "black", "black")
+				end
+			end
+			drawInventory(true)
+
+			local info = self:getTotalArmourInfo(state.player.currentWornItem)
+			local defence = info and info.defence or 0
+			local durability = info and info.durability or 0
+			local wear = state.player.currentWornItem.armourWear or 0
+			local damageMultiplier = self:getDefenceMultiplier(defence)
+
+			local x = statusX + 1
+			local y = inventoryHeight * 2 + 2
+
+			drawStringFramebuffer(x + 2, y, tostring(wear), "lightGrey", "black")
+			drawStringFramebuffer(x + 2, y + 1, tostring(durability), "lightGrey", "black")
+			drawStringFramebuffer(x, y + 2, tostring(defence), "lightGrey", "black")
+			drawStringFramebuffer(x, y + 3, math.floor(damageMultiplier * 100 + 0.5) .. "%", "lightGrey", "black")
+
+			-- drawStringFramebuffer(x + 2, y, tostring(math.floor(damageMultiplier * 100 + 0.5)), "lightGrey", "black")
+			-- drawStringFramebuffer(x + 2, y + 1, "%D", "lightGrey", "black") -- "% of incoming damage to be taken"
+			-- drawStringFramebuffer(x, y + 2, wear .. "/", "lightGrey", "black")
+			-- drawStringFramebuffer(x, y + 3, " " .. durability, "lightGrey", "black")
+
+			-- drawStringFramebuffer(x + 2, y, tostring(wear), "lightGrey", "black")
+			-- drawStringFramebuffer(x + 2, y + 1, tostring(durability), "lightGrey", "black")
+			-- -- drawStringFramebuffer(x, y + 2, tostring(defence), "lightGrey", "black")
+			-- drawStringFramebuffer(x, y + 2, math.floor(damageMultiplier * 100 + 0.5) .. "%", "lightGrey", "black")
+			-- -- drawStringFramebuffer(x, y + 3, "WORN", "lightGrey", "black")
+		end
+	else
+		drawInventory(false)
+	end
 	drawEntityStatus(entity, "TARGET", inventoryHeight + 1 + 2 * (entityStatusHeight + 1))
 
 	local yShift = inventoryHeight + 1 + 3 * (entityStatusHeight + 1)

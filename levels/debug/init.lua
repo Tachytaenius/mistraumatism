@@ -11,10 +11,12 @@ function info:createLevel()
 		end
 	end
 
-	-- self:placeItem(1, 2, "bandage", "cloth")
-	-- self:placeItem(2, 2, "bandage", "cloth")
-	-- self:placeItem(1, 3, "bandage", "cloth")
-	-- self:placeItem(2, 3, "bandage", "cloth")
+	self:placeItem(1, 1, "tacticalArmour", "hyperPolymer")
+
+	self:placeItem(1, 2, "bandage", "cloth")
+	self:placeItem(2, 2, "bandage", "cloth")
+	self:placeItem(1, 3, "bandage", "cloth")
+	self:placeItem(2, 3, "bandage", "cloth")
 
 	-- self:placeItem(4, 2, "smallMedkit", "plasticGreen")
 	-- self:placeItem(5, 2, "smallMedkit", "plasticGreen")
@@ -55,6 +57,8 @@ function info:createLevel()
 	end
 
 	-- self:placeMonster(14, 14, "demonicPriest")
+
+	-- self:placeMonster(14, 14, "skeleton")
 
 	return {
 		spawnX = 0,
