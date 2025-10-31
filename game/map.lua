@@ -8,7 +8,7 @@ function game:getTile(x, y)
 	return column[y]
 end
 
-function game:getWalkable(x, y, ignoreDoors, canFly)
+function game:getWalkable(x, y, ignoreDoors, ignoreFall)
 	local tile = self:getTile(x, y)
 	if not tile then
 		return false
@@ -19,7 +19,7 @@ function game:getWalkable(x, y, ignoreDoors, canFly)
 		end
 	end
 	local solidity = self.state.tileTypes[tile.type].solidity
-	return solidity == "passable" or canFly and solidity == "fall"
+	return solidity == "passable" or ignoreFall and solidity == "fall"
 end
 
 function game:getCheckedNeighbourTiles(x, y, checkFunction, includeCentreTile) -- Used to, for example, get all walkable neighbour tiles

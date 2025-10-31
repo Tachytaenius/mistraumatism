@@ -140,7 +140,7 @@ function game:updateCursor()
 		-- end
 	end
 
-	if commands.checkCommand("moveCursor") then
+	if commands.checkCommand("moveCursor") and not commands.checkCommand("dodgeMode") then
 		if not state.cursor then
 			move("zero")
 		end

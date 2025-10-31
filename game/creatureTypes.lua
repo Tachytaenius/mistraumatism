@@ -16,6 +16,11 @@ function game:loadCreatureTypes()
 		bloodMaterialName = "bloodRed",
 
 		moveTimerLength = 6,
+		dodgeTimerLength = 3,
+		dodgeSteadyTimerLength = 5,
+		jumpTimerLength = 4,
+		jumpAirborneTimerLength = 2,
+		jumpSteadyTimerLength = 13,
 		swimMoveTimerLength = 18,
 		breathingTimerLength = 900, -- 900 ticks / (18 ticks / step) = 50 steps when submerged. 0.03125 seconds / tick * 900 ticks = 28.125 seconds before drowning.
 		sightDistance = 17,

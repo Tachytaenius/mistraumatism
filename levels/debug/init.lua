@@ -48,17 +48,26 @@ function info:createLevel()
 		cell.storedEnergy = self.state.itemTypes.plasmaEnergyCell.maxEnergy
 	end
 
-	for x = 4, 12 do
-		for y = 4, 12 do
-			if love.math.random() < 0.25 then
-				self.state.map[x][y].type = "wall"
-			end
+	for x = 4, 10 do
+		for y = 4, 10 do
+			self:getTile(x, y).type = "pit"
+			self:getTile(4, y).type = "wall"
 		end
 	end
+
+	-- for x = 4, 12 do
+	-- 	for y = 4, 12 do
+	-- 		if love.math.random() < 0.25 then
+	-- 			self.state.map[x][y].type = "wall"
+	-- 		end
+	-- 	end
+	-- end
 
 	-- self:placeMonster(14, 14, "demonicPriest")
 
 	-- self:placeMonster(14, 14, "skeleton")
+	-- self:placeMonster(15, 15, "imp")
+	self:placeMonster(14, 15, "hellNoble")
 
 	return {
 		spawnX = 0,

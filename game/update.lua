@@ -6,7 +6,7 @@ local game = {}
 function game:isPlayerInControl()
 	local state = self.state
 	local player = state.player
-	if not player or state.waiting or player.dead then
+	if not player or state.waiting or player.dead or self:checkWillFall(state.player) then
 		return false
 	end
 	return #player.actions == 0

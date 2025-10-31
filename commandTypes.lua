@@ -1,4 +1,6 @@
 return {
+	dodgeMode = "hold",
+	jumpDodgeMode = "hold",
 	moveRight = "hold",
 	moveUpRight = "hold",
 	moveUp = "hold",

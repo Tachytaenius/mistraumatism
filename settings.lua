@@ -6,6 +6,8 @@ return {
 		fullscreen = false
 	},
 	controls = {
+		dodgeMode = "lctrl",
+		jumpDodgeMode = "lshift",
 		moveRight = "d",
 		moveUpRight = "e",
 		moveUp = "w",

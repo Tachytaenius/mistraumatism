@@ -180,9 +180,17 @@ function game:updateEntitiesAndProjectiles()
 							end
 						end
 					end
-					if action.doneType then
-						table.remove(entity.actions, i)
-						removed = true
+					if action.replaceAction then
+						if action.replaceAction then
+							entity.actions[i] = action.replaceAction
+						else
+							removed = true
+						end
+					else
+						if action.doneType then
+							table.remove(entity.actions, i)
+							removed = true
+						end
 					end
 				end
 				if not removed then
@@ -396,6 +404,9 @@ function game:updateEntitiesAndProjectiles()
 		if entity.dead then
 			goto continue
 		end
+		if self:checkWillFall(entity) then
+			goto continue
+		end
 		self:getAIActions(entity)
 	    ::continue::
 	end
@@ -404,34 +415,38 @@ function game:updateEntitiesAndProjectiles()
 	processActions("useHeldItem")
 	processActions("shoot")
 	processActions("mindAttack")
-	self:updateProjectiles()
-	processActions("move")
 	processActions("melee")
-	processActions("swapInventorySlot")
-	processActions("reload")
-	processActions("unload")
-	processActions("drop")
-	processActions("doffItem")
-	processActions("donItem")
-	self.entityPickUps = {}
-	processActions("pickUp")
-	processActions("interact")
-	for _, itemPickup in ipairs(self.entityPickUps) do
-		if #itemPickup > 1 then
-			-- TODO: If one of the entities is the player, announce pickup clash
-			-- Only really needed if other entities can pick up items.
-		else
-			local entity = itemPickup[1]
-			if entity then
-				local slot = self:getBestFreeInventorySlotForItem(entity, itemPickup.item.itemData)
-				if slot and self:addItemToSlot(entity, slot, itemPickup.item.itemData) then
-					itemPickup.item.pickedUp = true
-					entitiesToRemove[itemPickup.item] = true
+	self:updateProjectiles()
+	local function actionsProcessSecondPart()
+		-- Moved to this function (called after death checks) to change some things
+		processActions("steady")
+		processActions("move")
+		processActions("swapInventorySlot")
+		processActions("reload")
+		processActions("unload")
+		processActions("drop")
+		processActions("doffItem")
+		processActions("donItem")
+		self.entityPickUps = {}
+		processActions("pickUp")
+		processActions("interact")
+		for _, itemPickup in ipairs(self.entityPickUps) do
+			if #itemPickup > 1 then
+				-- TODO: If one of the entities is the player, announce pickup clash
+				-- Only really needed if other entities can pick up items.
+			else
+				local entity = itemPickup[1]
+				if entity then
+					local slot = self:getBestFreeInventorySlotForItem(entity, itemPickup.item.itemData)
+					if slot and self:addItemToSlot(entity, slot, itemPickup.item.itemData) then
+						itemPickup.item.pickedUp = true
+						entitiesToRemove[itemPickup.item] = true
+					end
 				end
 			end
 		end
+		flushEntityRemoval()
 	end
-	flushEntityRemoval()
 
 	-- Damage, drowning, bleeding, explosions, gibbing, falling down pits, and screaming
 	for _, entity in ipairs(state.entities) do
@@ -442,22 +457,7 @@ function game:updateEntitiesAndProjectiles()
 				entity.hangingFrom = nil
 			end
 		end
-		local tile = self:getTile(entity.x, entity.y)
-		local anchored
-		if entity.entityType == "item" and entity.itemData.itemType.anchorsOverPits then
-			local anchorableNeighbours = self:getCheckedNeighbourTiles(entity.x, entity.y, function(x, y)
-				local tile = self:getTile(x, y)
-				return not tile or state.tileTypes[tile.type].solidity ~= "fall"
-			end)
-			anchored = #anchorableNeighbours > 0
-		end
-		if
-			tile and
-			state.tileTypes[tile.type].solidity == "fall" and
-			(entity.entityType ~= "creature" or not (entity.creatureType.flying and not entity.dead)) and
-			not entity.hangingFrom and
-			not anchored
-		then
+		if self:checkWillFall(entity) then
 			if entity.entityType == "creature" and not entity.dead then
 				deathEventData = kill(entity, true, "fell")
 			else
@@ -732,8 +732,12 @@ function game:updateEntitiesAndProjectiles()
 			local gibs = {}
 			local gibCount = math.min(fleshAmount, math.floor(gibForce * 1/3) + 2)
 			local function newGib()
-				local speed = (love.math.random() * 0.25 + 1) * math.min(24, gibForce)
-				local range = math.min(6, math.ceil(speed / 16))
+				local gibForceHalfPoint = 24
+				local rangeNotForceFactor = 2
+
+				local gibForce = gibForce / rangeNotForceFactor
+				local speed = (love.math.random() * 0.25 + 1) * (gibForce < gibForceHalfPoint and gibForce or (gibForceHalfPoint + (gibForce - gibForceHalfPoint) * 0.5))
+				local range = math.min(6, math.ceil(speed / 16)) * rangeNotForceFactor
 				local angle = love.math.random() * consts.tau
 				local subtickMoveTimerLength = math.ceil(25 * consts.projectileSubticks / speed)
 				local r = consts.spreadRetargetDistance
@@ -842,6 +846,8 @@ function game:updateEntitiesAndProjectiles()
 	end
 	state.damagesQueue = {} -- Accumulate anything for next tick
 	flushEntityRemoval()
+
+	actionsProcessSecondPart()
 
 	for _, entity in ipairs(state.entities) do
 		if not entity.inventory then
@@ -1166,10 +1172,19 @@ function game:isEntitySwimming(entity)
 	return not not tile.liquid
 end
 
-function game:getMoveTimerLength(entity)
-	return self:isEntitySwimming(entity) and (entity.creatureType.swimMoveTimerLength or
-		entity.creatureType.moveTimerLength and entity.creatureType.moveTimerLength * 2
-	) or entity.creatureType.moveTimerLength
+function game:getMoveTimerLength(entity, specialType)
+	return
+		self:isEntitySwimming(entity) and (
+			entity.creatureType.swimMoveTimerLength or
+			entity.creatureType.moveTimerLength and entity.creatureType.moveTimerLength * 2
+		) or (
+			(
+				specialType == "jump" and entity.creatureType.jumpTimerLength or
+				specialType == "dodge" and entity.creatureType.dodgeTimerLength or
+				specialType == "stopCharge" and entity.creatureType.stopChargeTimerLength
+			) or
+			entity.creatureType.moveTimerLength
+		)
 end
 
 function game:isDrowning(entity) -- Returns whether drowning as a boolean, and also the cause as a string. Causes: "noAir", "airDrowning"
@@ -1202,6 +1217,28 @@ function game:shouldEntityFlee(entity, potentialFleeFromEntity)
 		return true
 	end
 	return false
+end
+
+function game:checkWillFall(entity)
+	local state = self.state
+	local tile = self:getTile(entity.x, entity.y)
+	local anchored
+	if entity.entityType == "item" and entity.itemData.itemType.anchorsOverPits then
+		local anchorableNeighbours = self:getCheckedNeighbourTiles(entity.x, entity.y, function(x, y)
+			local tile = self:getTile(x, y)
+			return not tile or state.tileTypes[tile.type].solidity ~= "fall"
+		end)
+		anchored = #anchorableNeighbours > 0
+	end
+	return
+		tile and
+		state.tileTypes[tile.type].solidity == "fall" and
+		(entity.entityType ~= "creature" or not (
+			entity.creatureType.flying and not entity.dead or
+			entity.actions[1] and entity.actions[1].jumpAirborne
+		)) and
+		not entity.hangingFrom and
+		not anchored
 end
 
 return game

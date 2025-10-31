@@ -1,10 +1,8 @@
 local commands = require("commands")
 local consts = require("consts")
-local util = require("util")
 
 local game = {}
 
--- TODO: Action validatation
 function game:loadActionTypes()
 	local actionTypes = {}
 	self.state.actionTypes = actionTypes
@@ -20,21 +18,72 @@ function game:loadActionTypes()
 
 	-- Within each function, self is the game instance
 
+	local steady = newActionType("steady", "steady")
+	function steady.construct(self, entity, timer)
+		local new = {type = "steady"}
+		new.timer = timer
+		return new
+	end
+	function steady.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			action.doneType = "completed"
+		end
+	end
+
 	local move = newActionType("move", "move")
-	function move.construct(self, entity, direction)
-		local moveTimerLength = self:getMoveTimerLength(entity)
+	local function getMoveSpecialTypeDisplayNameOverride(action)
+		local specialType = action.specialType
+		if not specialType then
+			return nil
+		end
+		return
+			specialType == "jump" and (
+				action.jumpAirborne and "jump" or
+				"jump"
+			) or
+			specialType == "dodge" and "dodge" or
+			specialType == "stopCharge" and "stop charge"
+	end
+	function move.construct(self, entity, direction, specialType)
+		local moveTimerLength = self:getMoveTimerLength(entity, specialType)
 		if not moveTimerLength then
-			return
+			return nil
 		end
 		local new = {type = "move"}
 		assert(direction ~= "zero", "Move action should not use the zero direction")
 		new.direction = direction
 		local multiplier = self:isDirectionDiagonal(direction) and consts.inverseDiagonal or 1
 		new.timer = math.floor(moveTimerLength * multiplier)
+		new.specialType = specialType
+		if specialType == "dodge" or specialType == "jump" then
+			if self:isEntitySwimming(entity) then
+				return nil
+			end
+			if specialType == "jump" then
+				if not (
+					entity.creatureType.jumpTimerLength and
+					entity.creatureType.jumpAirborneTimerLength and
+					entity.creatureType.jumpSteadyTimerLength
+				) then
+					return nil
+				end
+			else
+				if not (
+					entity.creatureType.dodgeTimerLength and
+					entity.creatureType.dodgeSteadyTimerLength
+				) then
+					return nil
+				end
+			end
+		end
+		if specialType then
+			new.displayNameOverride = getMoveSpecialTypeDisplayNameOverride(new)
+		end
 		return new
 	end
-	local function canWalkTo(entity, destinationX, destinationY)
-		return self:getWalkable(destinationX, destinationY, false, entity.creatureType.flying)
+	local function canWalkTo(entity, destinationX, destinationY, ignoreGaps)
+		return self:getWalkable(destinationX, destinationY, false, entity.creatureType.flying or ignoreGaps)
 	end
 	local function moveTo(entity, destinationX, destinationY)
 		entity.x, entity.y = destinationX, destinationY
@@ -42,14 +91,41 @@ function game:loadActionTypes()
 	function move.process(self, entity, action)
 		local offsetX, offsetY = self:getDirectionOffset(action.direction)
 		local destinationX, destinationY = entity.x + offsetX, entity.y + offsetY
-		if canWalkTo(entity, destinationX, destinationY) then
+		if canWalkTo(entity, destinationX, destinationY, true) then
 			action.timer = action.timer - 1
+			local dontComplete = false
 			if action.timer <= 0 then
+				if action.specialType == "jump" then
+					if action.jumpAirborne then
+						if entity.creatureType.jumpSteadyTimerLength then
+							action.replaceAction = steady.construct(self, entity, entity.creatureType.jumpSteadyTimerLength)
+						end
+					else
+						action.jumpAirborne = true
+						if not self:isEntitySwimming(entity) and entity.creatureType.jumpAirborneTimerLength then
+							local multiplier = self:isDirectionDiagonal(action.direction) and consts.inverseDiagonal or 1
+							action.timer = math.floor(entity.creatureType.jumpAirborneTimerLength * multiplier)
+							action.displayNameOverride = getMoveSpecialTypeDisplayNameOverride(action)
+							dontComplete = true
+						end
+					end
+				elseif action.specialType == "dodge" then
+					if entity.creatureType.dodgeSteadyTimerLength then
+						action.replaceAction = steady.construct(self, entity, entity.creatureType.dodgeSteadyTimerLength)
+					end
+				end
 				moveTo(entity, destinationX, destinationY)
-				action.doneType = "completed"
+				if not dontComplete then
+					action.doneType = "completed"
+				end
 				return
 			end
 		else
+			if action.specialType == "jump" and action.jumpAirborne then
+				if entity.creatureType.jumpSteadyTimerLength then
+					action.replaceAction = steady.construct(self, entity, entity.creatureType.jumpSteadyTimerLength)
+				end
+			end
 			action.doneType = "cancelled"
 		end
 	end
@@ -57,7 +133,7 @@ function game:loadActionTypes()
 		local playerMoveTimerLength = self:getMoveTimerLength(player)
 		if playerMoveTimerLength then
 			local direction
-			if not commands.checkCommand("moveCursor") then
+			if commands.checkCommand("dodgeMode") or not commands.checkCommand("moveCursor") then
 				if commands.checkCommand("moveRight") then
 					direction = "right"
 				elseif commands.checkCommand("moveUpRight") then
@@ -78,8 +154,34 @@ function game:loadActionTypes()
 			end
 			if direction then
 				local offsetX, offsetY = self:getDirectionOffset(direction)
-				if self:getWalkable(player.x + offsetX, player.y + offsetY, false, player.creatureType.flying) then
-					return move.construct(self, player, direction)
+				local specialType = nil
+				if commands.checkCommand("dodgeMode") then
+					if self:isEntitySwimming(player) then
+						return nil
+					end
+					if commands.checkCommand("jumpDodgeMode") then
+						if
+							player.creatureType.jumpTimerLength and
+							player.creatureType.jumpAirborneTimerLength and
+							player.creatureType.jumpSteadyTimerLength
+						then
+							specialType = "jump"
+						end
+					else
+						if
+							player.creatureType.dodgeTimerLength and
+							player.creatureType.dodgeSteadyTimerLength
+						then
+							specialType = "dodge"
+						end
+					end
+				end
+				local ignoreGaps = player.creatureType.flying
+				if specialType == "jump" or specialType == "dodge" then
+					ignoreGaps = true
+				end
+				if self:getWalkable(player.x + offsetX, player.y + offsetY, false, ignoreGaps) then
+					return move.construct(self, player, direction, specialType)
 				end
 			end
 		end
@@ -268,7 +370,7 @@ function game:loadActionTypes()
 					self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
 					hitFirstTime = true
 				end
-				if canWalkTo(entity, targetX, targetY) then
+				if canWalkTo(entity, targetX, targetY, true) then
 					moveTo(entity, targetX, targetY)
 				end
 				local hitSecondTime
@@ -280,6 +382,7 @@ function game:loadActionTypes()
 				if hitFirstTime or hitSecondTime then
 					action.doneType = "completed"
 				else
+					action.replaceAction = move.construct(self, entity, action.direction, "stopCharge")
 					action.doneType = "cancelled"
 				end
 			else
@@ -983,7 +1086,7 @@ function game:loadActionTypes()
 		end
 	end
 
-		local doffItem = newActionType("doffItem", "doff item")
+	local doffItem = newActionType("doffItem", "doff item")
 	function doffItem.validate(self, entity, action)
 		local itemToDoff = entity.currentWornItem
 		if not itemToDoff then
