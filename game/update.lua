@@ -114,6 +114,7 @@ function game:update()
 	self:updateEntitiesAndProjectiles() -- Resets damages queue
 	self:diminishExplosions()
 	self:dropSpatters()
+	self:checkTileMessages()
 	self:handleEventsQueue() -- Resets events queue
 
 	self:clearNonPersistentVariables()

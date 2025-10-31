@@ -25,8 +25,11 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0xaa] = "fescue"
 	}
 	local spawnX, spawnY
+	local ceilingMessage = self:newTileMessage("There is a skyward hole in the cavern ceiling above\nyou. The sunlight sifts down and glints at you\nagainst the dust.", "white")
 	local function decodeExtra(x, y, r, g, value, a)
-		if value == 0x55 then
+		if value == 0x44 then
+			self:placeTileMessage(x, y, ceilingMessage)
+		elseif value == 0x55 then
 			self:placeMonster(x, y, "hellNoble")
 		elseif value == 0xaa then
 			self:placeItem(x, y, "flower", "borage")

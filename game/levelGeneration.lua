@@ -283,6 +283,44 @@ function game:initialiseMap(width, height)
 
 	map.explosionTiles = {}
 	map.spatteredTiles = {}
+	map.tileMessages = {}
+end
+
+function game:newTileMessage(message, colour, tileCoords)
+	local map = self.state.map
+	local newTileMessageId = #map.tileMessages + 1
+	local newTileMessage = {text = message, colour = colour, active = true}
+	map.tileMessages[newTileMessageId] = newTileMessage
+	if tileCoords then
+		for _, tileCoord in ipairs(tileCoords) do
+			local tile = self:getTile(tileCoord.x or tileCoord[1], tileCoord.y or tileCoord[2])
+			tile.message = newTileMessage
+		end
+	end
+	return newTileMessage
+end
+
+function game:placeTileMessage(x, y, message)
+	local tile = self:getTile(x, y)
+	tile.message = message
+end
+
+function game:checkTileMessages()
+	local state = self.state
+	if not state.player or state.player.dead then
+		return
+	end
+	local tile = self:getTile(state.player.x, state.player.y)
+	if not tile or not tile.message then
+		return
+	end
+	local message = tile.message
+	if not message.active then
+		return
+	end
+
+	message.active = false
+	self:announce(message.text, message.colour)
 end
 
 function game:generateLevel(parameters)
