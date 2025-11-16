@@ -724,7 +724,7 @@ function game:updateEntitiesAndProjectiles()
 
 			entitiesToRemove[entity] = true
 			local gibForce = (gibThreshold - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
-			local fleshAmount = math.floor(entity.creatureType.maxHealth ^ 0.85 * 2.8)
+			local fleshAmount = math.floor(entity.creatureType.maxHealth ^ 0.85 * 3.2)
 			local extraBlood = entity.creatureType.gibBloodRelease or entity.creatureType.maxBlood and math.floor(entity.creatureType.maxBlood * 0.65) or 0
 			local bloodAmount = (entity.blood or 0) + extraBlood
 			local bloodSaveAmount = math.ceil(bloodAmount * 0.2)

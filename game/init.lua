@@ -124,7 +124,7 @@ function game:init(args)
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
 	-- TEMP, change as needed
-	local skipIntro, flickerIntro, startLevelName, noPlayer
+	local skipIntro, flickerIntro, startLevelName, noPlayer, skipTitle
 	for _, arg in ipairs(args) do
 		if arg == "--skipIntro" then
 			skipIntro = true
@@ -139,55 +139,69 @@ function game:init(args)
 		if arg:match(startLevelArg) then
 			startLevelName = arg:gsub(startLevelArg, "")
 		end
+		if arg == "--skipTitle" then
+			skipTitle = true
+		end
 	end
 
-	local function makeState()
+	local function exitIntro()
 		self:newState({
 			startLevelName = startLevelName,
 			noPlayer = noPlayer
 		})
 		self:debugOnNewState()
-	end
-	if skipIntro then
-		makeState()
 		self.mode = "gameplay"
+	end
+
+	local function exitTitle()
+		if skipIntro then
+			exitIntro()
+			return true
+		else
+			self.mode = "text"
+			self.textInfo = {
+				path = "text/and-in-mistraumatism.txt",
+				timer = 0,
+				fullTime = 5,
+				releaseTime = 5,
+				updateFunction = function(self, dt)
+					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+						exitIntro()
+						return true -- To allow initial realtimeUpdate to fully set up new state
+					end
+					self.textInfo.timer = self.textInfo.timer + dt
+
+					local stages = {"black", "darkGrey", "lightGrey", "white"}
+
+					-- Too flickery for some
+					if flickerIntro then
+						function self.textInfo.getColour(x, y)
+							local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+							local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.noise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
+							local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
+							local stage = proportionModified * (#stages - 1)
+							local incrementChance = stage % 1
+							local stageInt = math.floor(stage) + (love.math.random() < incrementChance and 1 or 0)
+							return stages[stageInt + 1] or "white", "black"
+						end
+					else
+						function self.textInfo.getColour(x, y)
+							local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+							return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
+						end
+					end
+				end
+			}
+			return true
+		end
+	end
+
+	if skipTitle then
+		exitTitle()
+		return true
 	else
-		self.mode = "text"
-		self.textInfo = {
-			path = "text/and-in-mistraumatism.txt",
-			timer = 0,
-			fullTime = 5,
-			releaseTime = 5,
-			updateFunction = function(self, dt)
-				if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
-					self.updateFunction = nil
-					makeState()
-					self.mode = "gameplay"
-					return true -- To allow initial realtimeUpdate to fully set up new state
-				end
-				self.textInfo.timer = self.textInfo.timer + dt
-
-				local stages = {"black", "darkGrey", "lightGrey", "white"}
-
-				-- Too flickery for some
-				if flickerIntro then
-					function self.textInfo.getColour(x, y)
-						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
-						local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.noise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
-						local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
-						local stage = proportionModified * (#stages - 1)
-						local incrementChance = stage % 1
-						local stageInt = math.floor(stage) + (love.math.random() < incrementChance and 1 or 0)
-						return stages[stageInt + 1] or "white", "black"
-					end
-				else
-					function self.textInfo.getColour(x, y)
-						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
-						return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
-					end
-				end
-			end
-		}
+		self.mode = "title"
+		self:initTitle(exitTitle)
 	end
 end
 

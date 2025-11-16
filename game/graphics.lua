@@ -34,6 +34,8 @@ function game:draw()
 		self:drawFramebufferGameplay(framebuffer)
 	elseif self.mode == "text" then
 		self:drawFramebufferText(framebuffer)
+	elseif self.mode == "title" then
+		self:drawFramebufferTitle(framebuffer)
 	end
 
 	local fontImage = self.fontImage
@@ -1182,6 +1184,91 @@ function game:drawFramebufferText(framebuffer)
 	end
 
 	drawStringFramebufferColourMapFunction(0, 0, self.textInfo.text)
+end
+
+function game:drawFramebufferTitle(framebuffer)
+	-- Copied...
+	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
+		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
+		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		if
+			0 <= framebufferX and framebufferX < self.framebufferWidth and
+			0 <= framebufferY and framebufferY < self.framebufferHeight
+		then
+			local cell = framebuffer[framebufferX][framebufferY]
+			cell.character = character
+			cell.foregroundColour = foregroundColour
+			cell.backgroundColour = backgroundColour
+		end
+	end
+	local function drawStringFramebuffer(framebufferX, framebufferY, str, foregroundColour, backgroundColour)
+		local x = 0
+		local y = 0
+		for _, code in utf8.codes(str) do
+			local char = utf8.char(code)
+			if char == "\n" then
+				x = 0
+				y = y + 1
+				goto continue
+			end
+			drawCharacterFramebuffer(framebufferX + x, framebufferY + y, char, foregroundColour, backgroundColour)
+			x = x + 1
+		    ::continue::
+		end
+	end
+
+	local info = self.titleInfo
+	local time = info.time
+	local sine = math.sin(time / 2)
+	-- local brightness = sine ^ 8 * util.sign(sine) * 0.5 + 0.5
+	local brightness = 0.5
+	-- local p = 1
+	-- local brightness = 0.5 * (time < info.fireStartTime and (1 + (0.5 + 0.5 * math.cos(time * 0.5 * consts.tau / info.fireStartTime)) ^ p) or 1)
+	local gradient = {"black", "darkRed", "red", "darkGrey", "lightGrey", "white"}
+	for x = 0, self.framebufferWidth - 1 do
+		for y = 0, self.framebufferHeight - 1 do
+			local dampen = love.math.noise(x / 6, time * 1) * 0.3 + 0.6
+			local noise
+			do
+				local time = time / 3
+				noise =
+					love.math.noise(x / 10, time + y / 10 / 2, time * 0.5, 0) * 0.75 +
+					love.math.noise(x / 5, time * 8 + y / 5, time * 4, 10) * 0.25 +
+					(love.math.noise(x / 4, time * 5 + y / 4, time * 5, 20) * 2 - 1) * 0.4
+			end
+			noise = math.max(0, math.min(1, noise)) * dampen
+			if brightness <= 0.5 then
+				noise = noise * brightness * 2
+			else
+				noise = 1 - (1 - noise) * (1 - brightness) * 2
+			end
+			local gradientSelector = 1 - y / self.framebufferHeight / math.max(0.01, noise * 1.5)
+			gradientSelector = gradientSelector * #gradient
+			gradientSelector = math.floor(gradientSelector)
+			gradientSelector = math.min(#gradient - 1, math.max(0, gradientSelector))
+			gradientSelector = gradientSelector + 1
+			local darker = gradient[gradientSelector]
+			local lighter = gradient[math.max(1, gradientSelector - 1)]
+			local swap = noise > 0.5
+			drawCharacterFramebuffer(x, y, swap and "░" or "▓", util.conditionalSwap(lighter, darker, swap))
+		end
+	end
+
+	local titleY = self.framebufferHeight - 1 - 5
+	for x = 0, self.framebufferWidth - 1 do
+		for y = titleY, self.framebufferHeight - 1 do
+			drawStringFramebuffer(x, y, " ", "black", "black")
+		end
+	end
+
+	if time > info.drawTitleTime then
+		local str = "M I S T R A U M A T I S M"
+		local len = #str
+		local x = (self.framebufferWidth - len) / 2
+		x = math.floor(x)
+		drawStringFramebuffer(x, titleY, str, "white", "black")
+	end
 end
 
 return game

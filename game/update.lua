@@ -68,6 +68,8 @@ function game:realtimeUpdate(dt)
 			self.textInfo.text = text
 		end
 		return self.textInfo.updateFunction(self, dt)
+	elseif self.mode == "title" then
+		return self:updateTitle(dt)
 	end
 	self.realTime = self.realTime + dt
 end
