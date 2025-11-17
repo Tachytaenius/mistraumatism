@@ -12,7 +12,11 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 		return false
 	end
 	if tile.doorData then
-		if not tile.doorData.open and not (entity.creatureType.canOpenDoors and tile.doorData.entity.itemData.itemType.interactable) then
+		if not tile.doorData.open and not (
+			entity.creatureType.canOpenDoors and
+			tile.doorData.entity.itemData.itemType.interactable and
+			not tile.doorData.lockName
+		) then
 			return false
 		end
 	end

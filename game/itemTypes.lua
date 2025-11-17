@@ -28,7 +28,7 @@ function game:loadItemTypes()
 		magazine = false,
 		magazineRequired = true,
 		magazineClass = "pistol",
-		gunshotSoundRange = 20
+		gunshotSoundRange = 14
 	}
 
 	itemTypes.pistolMagazine = {
@@ -48,7 +48,7 @@ function game:loadItemTypes()
 		ammoClass = "bulletSmall",
 		displayName = "small bullet",
 		spread = 0,
-		damage = 12,
+		damage = 11,
 		bleedRateAdd = 10,
 		instantBloodLoss = 2,
 		bulletCount = 1,
@@ -66,7 +66,7 @@ function game:loadItemTypes()
 		ammoClass = "bulletMedium",
 		displayName = "medium bullet",
 		spread = 0,
-		damage = 16,
+		damage = 14,
 		bleedRateAdd = 24,
 		instantBloodLoss = 3,
 		bulletCount = 1,
@@ -91,7 +91,7 @@ function game:loadItemTypes()
 		magazine = false,
 		magazineRequired = true,
 		magazineClass = "largeBox",
-		gunshotSoundRange = 20
+		gunshotSoundRange = 15
 	}
 
 	itemTypes.largeBoxMagazine = {
@@ -111,7 +111,7 @@ function game:loadItemTypes()
 		ammoClass = "bulletLarge",
 		displayName = "large bullet",
 		spread = 0,
-		damage = 20,
+		damage = 18,
 		bleedRateAdd = 96,
 		instantBloodLoss = 5,
 		bulletCount = 1,
@@ -133,7 +133,7 @@ function game:loadItemTypes()
 		manual = true,
 		magazine = true,
 		magazineCapacity = 4,
-		gunshotSoundRange = 20
+		gunshotSoundRange = 16
 	}
 
 	itemTypes.huntingShotgun = {
@@ -154,7 +154,7 @@ function game:loadItemTypes()
 		alteredMagazineUse = "select", -- Implies multiple cocking components (number: magazineCapacity)
 		magazine = true,
 		magazineCapacity = 2,
-		gunshotSoundRange = 20
+		gunshotSoundRange = 16
 	}
 
 	itemTypes.sawnShotgun = {
@@ -175,7 +175,7 @@ function game:loadItemTypes()
 		alteredMagazineUse = "select",
 		magazine = true,
 		magazineCapacity = 2,
-		gunshotSoundRange = 20
+		gunshotSoundRange = 16
 	}
 
 	itemTypes.buckshotShell = {
@@ -228,7 +228,7 @@ function game:loadItemTypes()
 		manual = true,
 		magazine = true,
 		magazineCapacity = 1,
-		gunshotSoundRange = 20
+		gunshotSoundRange = 17
 	}
 
 	itemTypes.rocket = {
@@ -329,7 +329,7 @@ function game:loadItemTypes()
 				}
 			}
 		},
-		gunshotSoundRange = 22
+		gunshotSoundRange = 18
 	}
 
 	itemTypes.railgunEnergyCell = {
@@ -365,7 +365,7 @@ function game:loadItemTypes()
 			projectileTile = "*",
 			projectileColour = "lightGrey",
 			spread = 0.12,
-			damage = 3,
+			damage = 5,
 			bleedRateAdd = 20,
 			instantBloodLoss = 1,
 			bulletCount = 12,
@@ -382,7 +382,7 @@ function game:loadItemTypes()
 				}
 			}
 		},
-		gunshotSoundRange = 20
+		gunshotSoundRange = 15
 	}
 
 	itemTypes.plasmaRifle = {
@@ -423,7 +423,7 @@ function game:loadItemTypes()
 				}
 			}
 		},
-		gunshotSoundRange = 20
+		gunshotSoundRange = 14
 	}
 
 	itemTypes.plasmathrower = {
@@ -464,7 +464,7 @@ function game:loadItemTypes()
 				}
 			}
 		},
-		gunshotSoundRange = nil
+		gunshotSoundRange = 5
 	}
 
 	itemTypes.plasmaEnergyCell = {
@@ -478,8 +478,6 @@ function game:loadItemTypes()
 		secondaryColour = "darkCyan",
 		magazineClass = "plasma"
 	}
-
-
 
 	itemTypes.boxCutter = {
 		tile = "`",
@@ -634,6 +632,7 @@ function game:loadItemTypes()
 	}
 	itemTypes.ornateDoor = {
 		isDoor = true,
+		anchorsOverPits = true,
 		interactable = true,
 		interactionType = state.interactionTypes.door,
 		noPickUp = true,
@@ -645,6 +644,7 @@ function game:loadItemTypes()
 	}
 	itemTypes.heavyDoor = {
 		isDoor = true,
+		anchorsOverPits = true,
 		interactable = true,
 		interactionType = state.interactionTypes.heavyDoor,
 		noPickUp = true,
@@ -657,6 +657,7 @@ function game:loadItemTypes()
 
 	itemTypes.door = {
 		isDoor = true,
+		anchorsOverPits = true,
 		interactable = true,
 		interactionType = state.interactionTypes.door,
 		noPickUp = true,
@@ -668,6 +669,7 @@ function game:loadItemTypes()
 	}
 	itemTypes.doorWindow = {
 		isDoor = true,
+		anchorsOverPits = true,
 		interactable = true,
 		interactionType = state.interactionTypes.door,
 		noPickUp = true,
@@ -679,6 +681,7 @@ function game:loadItemTypes()
 	}
 	itemTypes.airlockDoor = {
 		isDoor = true,
+		anchorsOverPits = true,
 		noPickUp = true,
 		doorWindow = false,
 		tile = "╪",
@@ -688,6 +691,7 @@ function game:loadItemTypes()
 	}
 	itemTypes.castleDoorLeft = {
 		isDoor = true,
+		anchorsOverPits = true,
 		noPickUp = true,
 		doorWindow = false,
 		tile = "║",
@@ -698,6 +702,7 @@ function game:loadItemTypes()
 	}
 	itemTypes.castleDoorRight = {
 		isDoor = true,
+		anchorsOverPits = true,
 		noPickUp = true,
 		doorWindow = false,
 		tile = "║",
@@ -852,6 +857,12 @@ function game:loadItemTypes()
 		wearable = true,
 		armourDefence = 4,
 		armourDurability = 20
+	}
+
+	itemTypes.ornateKey = {
+		tile = "♪",
+		displayName = "ornate key",
+		isKey = true
 	}
 
 	self:validateItemTypes()

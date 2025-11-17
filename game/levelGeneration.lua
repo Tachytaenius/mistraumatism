@@ -76,6 +76,13 @@ function game:placeItem(x, y, itemTypeName, material)
 	return entity.itemData, entity
 end
 
+function game:placeKey(x, y, itemTypeName, material, lockName, breakOnUse)
+	local itemData, entity = self:placeItem(x, y, itemTypeName, material)
+	itemData.lockName = lockName
+	itemData.breakOnUse = breakOnUse
+	return itemData, entity
+end
+
 function game:placeMagazineWithAmmo(x, y, magazineType, magazineMaterial, ammoType, ammoMaterial, ammoCount)
 	local magazine = self:placeItem(x, y, magazineType, magazineMaterial)
 	assert(magazine.itemType.magazine, magazineType .. " is not a magazine item type")
@@ -118,7 +125,10 @@ function game:placeCritter(x, y, creatureTypeName, ...)
 	return self:placeCreatureTeam(x, y, creatureTypeName, "critter", ...)
 end
 
-function game:placeDoorItem(x, y, itemTypeName, material, open)
+function game:placeDoorItem(x, y, itemTypeName, material, open, lockName)
+	if open and lockName then
+		error("Can't place a door which is open and locked because opening with a key removes the door's lock. Proper door locking/unlocking would be a TODO.")
+	end
 	local tile = self:getTile(x, y)
 	if not tile then
 		return
@@ -131,7 +141,7 @@ function game:placeDoorItem(x, y, itemTypeName, material, open)
 		material = material
 	})
 	local doorEntity = self:newItemEntity(x, y, doorItem, {doorTile = tile})
-	tile.doorData = {entity = doorEntity, open = open}
+	tile.doorData = {entity = doorEntity, open = open, lockName = lockName}
 	return doorEntity
 end
 

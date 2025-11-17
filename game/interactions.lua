@@ -74,8 +74,18 @@ function game:loadInteractionTypes()
 		if interactionType ~= "world" then
 			return
 		end
-		local timerLength = 7
+		local timerLength = 3
 		local doorData = getDoorTileDoorData(interactee)
+		if not interactor.creatureType.canOpenDoors then
+			return
+		end
+		if doorData and doorData.lockName then
+			local item = self:getHeldItem(interactor)
+			if not item or item.lockName ~= doorData.lockName then
+				self:announce("This door is locked, you need a specific key.", "darkYellow")
+				return
+			end
+		end
 		local info = {
 			doneDoorOpenState = doorData and not doorData.open
 		}
@@ -96,6 +106,16 @@ function game:loadInteractionTypes()
 		if not doorData then
 			return
 		end
+		local unlocked = false
+		if doorData and doorData.lockName then
+			local item = self:getHeldItem(interactor)
+			if item.lockName ~= doorData.lockName then
+				return
+			else
+				unlocked = true
+				doorData.lockName = nil
+			end
+		end
 		if not info.doneDoorOpenState and self:isDoorBlocked(interactee) then
 			-- Disable closing, an entity is in the way
 			return
@@ -105,6 +125,16 @@ function game:loadInteractionTypes()
 			return
 		end
 		doorData.open = info.doneDoorOpenState
+		if unlocked then -- Making stuff inflexible (easier to make) because I'm tired and don't want to make full door locking/unlocking mechanics right now
+			self:broadcastEvent({
+				x = tile.x,
+				y = tile.y,
+				type = "doorLockChangeState",
+				soundRange = 4,
+				sourceEntity = interactor,
+				wasUnlocking = true
+			})
+		end
 		self:broadcastDoorStateChangedEvent(tile, interactor, true)
 	end
 

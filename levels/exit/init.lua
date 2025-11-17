@@ -9,6 +9,7 @@ function info:createLevel() -- name should be the name of the directory containi
 
 	local types = {
 		[0x00] = "floor",
+		[0x01] = "ornateFloor",
 		[0x11] = "ornateCarpet",
 		[0x22] = "grass",
 		[0x33] = "longGrass",
@@ -21,6 +22,7 @@ function info:createLevel() -- name should be the name of the directory containi
 	}
 	local materials = {
 		[0x00] = "granite",
+		[0x11] = "obsidian",
 		[0x55] = "ornateCarpet",
 		[0xaa] = "fescue"
 	}
@@ -31,6 +33,19 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeTileMessage(x, y, ceilingMessage)
 		elseif value == 0x55 then
 			self:placeMonster(x, y, "hellNoble")
+		elseif value == 0x56 then
+			self:placeMonster(x, y, "imp")
+		elseif value == 0x57 then
+			self:placeMonster(x, y, "skeleton")
+		elseif value == 0x58 then
+			self:placeMonster(x, y, "demonicPriest")
+		elseif value == 0x59 then
+			self:placeMonster(x, y, "phantom")
+		elseif value == 0x5a then
+			self:placeMonster(x, y, "demonicPriest")
+			self:placeKey(x, y, "ornateKey", "bone", "exitArena1")
+		elseif value == 0x5b then
+			self:placeDoorItem(x, y, "ornateDoor", "granite", false, "exitArena1")
 		elseif value == 0xaa then
 			self:placeItem(x, y, "flower", "borage")
 		elseif value == 0xab then
@@ -38,16 +53,22 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0xbb then
 			self:placeItem(x, y, "vines", "ivy")
 		elseif value == 0xe0 then
-			self:placeItem(x, y, "plasmaRifle", "polymer")
+			self:placeItem(x, y, "plasmaShotgun", "polymer")
 		elseif value == 0xe1 then
-			for _=1, 2 do
+			-- for _=1, 1 do
 				local cell = self:placeItem(x, y, "plasmaEnergyCell", "polymer")
 				cell.storedEnergy = self.state.itemTypes.plasmaEnergyCell.maxEnergy
-			end
+			-- end
 		elseif value == 0xe2 then
 			self:placeItem(x, y, "largeMedkit", "plasticGreen")
 		elseif value == 0xe3 then
 			self:placeItem(x, y, "tacticalArmour", "hyperPolymer")
+		elseif value == 0xe4 then
+			self:placeItem(x, y, "rocketLauncher", "polymer")
+		elseif value == 0xe5 then
+			for _=1, 8 do
+				self:placeItem(x, y, "rocket", "plasticBrown")
+			end
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end

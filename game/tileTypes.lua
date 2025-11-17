@@ -285,7 +285,14 @@ function game:loadTileTypes()
 			blocksLight = true,
 			lightSlipPast = true,
 			allowIncomingConnectionTypeNames = {machineCasing = true, crateWall = true}
-		}
+		},
+		ornateFloor = {
+			displayName = "ornate floor",
+			solidity = "passable",
+			character = "♦",
+			swapColours = true,
+			secondaryColour = "darkCyan"
+		},
 	}
 end
 

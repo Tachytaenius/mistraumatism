@@ -804,7 +804,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				local item = entity.itemData
 				local itemType = item.itemType
 				if itemType.isDoor then
-					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, entity.doorTile.doorData.open and "Open" or "Closed", "lightGrey", "black")
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, entity.doorTile.doorData.open and "Open" or "Closed" .. (entity.doorTile.doorData.lockName and "∙Locked" or ""), "lightGrey", "black")
 				elseif itemType.isLever and not (not item.active and itemType.inactiveHidden) then
 					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.active and "Active" or "Inactive", "lightGrey", "black")
 				elseif itemType.isButton then

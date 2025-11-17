@@ -85,7 +85,8 @@ function game:loadMaterials()
 		addMaterial("slate", "slate", "darkGrey", "solid"),
 		addMaterial("granite", "granite", "lightGrey", "solid"),
 		addMaterial("marble", "marble", "white", "solid"),
-		addMaterial("marbleGreen", "green marble", "darkGreen", "solid")
+		addMaterial("marbleGreen", "green marble", "darkGreen", "solid"),
+		addMaterial("obsidian", "obsidian", "darkGrey", "solid")
 	)
 
 	addMaterial("porcelain", "porcelain", "white", "solid")

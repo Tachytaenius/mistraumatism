@@ -65,9 +65,8 @@ function info:createLevel()
 
 	-- self:placeMonster(14, 14, "demonicPriest")
 
-	-- self:placeMonster(14, 14, "skeleton")
-	-- self:placeMonster(15, 15, "imp")
-	self:placeMonster(14, 15, "hellNoble")
+	self:placeKey(6, 2, "ornateKey", "iron", "debugKey")
+	self:placeDoorItem(5, 2, "ornateDoor", "granite", false, "debugKey")
 
 	return {
 		spawnX = 0,

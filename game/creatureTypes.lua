@@ -79,7 +79,7 @@ function game:loadCreatureTypes()
 		moveTimerLength = 5,
 		sightDistance = 12,
 		maxHealth = 5,
-		meleeTimerLength = 4,
+		meleeTimerLength = 6,
 		meleeDamage = 2,
 		meleeBleedRateAdd = 3,
 		shootAggressiveness = 0.5,
@@ -372,6 +372,46 @@ function game:loadCreatureTypes()
 		bleedHealRate = 12,
 
 		hears = true
+	}
+
+	creatureTypes.phantom = {
+		displayName = "phantom",
+		tile = "¡",
+		colour = "darkGrey",
+		vanishOnNonGibDeath = true, -- To vanish on a gib death, noFlesh is also set
+		noFlesh = true,
+
+		moveTimerLength = 2,
+		sightDistance = 7,
+		maxHealth = 1,
+		meleeTimerLength = 3,
+		meleeDamage = 1,
+		meleeInstantBloodLoss = 10,
+
+		engagesAtRange = true,
+		preferredEngagementRange = 7,
+
+		hears = false,
+		alertAction = "scream",
+		alertActionUsesVocalisation = true,
+		vocalisationRange = 30,
+
+		flying = true,
+
+		shootAggressiveness = 1,
+		wrongRangeShootAggressiveness = 0.2,
+		projectileAbilities = {
+			{
+				name = "sorrowPulse",
+				shootTime = 2,
+				projectileTile = "¡",
+				projectileColour = "lightGrey",
+				projectileSubtickMoveTimerLength = 256,
+				damage = 1,
+				bleedRateAdd = 10,
+				range = 12
+			}
+		}
 	}
 end
 

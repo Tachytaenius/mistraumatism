@@ -43,6 +43,10 @@ function game:loadEventTypes()
 		sourceEntityRelation = "objectUse",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "door", "wasOpening", "open", "opens", "close", "closes")
 	}
+	eventTypes.doorLockChangeState = {
+		sourceEntityRelation = "objectUse",
+		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "door", "wasUnlocking", "unlock", "unlocks", "lock", "locks")
+	}
 	eventTypes.hatchChangeState = {
 		sourceEntityRelation = "objectUse",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "hatch", "wasOpening", "open", "opens", "shut", "shuts")
@@ -223,6 +227,9 @@ function game:loadEventTypes()
 			elseif eventData.alertType == "point" then
 				a = "points at an enemy"
 				b = "point at an enemy"
+			elseif eventData.alertType == "scream" then
+				a = "emits a shrill scream"
+				a = "emit a shrill scream"
 			else
 				a = "alerts of an enemy"
 				b = "alert of an enemy"
@@ -285,6 +292,24 @@ function game:loadEventTypes()
 				return "You see an explosion of " .. shownMaterialName .. ".", "red"
 			elseif audible then
 				return "You hear an explosion of " .. shownMaterialName .. ".", "darkRed"
+			end
+		end
+	}
+	eventTypes.vanishment = {
+		isDamageTaken = true,
+		isCombat = true,
+		sourceEntityRelation = "doneTo",
+		announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
+			-- local extra = eventData.violent and " violently" or ""
+			local extra = ""
+			if playerSource then
+				return "You vanish" .. extra .. ".", "red"
+			elseif sourceKnown then
+				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " vanishes" .. extra .. ".", "red"
+			elseif visible then
+				return "You see something vanish" .. extra .. ".", "red"
+			elseif audible then
+				return "You hear something vanish" .. extra .. ".", "darkRed"
 			end
 		end
 	}
