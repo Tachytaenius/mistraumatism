@@ -59,8 +59,8 @@ function game:diminishExplosions()
 				table.remove(tile.explosionInfo.damagesThisTick)
 			end
 			local diminishRate = consts.explosionVisualDiminishRate
-			if tile.explosionInfo.visual <= consts.explosionVisualRapidDiminishThreshold then
-				diminishRate = diminishRate * consts.explosionVisualRapidDiminishMultiplier
+			if tile.explosionInfo.visual <= consts.explosionVisualAlteredDiminishThreshold then
+				diminishRate = diminishRate * consts.explosionVisualAlteredDiminishMultiplier * (love.math.random() * 0.9 + 0.1) ^ 1.9
 			end
 			tile.explosionInfo.visual = math.floor(tile.explosionInfo.visual * math.exp(-diminishRate))
 

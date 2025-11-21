@@ -248,37 +248,37 @@ function game:loadItemTypes()
 		projectileSubtickMoveTimerLengthChange = -40, -- Per tick
 		projectileSubtickMoveTimerLengthMin = 16,
 		range = 18,
-		projectileExplosionRadius = 3,
-		projectileExplosionDamage = 400,
+		projectileExplosionRadius = 4,
+		projectileExplosionDamage = 325,
 		projectileExplosionProjectiles = {
-			{
-				count = 12,
-				tile = "*",
-				colour = "yellow",
-				subtickMoveTimerLength = 200,
-				subtickMoveTimerLengthChange = 56,
-				subtickMoveTimerLengthMax = 1024,
-				damage = 1,
-				maxPierces = 1,
-				bleedRateAdd = 40,
-				instantBloodLoss = 1,
-				range = 2,
-				hitDeadEntities = true
-			},
-			{
-				count = 4,
-				tile = "☼",
-				colour = "red",
-				subtickMoveTimerLength = 240,
-				subtickMoveTimerLengthChange = 32,
-				subtickMoveTimerLengthMax = 1024,
-				damage = 2,
-				maxPierces = 2,
-				bleedRateAdd = 56,
-				instantBloodLoss = 1,
-				range = 3,
-				hitDeadEntities = true
-			}
+			-- {
+			-- 	count = 12,
+			-- 	tile = "*",
+			-- 	colour = "yellow",
+			-- 	subtickMoveTimerLength = 200,
+			-- 	subtickMoveTimerLengthChange = 56,
+			-- 	subtickMoveTimerLengthMax = 1024,
+			-- 	damage = 1,
+			-- 	maxPierces = 1,
+			-- 	bleedRateAdd = 40,
+			-- 	instantBloodLoss = 1,
+			-- 	range = 2,
+			-- 	hitDeadEntities = true
+			-- },
+			-- {
+			-- 	count = 4,
+			-- 	tile = "☼",
+			-- 	colour = "red",
+			-- 	subtickMoveTimerLength = 240,
+			-- 	subtickMoveTimerLengthChange = 32,
+			-- 	subtickMoveTimerLengthMax = 1024,
+			-- 	damage = 2,
+			-- 	maxPierces = 2,
+			-- 	bleedRateAdd = 56,
+			-- 	instantBloodLoss = 1,
+			-- 	range = 3,
+			-- 	hitDeadEntities = true
+			-- }
 		},
 		trailParticleInfo = {
 			{

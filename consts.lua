@@ -96,15 +96,10 @@ consts.telepathicMindAttackRecoveryRate = 2 -- Only once no attacks have happene
 consts.noPsychicDamageTimerLength = 80
 consts.gibFleshTiles = {"²", "ⁿ"}
 consts.explosionGradient = {"black", "darkGrey", "lightGrey", "darkYellow", "yellow", "white"}
-consts.explosionGradientMax = 255 -- Seems to protect against non-uniformities in the gradient? During my specific testing setup, anyway. Which is as follows:
--- Some random coords in a test map
--- for xo = 0, 26 do
--- 	self:getTile(7+xo,15).explosionInfo=nil
--- 	self:explode(7 + xo, 15, 0, xo * 0.25 * (consts.explosionGradientMax / #consts.explosionGradient), state.player)
--- end
-consts.explosionVisualDiminishRate = 0.5
-consts.explosionVisualRapidDiminishMultiplier = 8
-consts.explosionVisualRapidDiminishThreshold = 40
+consts.explosionGradientMax = 175
+consts.explosionVisualDiminishRate = 0.3
+consts.explosionVisualAlteredDiminishMultiplier = 0.25 -- Changed from rapid diminish to slow
+consts.explosionVisualAlteredDiminishThreshold = 85
 
 consts.itemDefaultMaxStackSize = 9
 
