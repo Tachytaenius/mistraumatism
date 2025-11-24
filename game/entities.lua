@@ -273,7 +273,7 @@ function game:updateEntitiesAndProjectiles()
 	for _, entity in ipairs(state.entities) do
 		assert(not (entity.targetEntity and entity.targetEntity.removed), "An entity is targetting a removed entity")
 
-		if entity == state.player or entity.noAI then
+		if entity == state.player or entity.noAI or entity.dead then
 			-- TODO: Clear AI state?
 			goto continue
 		end
@@ -674,7 +674,6 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		for _, sourceInfo in ipairs(state.damagesQueue) do
-			local done = false
 			for _, destination in ipairs(sourceInfo) do
 				if entity ~= destination.entity then
 					goto continue
@@ -691,13 +690,9 @@ function game:updateEntitiesAndProjectiles()
 					type = "damageReceived",
 					damageDealt = damage,
 				})
-				done = true
-				do break end
+				do break end -- We loop over to find more sources in case lots of other entities damaged this entity this tick
 
 			    ::continue::
-			end
-			if done then
-				break
 			end
 		end
 		-- state.damagesQueue is set to a new table after all entities are handled by this loop
