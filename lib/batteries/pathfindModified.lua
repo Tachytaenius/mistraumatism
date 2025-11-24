@@ -1,8 +1,10 @@
+-- Modified by Tachytaenius to return the node that got closest to the goal on failure.
+
 --[[
 	general pathfinding with a general goal
 ]]
 
-local path = (...):gsub("pathfind", "")
+local path = (...):gsub("pathfindModified", "") -- Tachytaenius: Have to make this file aware that it's got modified in the name now
 local sort = require(path .. "sort")
 
 --helper to generate a constant value for default weight, heuristic
@@ -45,11 +47,19 @@ local function pathfind(args)
 	end
 	local to_search = {}
 
+	local currentBest = start -- Added by Tachytaenius
+	local currentBestHeuristic = math.huge
 	local current = start
 	while current and not is_goal(current) do
 		seen[current] = true
 		for i, node in ipairs(neighbours(current)) do
 			if not seen[node] then
+				local h = heuristic(node)
+				if h < currentBestHeuristic then
+					currentBest = node
+					currentBestHeuristic = h
+				end
+
 				local tentative_g_score = (g_score[current] or math.huge) + distance(current, node)
 				if g_score[node] == nil then
 					if tentative_g_score < (g_score[node] or math.huge) then
@@ -67,6 +77,10 @@ local function pathfind(args)
 
 	--didn't make it to the goal
 	if not current or not is_goal(current) then
+		-- Return modified by Tachytaenius
+		if heuristic(currentBest) < heuristic(start) then
+			return false, currentBest
+		end
 		return false
 	end
 

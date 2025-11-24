@@ -1,4 +1,4 @@
-local pathfind = require("lib.batteries.pathfind")
+local pathfind = require("lib.batteries.pathfindModified")
 
 local consts = require("consts")
 
@@ -53,7 +53,7 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 		end
 		return tilePathCheckFunction(self, tileX, tileY, entity)
 	end
-	local result = pathfind({
+	local result, bestTileIfNoResult = pathfind({
 		start = startTile,
 		goal = function(tile)
 			return tile == endTile
@@ -67,16 +67,25 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 				cost = cost * consts.entityPathfindingOccupiedCostMultiplier
 			end
 			return cost
+		end,
+		heuristic = function(tile)
+			return self:distance(tile.x, tile.y, endTile.x, endTile.y)
 		end
 	})
+	if not result and bestTileIfNoResult then
+		return false, bestTileIfNoResult
+	end
 	return result
 end
 
-local function getPathfindingAction(self, entity, targetLocationX, targetLocationY, dontWalkInto, investigating, keepLineOfSight)
+local function getPathfindingAction(self, entity, targetLocationX, targetLocationY, dontWalkInto, investigating, keepLineOfSight, moveCloserIfNoPath)
 	local startTile = self:getTile(entity.x, entity.y)
 	local endTile = self:getTile(targetLocationX, targetLocationY)
 	if startTile and endTile then
-		local result = getPathfindingResult(self, entity, startTile, endTile, keepLineOfSight)
+		local result, closestAvailableTile = getPathfindingResult(self, entity, startTile, endTile, keepLineOfSight)
+		if not result and moveCloserIfNoPath and closestAvailableTile then
+			result = getPathfindingResult(self, entity, startTile, closestAvailableTile, keepLineOfSight)
+		end
 		if result then
 			local nextTile = result[2]
 			if nextTile and not (dontWalkInto and nextTile.x == targetLocationX and nextTile.y == targetLocationY) then
@@ -144,7 +153,7 @@ local function chase(self, entity, sameTileMelee, keepLineOfSight)
 	end
 
 	if targetLocationX and targetLocationY then
-		return getPathfindingAction(self, entity, targetLocationX, targetLocationY, dontWalkInto, investigating, keepLineOfSight)
+		return getPathfindingAction(self, entity, targetLocationX, targetLocationY, dontWalkInto, investigating, keepLineOfSight, true)
 	end
 end
 
