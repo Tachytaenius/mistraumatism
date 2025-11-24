@@ -405,6 +405,29 @@ function game:updateEntitiesAndProjectiles()
 
 	    ::continue::
 	end
+	-- For entities that can't see their targets, look for other creatures on a friendly team with the same target entity within sight range that can see the target entity to get the target entity's location from
+	for _, entity in ipairs(state.entities) do
+		if not (entity.entityType == "creature" and not entity.dead and entity.targetEntity) then
+			goto continue
+		end
+		for _, otherEntity in ipairs(state.entities) do
+			if
+				otherEntity.entityType == "creature" and
+				not otherEntity.dead and
+				entity.targetEntity == otherEntity.targetEntity and -- Won't be nil == nil because we already know entity has a target entity
+				self:getTeamRelation(entity.team, otherEntity.team) == "friendly" and
+				self:entityCanSeeEntity(entity, otherEntity) and
+				self:entityCanSeeEntity(otherEntity, entity.targetEntity)
+			then
+				entity.lastKnownTargetLocation = {
+					x = entity.targetEntity.x,
+					y = entity.targetEntity.y
+				}
+				break
+			end
+		end
+	    ::continue::
+	end
 	-- AI actions (player input already happened)
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType ~= "creature" then
