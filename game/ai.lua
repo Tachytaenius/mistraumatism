@@ -51,6 +51,9 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 		then
 			return false
 		end
+		if self:distance(entity.x, entity.y, tileX, tileY) > (entity.creatureType.pathfindingDistanceLimit or consts.defaultPathfindingDistanceLimit) then
+			return false
+		end
 		return tilePathCheckFunction(self, tileX, tileY, entity)
 	end
 	local result, bestTileIfNoResult = pathfind({

@@ -293,6 +293,27 @@ function game:loadTileTypes()
 			swapColours = true,
 			secondaryColour = "darkCyan"
 		},
+		floorPortal1 = {
+			displayName = "floor portal",
+			solidity = "fall",
+			secondaryColour = "darkCyan",
+			animationTiles = {"▓", "▒", "░", "▒"},
+			animationTime = 8
+		},
+		floorPortal2 = {
+			displayName = "floor portal",
+			solidity = "fall",
+			secondaryColour = "darkCyan",
+			animationTiles = {"▒", "░", "▒", "▓"},
+			animationTime = 8
+		},
+		floorPortal3 = {
+			displayName = "floor portal",
+			solidity = "fall",
+			secondaryColour = "darkCyan",
+			animationTiles = {"░", "▒", "▓", "▒"},
+			animationTime = 8
+		}
 	}
 end
 

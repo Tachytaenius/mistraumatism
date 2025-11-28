@@ -9,8 +9,14 @@ function info:createLevel() -- name should be the name of the directory containi
 
 	local types = {
 		[0x00] = "floor",
+		[0x11] = "pit",
+		[0x12] = "floorPortal1",
+		[0x13] = "floorPortal2",
+		[0x14] = "floorPortal3",
+		[0x22] = "roughFloor",
 		[0x55] = "wall",
 		[0x66] = "support",
+		[0x77] = "glassWindow",
 		[0xaa] = "drain",
 		[0xbb] = "heavyPipes",
 		[0xcc] = "lightPipes",
@@ -25,6 +31,9 @@ function info:createLevel() -- name should be the name of the directory containi
 	}
 	local materials = {
 		[0x00] = "concrete",
+		[0x11] = "bloodRed",
+		[0x22] = "granite",
+		[0x33] = "inflictionMagic",
 		[0x55] = "plaster",
 		[0xaa] = "lino",
 		[0xbb] = "copper",
@@ -43,11 +52,21 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0x34 then
 			self:placeItem(x, y, "pistol", "steel")
 		elseif value == 0x35 then
-			self:placeMagazineWithAmmo(x, y, "pistolMagazine", "steel", "smallBullet", "brass", 1)
-			self:placeItem(x, y, "smallBullet", "brass")
-			self:placeItem(x, y, "smallBullet", "brass")
+			self:placeMagazineWithAmmo(x, y, "pistolMagazine", "steel", "smallBullet", "brass", 2)
+			for _=1, 2 do
+				self:placeItem(x, y, "smallBullet", "brass")
+			end
 			self:placeItem(x + 1, y, "smallBullet", "brass")
 			self:addSpatter(x, y, "bloodRed", 2)
+		elseif value == 0x36 then
+			self:placeItem(x, y, "sawnShotgun", "steel")
+			for _=1, 5 do
+				self:placeItem(x, y - 1, "buckshotShell", "plasticRed")
+			end
+		elseif value == 0x37 then
+			for _=1, 3 do
+				self:placeItem(x, y, "buckshotShell", "plasticRed")
+			end
 		elseif value == 0x55 then
 			self:placeDoorItem(x, y, "doorWindow", "steel", false)
 		elseif value == 0x56 then
@@ -56,6 +75,18 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeDoorItem(x, y, "door", "steel", false)
 		elseif value == 0xab then
 			self:placeDoorItem(x, y, "door", "steel", true)
+		elseif value == 0xac then
+			self:placeDoorItem(x, y, "door", "steel", false, "facilityCorpseStorage")
+		elseif value == 0xab then
+			self:placeKey(x, y, "keycard", "plasticRed", "facilityCorpseStorage")
+		elseif value == 0xea then
+			self:placeMonster(x, y, "brutePhantom")
+		elseif value == 0xeb then
+			self:placeMonster(x, y, "griefPhantom")
+		elseif value == 0xec then
+			self:placeCorpseTeam(x, y, "zombie", "monster")
+		elseif value == 0xed then
+			self:placeMonster(x, y, "ogre")
 		elseif value == 0xee then
 			self:placeMonster(x, y, "zombie")
 		elseif value == 0xef then
@@ -65,6 +96,9 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0xf1 then
 			self:addSpatter(x, y, "bloodRed", 4)
 			self:placeDoorItem(x, y, "doorWindow", "steel", false)
+		elseif value == 0xf2 then
+			local tile = self:getTile(x, y)
+			tile.fallLevelChange = "hellCastle"
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end
@@ -171,7 +205,7 @@ function info:createLevel() -- name should be the name of the directory containi
 	self.state.map[72][31].type = "conveyorIO"
 
 	self:placeCrate(66, 33, 3, 4, "crateYellow")
-	self:placeCrate(77, 34, 2, 3, "crateYellow")
+	self:placeCrate(76, 34, 1, 1, "crateYellow")
 	self:placeCrate(67, 39, 3, 2, "crateYellow")
 	self:placeCrate(72, 38, 3, 3, "crateBrown")
 	self:placeCrate(71, 42, 2, 3, "crateBrown")
@@ -179,7 +213,7 @@ function info:createLevel() -- name should be the name of the directory containi
 	self:placeCrate(70, 47, 1, 1, "crateBrown")
 	self:placeCrate(75, 47, 1, 1, "crateBrown")
 	self:placeCrate(75, 48, 1, 1, "crateYellow")
-	self:placeCrate(71, 46, 4, 3, "crateBrown")
+	-- self:placeCrate(71, 46, 4, 3, "crateBrown")
 	self:placeCrate(79, 39, 1, 1, "crateBrown")
 	self:placeCrate(78, 40, 1, 1, "crateYellow")
 	self:placeCrate(77, 41, 1, 1, "crateBrown")

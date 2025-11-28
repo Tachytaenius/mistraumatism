@@ -104,6 +104,24 @@ function game:update()
 	local state = self.state
 	state.waiting = false -- No longer needed
 
+	if state.changeToLevelTimer then
+		state.changeToLevelTimer = state.changeToLevelTimer - 1
+		if state.changeToLevelTimer <= 0 then
+			state.changeToLevelTimer = nil
+			self:changeLevel(state.changeToLevel)
+			state.changeToLevel = nil
+
+			state.startLevelTimer = consts.startLevelTimerLength
+		end
+		return
+	elseif state.startLevelTimer then
+		state.startLevelTimer = state.startLevelTimer - 1
+		if state.startLevelTimer <= 0 then
+			state.startLevelTimer = nil
+		end
+		return
+	end
+
 	state.damagesQueue = state.damagesQueue or {}
 	state.eventsQueue = state.eventsQueue or {}
 
@@ -130,6 +148,19 @@ function game:update()
 	self.state.tileEntityLists = self:getTileEntityLists()
 
 	state.tick = state.tick + 1
+end
+
+function game:changeLevel(levelName)
+	local state = self.state
+	self:handleEventsQueue()
+	self:prepareForLevel()
+	local levelGenerationResult = self:generateLevel({levelName = levelName})
+	if state.player then
+		state.player.x = levelGenerationResult.spawnX
+		state.player.y = levelGenerationResult.spawnY
+	end
+	state.entities[#state.entities+1] = state.player
+	self:resetTileEntityLists()
 end
 
 return game

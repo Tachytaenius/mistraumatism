@@ -128,6 +128,8 @@ function game:loadMaterials()
 		addMaterial("plasticBlack", "black plastic", "darkGrey", "solid"),
 		addMaterial("plasticBrown", "brown plastic", "darkYellow", "solid")
 	)
+
+	addMaterial("inflictionMagic", "grief and pain", "magenta", "liquid")
 end
 
 return game

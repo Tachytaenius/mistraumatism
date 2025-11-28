@@ -49,8 +49,8 @@ function game:loadCreatureTypes()
 		colour = "lightGrey",
 		bloodMaterialName = "bloodRed",
 
-		moveTimerLength = 12,
-		sightDistance = 10,
+		moveTimerLength = 10,
+		sightDistance = 16,
 		maxHealth = 10,
 		maxBlood = 12,
 		meleeTimerLength = 8,
@@ -136,6 +136,44 @@ function game:loadCreatureTypes()
 				range = 5
 			}
 		}
+	}
+
+	creatureTypes.snail = {
+		displayName = "snail",
+		tile = "ª",
+		colour = "darkYellow",
+		fleshMaterialName = "fleshYellow",
+		bloodMaterialName = "bloodBlue",
+
+		moveTimerLength = 16,
+		sightDistance = 7,
+		maxHealth = 35,
+		maxBlood = 9,
+		bleedHealRate = 64,
+		meleeTimerLength = 1,
+		meleeDamage = 1,
+		meleeBleedRateAdd = 7,
+
+		attackDeadTargets = true
+	}
+
+	creatureTypes.scorpion = {
+		displayName = "scorpion",
+		tile = "S",
+		colour = "yellow",
+		fleshMaterialName = "fleshYellow",
+		bloodMaterialName = "bloodGreen",
+
+		moveTimerLength = 7,
+		sightDistance = 16,
+		maxHealth = 20,
+		maxBlood = 20,
+		bleedHealRate = 32,
+		meleeTimerLength = 3,
+		meleeDamage = 8,
+		meleeBleedRateAdd = 60,
+
+		attackDeadTargets = true
 	}
 
 	creatureTypes.imp = {
@@ -374,8 +412,8 @@ function game:loadCreatureTypes()
 		hears = true
 	}
 
-	creatureTypes.phantom = {
-		displayName = "phantom",
+	creatureTypes.griefPhantom = {
+		displayName = "rue phantom",
 		tile = "¡",
 		colour = "darkGrey",
 		vanishOnNonGibDeath = true, -- To vanish on a gib death, noFlesh is also set
@@ -385,8 +423,8 @@ function game:loadCreatureTypes()
 		sightDistance = 7,
 		maxHealth = 1,
 		meleeTimerLength = 3,
-		meleeDamage = 1,
-		meleeInstantBloodLoss = 10,
+		meleeDamage = 0,
+		meleeInstantBloodLoss = 3,
 
 		engagesAtRange = true,
 		preferredEngagementRange = 7,
@@ -394,7 +432,7 @@ function game:loadCreatureTypes()
 		hears = false,
 		alertAction = "scream",
 		alertActionUsesVocalisation = true,
-		vocalisationRange = 30,
+		vocalisationRange = 25,
 
 		flying = true,
 
@@ -407,11 +445,63 @@ function game:loadCreatureTypes()
 				projectileTile = "¡",
 				projectileColour = "lightGrey",
 				projectileSubtickMoveTimerLength = 256,
-				damage = 1,
+				damage = 0,
 				bleedRateAdd = 10,
 				range = 12
 			}
 		}
+	}
+
+	creatureTypes.brutePhantom = {
+		displayName = "brutal phantom",
+		tile = "¡",
+		colour = "darkCyan",
+		vanishOnNonGibDeath = true, -- To vanish on a gib death, noFlesh is also set
+		noFlesh = true,
+
+		moveTimerLength = 3,
+		sightDistance = 3,
+		maxHealth = 2,
+		meleeTimerLength = 3,
+		meleeDamage = 2,
+		meleeInstantBloodLoss = 3,
+
+		hears = false,
+		alertAction = "scream",
+		alertActionUsesVocalisation = true,
+		vocalisationRange = 20,
+
+		flying = true,
+
+		pathfindingDistanceLimit = 10
+	}
+
+	creatureTypes.ogre = {
+		displayName = "ogre",
+		tile = "Ö",
+		colour = "green",
+		bloodMaterialName = "bloodRed",
+
+		moveTimerLength = 6,
+		sightDistance = 15,
+		maxHealth = 32,
+		maxBlood = 32,
+		bleedHealRate = 56,
+		meleeTimerLength = 9,
+		meleeDamage = 8,
+		meleeBleedRateAdd = 12,
+		meleeInstantBloodLoss = 0,
+
+		hears = true,
+		alertAction = "snarl",
+		alertActionUsesVocalisation = true,
+		vocalisationRange = 20,
+		painDamageThreshold = 10,
+
+		attackDeadTargets = true,
+		canOpenDoors = true,
+
+		psychicDamageDeathPoint = 60
 	}
 end
 

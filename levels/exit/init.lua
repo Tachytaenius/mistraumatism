@@ -40,7 +40,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0x58 then
 			self:placeMonster(x, y, "demonicPriest")
 		elseif value == 0x59 then
-			self:placeMonster(x, y, "phantom")
+			self:placeMonster(x, y, "griefPhantom")
 		elseif value == 0x5a then
 			self:placeMonster(x, y, "demonicPriest")
 			self:placeKey(x, y, "ornateKey", "bone", "exitArena1")

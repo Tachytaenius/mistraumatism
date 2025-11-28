@@ -80,10 +80,44 @@ function game:newItemEntity(x, y, itemData, extras)
 	return new
 end
 
+function game:flushEntityRemoval()
+	local state = self.state
+	local i = 1
+	while i <= #state.entities do
+		local entity = state.entities[i]
+		if state.entitiesToRemove[entity] then
+			local selectedEntityIndex = self:getSelectedEntityListIndex(self.state.cursor and self.state.cursor.selectedEntity or nil)
+
+			entity.removed = true
+			table.remove(state.entities, i)
+
+			-- Remove links
+			-- Flee info links are pruned when handled
+			for _, entity2 in ipairs(state.entities) do
+				if entity2.targetEntity == entity then
+					entity2.targetEntity = nil
+				end
+				if entity2.hangingFrom == entity then
+					entity2.hangingFrom = nil
+				end
+			end
+			if entity == state.player then
+				state.player = nil
+			end
+			if state.cursor and state.cursor.selectedEntity == entity then
+				self:forceDeselectCursorEntity(selectedEntityIndex)
+			end
+		else
+			i = i + 1
+		end
+	end
+	state.entitiesToRemove = {} -- New list
+end
+
 function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
-	local entitiesToRemove = {}
+	state.entitiesToRemove = {}
 	local function kill(entity, forceRemove, cause, broadcastEventNow)
 		assert(not entity.dead, "Entity is already dead")
 		assert(entity.entityType == "creature", "Can't kill non-creatures")
@@ -101,7 +135,7 @@ function game:updateEntitiesAndProjectiles()
 			self:newItemEntity(entity.x, entity.y, armourItem)
 		end
 		if forceRemove then
-			entitiesToRemove[entity] = true
+			state.entitiesToRemove[entity] = true
 		end
 
 		local eventData
@@ -122,45 +156,13 @@ function game:updateEntitiesAndProjectiles()
 				y = entity.y,
 				type = "vanishment"
 			}
-			entitiesToRemove[entity] = true
+			state.entitiesToRemove[entity] = true
 		end
 		if broadcastEventNow then
 			self:broadcastEvent(eventData)
 		else
 			return eventData
 		end
-	end
-	local function flushEntityRemoval()
-		local i = 1
-		while i <= #state.entities do
-			local entity = state.entities[i]
-			if entitiesToRemove[entity] then
-				local selectedEntityIndex = self:getSelectedEntityListIndex(self.state.cursor and self.state.cursor.selectedEntity or nil)
-
-				entity.removed = true
-				table.remove(state.entities, i)
-
-				-- Remove links
-				-- Flee info links are pruned when handled
-				for _, entity2 in ipairs(state.entities) do
-					if entity2.targetEntity == entity then
-						entity2.targetEntity = nil
-					end
-					if entity2.hangingFrom == entity then
-						entity2.hangingFrom = nil
-					end
-				end
-				if entity == state.player then
-					state.player = nil
-				end
-				if state.cursor and state.cursor.selectedEntity == entity then
-					self:forceDeselectCursorEntity(selectedEntityIndex)
-				end
-			else
-				i = i + 1
-			end
-		end
-		entitiesToRemove = {} -- New list
 	end
 
 	local processedActions = {}
@@ -187,7 +189,7 @@ function game:updateEntitiesAndProjectiles()
 						if actionTypeName == "interact" then -- or actionTypeName == "useHeldItem" then -- useHeldItem removes interactee by itself
 							if resultInfo.deleteInteractee then
 								if actionTypeName == "interact" then
-									entitiesToRemove[action.targetEntity] = true
+									state.entitiesToRemove[action.targetEntity] = true
 								end
 							end
 						end
@@ -246,7 +248,7 @@ function game:updateEntitiesAndProjectiles()
 			elseif entity.entityType == "item" then
 				local remove = tickFunction(entity.itemData, entity.x, entity.y, "ground", entity)
 				if remove then
-					entitiesToRemove[entity] = true
+					state.entitiesToRemove[entity] = true
 				end
 			end
 		end
@@ -475,12 +477,12 @@ function game:updateEntitiesAndProjectiles()
 					local slot = self:getBestFreeInventorySlotForItem(entity, itemPickup.item.itemData)
 					if slot and self:addItemToSlot(entity, slot, itemPickup.item.itemData) then
 						itemPickup.item.pickedUp = true
-						entitiesToRemove[itemPickup.item] = true
+						state.entitiesToRemove[itemPickup.item] = true
 					end
 				end
 			end
 		end
-		flushEntityRemoval()
+		self:flushEntityRemoval()
 	end
 
 	-- Damage, drowning, bleeding, explosions, gibbing, falling down pits, and screaming
@@ -494,9 +496,18 @@ function game:updateEntitiesAndProjectiles()
 		end
 		if self:checkWillFall(entity) then
 			if entity.entityType == "creature" and not entity.dead then
-				deathEventData = kill(entity, true, "fell")
+				local tile = self:getTile(entity.x, entity.y)
+				-- if tile and tile.fallLevelChange then
+					-- self:sendEntityToLevel(entity, tile.fallLevelChange)
+					-- if entity == state.player then
+				if tile and tile.fallLevelChange and entity == state.player then
+					state.changeToLevel = tile.fallLevelChange
+					state.changeToLevelTimer = consts.changeToLevelTimerLength
+				else
+					deathEventData = kill(entity, true, "fell")
+				end
 			else
-				entitiesToRemove[entity] = true
+				state.entitiesToRemove[entity] = true
 			end
 		end
 
@@ -740,7 +751,7 @@ function game:updateEntitiesAndProjectiles()
 		local gibThreshold = -entity.creatureType.maxHealth * 2.2
 		if entity.health <= gibThreshold then
 			gibbed = true
-			entitiesToRemove[entity] = true
+			state.entitiesToRemove[entity] = true
 
 			if not entity.creatureType.noFlesh then
 				local entityFleshMaterial = entity.creatureType.fleshMaterialName or "fleshRed"
@@ -877,7 +888,7 @@ function game:updateEntitiesAndProjectiles()
 		::continue::
 	end
 	state.damagesQueue = {} -- Accumulate anything for next tick
-	flushEntityRemoval()
+	self:flushEntityRemoval()
 
 	actionsProcessSecondPart()
 
@@ -947,7 +958,7 @@ function game:updateEntitiesAndProjectiles()
 			return false
 		end
 	end)
-	flushEntityRemoval()
+	self:flushEntityRemoval()
 
 	for _, actionType in ipairs(state.actionTypes) do
 		assert(processedActions[actionType.name], "Did not process action type " .. actionType.name)
@@ -1272,5 +1283,20 @@ function game:checkWillFall(entity)
 		not entity.hangingFrom and
 		not anchored
 end
+
+-- I didn't want to bother with ticking entities outside of the level so I'm only letting the player move through
+-- function game:sendEntityToLevel(entity, levelName) -- Must flush entity removal after
+-- 	local queue = self.state.entityLevelSendQueue[levelName]
+-- 	if not queue then
+-- 		queue = {}
+-- 		self.state.entityLevelSendQueue[levelName] = queue
+-- 	end
+-- 	queue[#queue+1] = entity
+-- 	self.state.entitiesToRemove[entity] = true
+
+-- 	if entity == self.state.player then
+-- 		self.state.changeToLevel = levelName
+-- 	end
+-- end
 
 return game

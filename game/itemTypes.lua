@@ -513,9 +513,10 @@ function game:loadItemTypes()
 	}
 
 	itemTypes.note = {
-		tile = "■",
+		tile = "≡",
 		displayName = "note",
 		interactable = true,
+		swapColours = true,
 		interactionType = state.interactionTypes.readable
 	}
 
@@ -862,6 +863,11 @@ function game:loadItemTypes()
 	itemTypes.ornateKey = {
 		tile = "♪",
 		displayName = "ornate key",
+		isKey = true
+	}
+	itemTypes.keycard = {
+		tile = "■",
+		displayName = "keycard",
 		isKey = true
 	}
 

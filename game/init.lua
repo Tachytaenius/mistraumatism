@@ -21,6 +21,22 @@ for _, itemName in ipairs(love.filesystem.getDirectoryItems("game")) do
 	::continue::
 end
 
+function game:prepareForLevel()
+	local state = self.state
+	state.projectiles = {}
+	state.gibs = {}
+	state.particles = {}
+	state.entities = {}
+	state.airlockData = {}
+	state.entitiesToSendToLevels = {}
+end
+
+function game:resetTileEntityLists()
+	local state = self.state
+	state.tileEntityLists = self:getTileEntityLists()
+	state.previousTileEntityLists = nil
+end
+
 function game:newState(params)
 	local state = {}
 	self.state = state
@@ -46,11 +62,7 @@ function game:newState(params)
 
 	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
 
-	state.projectiles = {}
-	state.gibs = {}
-	state.particles = {}
-	state.entities = {}
-	state.airlockData = {}
+	self:prepareForLevel()
 	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName or consts.startLevelName})
 	if params.noPlayer then
 		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = levelGenerationResult.spawnX, levelGenerationResult.spawnY, 10
@@ -67,6 +79,7 @@ function game:newState(params)
 			state.player.health = levelGenerationResult.playerHealth
 		end
 	end
+	self:resetTileEntityLists()
 
 	state.announcements = {}
 	state.splitAnnouncements = {}
@@ -74,9 +87,6 @@ function game:newState(params)
 	state.incrementEntityDisplaysTimerLength = 1
 	state.incrementEntityDisplaysSwitchIndicatorTime = 0.08
 	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimerLength
-
-	state.tileEntityLists = self:getTileEntityLists()
-	state.previousTileEntityLists = nil
 end
 
 function game:getCanvasSize(fontImageWidth, fontImageHeight)

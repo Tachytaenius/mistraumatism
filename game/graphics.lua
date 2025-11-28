@@ -85,6 +85,13 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	else
 		cameraX, cameraY, cameraSightDistance = state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance
 	end
+	if state.changeToLevelTimer then
+		local proportion = math.max(0, state.changeToLevelTimer / consts.changeToLevelTimerLength) ^ 2
+		cameraSightDistance = math.floor(proportion * cameraSightDistance)
+	elseif state.startLevelTimer then
+		local proportion = math.max(0, 1 - state.startLevelTimer / consts.startLevelTimerLength) ^ 0.8
+		cameraSightDistance = math.floor(proportion * cameraSightDistance)
+	end
 
 	local viewportScreenX, viewportScreenY = 1, 1
 	local topLeftX = cameraX - math.floor(self.viewportWidth / 2)
@@ -175,7 +182,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		local state = self.state
 		local tile = self:getTile(x, y)
 		local tileType = state.tileTypes[tile.type]
-		if tileType.boxDrawingNumber then
+		if tileType.animationTiles then
+			local animationFrame = math.floor((state.tick % (#tileType.animationTiles * tileType.animationTime)) / tileType.animationTime)
+			return tileType.animationTiles[animationFrame + 1]
+		elseif tileType.boxDrawingNumber then
 			local neighbours = {}
 			for ox = -1, 1 do
 				for oy = -1, 1 do

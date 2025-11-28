@@ -229,7 +229,7 @@ function game:loadEventTypes()
 				b = "point at an enemy"
 			elseif eventData.alertType == "scream" then
 				a = "emits a shrill scream"
-				a = "emit a shrill scream"
+				b = "emit a shrill scream"
 			else
 				a = "alerts of an enemy"
 				b = "alert of an enemy"
