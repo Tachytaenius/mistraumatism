@@ -41,18 +41,19 @@ function game:loadMaterials()
 	applySoundCategory(addMaterialSoundCategory("bone", "bone"),
 		addMaterial("bone", "bone", "white", "solid")
 	)
+	addMaterial("tooth", "tooth", "white", "solid")
 
 	addMaterial("water", "water", "darkBlue", "liquid")
 	addMaterial("ice", "ice", "cyan", "solid")
 
 	local steel = addMaterial("steel", "steel", "darkGrey", "solid")
 	steel.armourInfo = {
-		defence = 2,
+		defence = 3,
 		durability = 6
 	}
 	local iron = addMaterial("iron", "iron", "darkGrey", "solid")
 	iron.armourInfo = {
-		defence = 2,
+		defence = 3,
 		durability = 4
 	}
 	applySoundCategory(addMaterialSoundCategory("metal", "metal"),
@@ -68,6 +69,7 @@ function game:loadMaterials()
 	addMaterial("labTiles", "lab tiles", "white", "solid")
 	addMaterial("plaster", "plaster", "white", "solid")
 	addMaterial("leather", "leather", "darkYellow", "solid")
+	addMaterial("quartz", "quartz", "white", "solid")
 
 	addMaterial("polymer", "polymer", "darkGrey", "solid")
 	local superPolymer = addMaterial("superPolymer", "super polymer", "darkCyan", "solid")

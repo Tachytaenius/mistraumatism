@@ -159,6 +159,9 @@ function game:changeLevel(levelName)
 		state.player.x = levelGenerationResult.spawnX
 		state.player.y = levelGenerationResult.spawnY
 	end
+	if levelGenerationResult.postLevelGen then
+		levelGenerationResult.postLevelGen()
+	end
 	state.entities[#state.entities+1] = state.player
 	self:resetTileEntityLists()
 end

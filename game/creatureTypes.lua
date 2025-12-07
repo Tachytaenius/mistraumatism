@@ -270,6 +270,8 @@ function game:loadCreatureTypes()
 		meleeInstantBloodLoss = 5,
 		shootAggressiveness = 0.2,
 
+		inventorySize = 1,
+
 		hears = true,
 		alertAction = "warcry",
 		alertActionUsesVocalisation = true,

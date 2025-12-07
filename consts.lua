@@ -86,8 +86,6 @@ consts.spreadRetargetDistance = 128
 consts.initialKeyRepeatTimerLength = 0.2
 consts.keyRepeatTimerLength = 0.05
 
-consts.entityPathfindingOccupiedCostMultiplier = 16
-
 consts.bleedTimerLength = 1536
 consts.bleedHealTimerLength = 512
 consts.maxBleedingAmount = 900

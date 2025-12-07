@@ -7,6 +7,14 @@ function info:createLevel()
 	local imageData = love.image.newImageData("levels/" .. levelName .. "/map.png")
 	self:initialiseMap(imageData:getDimensions())
 
+	local function attachCorpseToItem(itemEntity)
+		local corpse = self:placeCorpseTeam(itemEntity.x, itemEntity.y, "human", "person")
+		corpse.hangingFrom = itemEntity
+		corpse.blood = 0
+		corpse.bleedingAmount = 8
+		corpse.health = 4 -- Dead, so this just represents mangling level. They were killed by hanging, not before it, so this can't be <= 0
+	end
+
 	local types = {
 		[0x00] = "floor",
 		[0x11] = "roughFloor",
@@ -38,6 +46,7 @@ function info:createLevel()
 		[0xaa] = "zoysia",
 		[0xbb] = "soilLoamless",
 		[0xcc] = "fleshRed",
+		[0xdd] = "bloodRed",
 		[0xff] = "ornateCarpet"
 	}
 	local spawnX, spawnY
@@ -106,6 +115,17 @@ function info:createLevel()
 			self:placeMonster(x, y, "hellNoble")
 		elseif value == 0xbb then
 			self:placeMonster(x, y, "skeleton", "scythe", "iron")
+		elseif value == 0xc7 then
+			self:placeKey(x, y, "ornateKey", "iron", "hellCastleCrypt")
+		elseif value == 0xc8 then
+			self:placeItem(x, y, "toothOutcrop", "tooth")
+		elseif value == 0xc9 then
+			self:placeItem(x, y, "boneOutcrop", "bone")
+		elseif value == 0xca then
+			self:placeItem(x, y, "hellTendril", "fleshRed")
+		elseif value == 0xcb then
+			local _, shacklesEntity = self:placeItem(x, y, "wallShackles", "iron")
+			attachCorpseToItem(shacklesEntity)
 		elseif value == 0xcc then
 			self:placeItem(x, y, "flower", "roseWithered")
 			self:placeItem(x, y, "flower", "roseWithered")
@@ -113,11 +133,7 @@ function info:createLevel()
 			self:placeItem(x, y, "gallows", "mahogany")
 		elseif value == 0xce then
 			local _, gallowsEntity = self:placeItem(x, y, "gallows", "mahogany")
-			local corpse = self:placeCorpseTeam(x, y, "human", "person")
-			corpse.hangingFrom = gallowsEntity
-			corpse.blood = 0
-			corpse.bleedingAmount = 8
-			corpse.health = 4 -- Dead, so this just represents mangling level. They were killed by hanging, not before it, so this can't be <= 0
+			attachCorpseToItem(gallowsEntity)
 		elseif value == 0xcf then
 			self:addSpatter(x, y, "bloodRed", love.math.random(1, 2))
 		elseif value == 0xd0 then

@@ -621,6 +621,12 @@ function game:loadItemTypes()
 		displayName = "gallows",
 		anchorsOverPits = true
 	}
+	itemTypes.wallShackles = {
+		noPickUp = true,
+		tile = "∞",
+		displayName = "wall shackles",
+		anchorsOverPits = true
+	}
 	itemTypes.ornateChair = {
 		noPickUp = true,
 		tile = "h",
@@ -847,6 +853,7 @@ function game:loadItemTypes()
 
 	itemTypes.knightlyArmour = {
 		tile = "┬",
+		displayName = "knight armour",
 		swapColours = true,
 		wearable = true,
 		armourDefence = 3,
@@ -869,6 +876,30 @@ function game:loadItemTypes()
 		tile = "■",
 		displayName = "keycard",
 		isKey = true
+	}
+
+	itemTypes.longsword = {
+		tile = "/",
+		displayName = "longsword",
+		isMeleeWeapon = true,
+		meleeDamage = 8,
+		meleeBleedRateAdd = 24
+	}
+	
+	itemTypes.toothOutcrop = {
+		tile = "▲",
+		displayName = "tooth outcrop",
+		noPickUp = true
+	}
+	itemTypes.boneOutcrop = {
+		tile = "¶",
+		displayName = "bone outcrop",
+		noPickUp = true
+	}
+	itemTypes.hellTendril = {
+		tile = "⌠",
+		displayName = "hell tendril",
+		noPickUp = true
 	}
 
 	self:validateItemTypes()

@@ -313,6 +313,13 @@ function game:loadTileTypes()
 			secondaryColour = "darkCyan",
 			animationTiles = {"░", "▒", "▓", "▒"},
 			animationTime = 8
+		},
+		sand = {
+			displayName = "sand",
+			solidity = "passable",
+			secondaryColour = "yellow",
+			darkenColour = true,
+			character = "▒"
 		}
 	}
 end

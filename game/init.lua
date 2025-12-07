@@ -72,12 +72,9 @@ function game:newState(params)
 			team = "person",
 			x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY
 		})
-		if levelGenerationResult.playerBleedRate then
-			state.player.bleedingAmount = levelGenerationResult.playerBleedRate
-		end
-		if levelGenerationResult.playerHealth then
-			state.player.health = levelGenerationResult.playerHealth
-		end
+	end
+	if levelGenerationResult.postLevelGen then
+		levelGenerationResult.postLevelGen()
 	end
 	self:resetTileEntityLists()
 

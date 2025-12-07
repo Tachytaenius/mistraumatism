@@ -402,6 +402,8 @@ function game:updateEntitiesAndProjectiles()
 				y = entity.targetEntity.y
 			}
 
+			do break end -- Don't check for any more potential targets
+
 			::continue::
 		end
 
@@ -1065,6 +1067,24 @@ function game:damageEntity(entity, damage, source, bleedRateAdd, instantBloodLos
 	-- Only damages paired with sources are recorded above, so we also need to aggregate all damage that a creature receives each tick
 
 	entity.damageTakenThisTick = (entity.damageTakenThisTick or 0) + effectiveDamage
+end
+
+function game:predictImpedingEntityLocations()
+	local state = self.state
+	local locations = {}
+	for _, entity in ipairs(state.entities) do
+		if entity.entityType ~= "creature" or entity.dead then
+			goto continue
+		end
+		local x, y = entity.x, entity.y
+		local action = entity.actions[1]
+		if (action.type == "move" or action.type == "melee" and action.charge) and action.timer <= 1 then
+			local ox, oy = self:getDirectionOffset(action.direction)
+			x, y = x + ox, y + oy
+		end
+	    ::continue::
+	end
+	return locations
 end
 
 function game:getTileEntityLists()

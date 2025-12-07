@@ -24,21 +24,8 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 end
 
 local function getPathfindingResult(self, entity, startTile, endTile, keepLineOfSight)
-	local state = self.state
-
 	local canSeeEnd = keepLineOfSight and self:entityCanSeeTile(entity, endTile.x, endTile.y)
 
-	local function tileHasEntityToAvoid(tile, excludeEntity)
-		local list = state.tileEntityLists[tile.x] and state.tileEntityLists[tile.x][tile.y] and state.tileEntityLists[tile.x][tile.y].all
-		if list then
-			for _, entity in ipairs(list) do
-				if entity.entityType == "creature" and not entity.dead and entity ~= excludeEntity then
-					return true
-				end
-			end
-		end
-		return false
-	end
 	local function checkFunction(tileX, tileY)
 		if
 			keepLineOfSight and
@@ -65,11 +52,7 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 			return self:getCheckedNeighbourTiles(tile.x, tile.y, checkFunction)
 		end,
 		distance = function(tileA, tileB)
-			local cost = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
-			if tileHasEntityToAvoid(tileA, entity) or tileHasEntityToAvoid(tileB, entity) then
-				cost = cost * consts.entityPathfindingOccupiedCostMultiplier
-			end
-			return cost
+			return self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
 		end,
 		heuristic = function(tile)
 			return self:distance(tile.x, tile.y, endTile.x, endTile.y)
