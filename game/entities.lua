@@ -432,7 +432,10 @@ function game:updateEntitiesAndProjectiles()
 		end
 	    ::continue::
 	end
+	state.preMoveImpedingEntityLocations = self:getImpedingEntityLocations() -- Cleared after move is processed
 	-- AI actions (player input already happened)
+	local globalAIInfo = {}
+	globalAIInfo.pathfindingSeparation = self:getPathfindingSeparation()
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType ~= "creature" then
 			goto continue
@@ -446,7 +449,7 @@ function game:updateEntitiesAndProjectiles()
 		if self:checkWillFall(entity) then
 			goto continue
 		end
-		self:getAIActions(entity)
+		self:getAIActions(entity, globalAIInfo)
 	    ::continue::
 	end
 
@@ -460,6 +463,7 @@ function game:updateEntitiesAndProjectiles()
 		-- Moved to this function (called after death checks) to change some things
 		processActions("steady")
 		processActions("move")
+		state.preMoveImpedingEntityLocations = nil
 		processActions("swapInventorySlot")
 		processActions("reload")
 		processActions("unload")
@@ -674,7 +678,7 @@ function game:updateEntitiesAndProjectiles()
 			end
 
 			-- Spatter blood lost this tick to the floor
-			local lossPerSpatter = 6
+			local lossPerSpatter = 4
 			local sameTileSpatterThreshold = 3
 
 			local bloodLoss = math.max(0, entity.initialBloodThisTick - entity.blood)
@@ -1069,20 +1073,55 @@ function game:damageEntity(entity, damage, source, bleedRateAdd, instantBloodLos
 	entity.damageTakenThisTick = (entity.damageTakenThisTick or 0) + effectiveDamage
 end
 
-function game:predictImpedingEntityLocations()
+function game:getEntitySize(entity)
+	return entity.creatureType.size or consts.defaultCreatureSize
+end
+
+function game:getImpedingEntityLocations()
 	local state = self.state
-	local locations = {}
+
+	local relevantEntities = {}
 	for _, entity in ipairs(state.entities) do
 		if entity.entityType ~= "creature" or entity.dead then
 			goto continue
 		end
+		table.insert(relevantEntities, entity)
+		::continue::
+	end
+
+	util.shuffle(relevantEntities) -- For making entity separation fairer
+
+	local movingLocations = {}
+	local locations = {
+		relevantTiles = {},
+		relevantEntities = relevantEntities,
+		movingLocations = movingLocations
+	}
+	for _, entity in ipairs(relevantEntities) do
 		local x, y = entity.x, entity.y
-		local action = entity.actions[1]
-		if (action.type == "move" or action.type == "melee" and action.charge) and action.timer <= 1 then
-			local ox, oy = self:getDirectionOffset(action.direction)
-			x, y = x + ox, y + oy
+
+		locations[x] = locations[x] or {}
+		if not locations[x][y] then
+			local new = {totalSize = 0, x = x, y = y}
+			locations[x][y] = new
+			table.insert(locations.relevantTiles, new)
 		end
-	    ::continue::
+		table.insert(locations[x][y], entity)
+		locations[x][y].totalSize = locations[x][y].totalSize + self:getEntitySize(entity)
+
+		local action = entity.actions[1]
+		if action and (action.type == "move" or action.type == "melee" and action.charge) then
+			local ox, oy = self:getDirectionOffset(action.direction)
+			local x2, y2 = x + ox, y + oy
+
+			movingLocations[x2] = movingLocations[x2] or {}
+			if not movingLocations[x2][y2] then
+				local new = {totalSize = 0, x = x2, y = y2}
+				movingLocations[x2][y2] = new
+			end
+			table.insert(movingLocations[x2][y2], entity)
+			movingLocations[x2][y2].totalSize = movingLocations[x2][y2].totalSize + self:getEntitySize(entity)
+		end
 	end
 	return locations
 end
@@ -1318,5 +1357,78 @@ end
 -- 		self.state.changeToLevel = levelName
 -- 	end
 -- end
+
+function game:getPathfindingSeparation()
+	local state = self.state
+	local locations = state.preMoveImpedingEntityLocations
+	local movingLocations = locations.movingLocations
+	local relevantTiles = locations.relevantTiles
+	local crowdedTiles = {}
+	for _, relevantTile in ipairs(relevantTiles) do
+		if #relevantTile > 1 then
+			table.insert(crowdedTiles, relevantTile)
+		end
+	end
+	local relevantEntities = locations.relevantEntities
+
+	-- local targetTiles = {}
+	local entityTargetTiles = {}
+
+	for _, crowdedTile in ipairs(crowdedTiles) do
+		-- for i = 2, #crowdedTile do -- Skip first entity (order is shuffled) to let it stay on the tile
+			-- local entity = crowdedTile[i]
+		-- The above approach makes crowds of monsters impede each other more.
+		for _, entity in ipairs(crowdedTile) do
+
+			local function checkFunction(tileX, tileY)
+				return self:tilePathCheckFunction(tileX, tileY, entity)
+			end
+			local potentialNextSteps = self:getCheckedNeighbourTiles(entity.x, entity.y, checkFunction, true)
+			if #potentialNextSteps > 0 then
+				local choices = {}
+				local size = self:getEntitySize(entity)
+				for _, choice in ipairs(potentialNextSteps) do
+					local sizeOnTile =
+						locations[choice.x] and
+						locations[choice.x][choice.y] and
+						locations[choice.x][choice.y].totalSize or 0
+					local weight = sizeOnTile > 0 and size / sizeOnTile or 1
+
+					local movingInSizeOnTile =
+						movingLocations[choice.x] and
+						movingLocations[choice.x][choice.y] and
+						movingLocations[choice.x][choice.y].totalSize or 0
+					local movingWeight = movingInSizeOnTile > 0 and size / movingInSizeOnTile or 1
+					
+					local totalWeight = ((weight + movingWeight) / 2) ^ 50 -- Really bias against tiles that are occupied
+
+					table.insert(choices, {
+						value = choice,
+						weight = totalWeight
+					})
+				end
+				-- table.insert(choices, {
+				-- 	value = "doNothing",
+				-- 	weight = 0.25
+				-- })
+
+				local tileToMoveTo = util.weightedRandomChoice(choices)
+				entityTargetTiles[entity] = tileToMoveTo
+				if tileToMoveTo and tileToMoveTo ~= "doNothing" then
+					-- Add to movingLocations as in getImpedingEntityLocations
+					local x, y = tileToMoveTo.x, tileToMoveTo.y
+					movingLocations[x] = movingLocations[x] or {}
+					if not movingLocations[x][y] then
+						local new = {totalSize = 0, x = x, y = y}
+						movingLocations[x][y] = new
+					end
+					table.insert(movingLocations[x][y], entity)
+					movingLocations[x][y].totalSize = movingLocations[x][y].totalSize + self:getEntitySize(entity)
+				end
+			end
+		end
+	end
+	return entityTargetTiles
+end
 
 return game

@@ -83,12 +83,16 @@ function info:createLevel()
 	-- self:placeItem(1, 2, "knightlyArmour", "steel")
 	-- self:placeItem(2, 1, "longsword", "steel")
 
-	local opponent = self:placeMonster(16, 11, "hellNoble")
-	opponent.inventory[1].item = self:newItemData({
-		itemTypeName = "ornateKey", material = "steel",
-		lockName = "debugKey", breakOnUse = false
-	})
-	opponent.inventory.selectedSlot = 1
+	-- local opponent = self:placeMonster(16, 11, "hellNoble")
+	-- opponent.inventory[1].item = self:newItemData({
+	-- 	itemTypeName = "ornateKey", material = "steel",
+	-- 	lockName = "debugKey", breakOnUse = false
+	-- })
+	-- opponent.inventory.selectedSlot = 1
+
+	for _=1, 10 do
+		self:placeMonster(16, 11, "zombie")
+	end
 
 	-- self:placeKey(6, 2, "ornateKey", "iron", "debugKey")
 	self:replaceTileInfo(22, 11, {type = "sand", material = "quartz"})

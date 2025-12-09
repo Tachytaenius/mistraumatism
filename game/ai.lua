@@ -22,6 +22,7 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 	end
 	return self:getWalkable(tileX, tileY, true, entity.creatureType.flying)
 end
+game.tilePathCheckFunction = tilePathCheckFunction -- Not sure why this wasn't aleady in game but I'll just tack it on
 
 local function getPathfindingResult(self, entity, startTile, endTile, keepLineOfSight)
 	local canSeeEnd = keepLineOfSight and self:entityCanSeeTile(entity, endTile.x, endTile.y)
@@ -43,6 +44,8 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 		end
 		return tilePathCheckFunction(self, tileX, tileY, entity)
 	end
+	local size = self:getEntitySize(entity)
+	local preMoveImpedingEntityLocations = self.state.preMoveImpedingEntityLocations
 	local result, bestTileIfNoResult = pathfind({
 		start = startTile,
 		goal = function(tile)
@@ -52,7 +55,15 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 			return self:getCheckedNeighbourTiles(tile.x, tile.y, checkFunction)
 		end,
 		distance = function(tileA, tileB)
-			return self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
+			local dist = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
+
+			local sizeOnTile =
+				preMoveImpedingEntityLocations[entity.x] and
+				preMoveImpedingEntityLocations[entity.x][entity.y] and
+				preMoveImpedingEntityLocations[entity.x][entity.y].totalSize or 0
+			local proportion = sizeOnTile > 0 and 1 - size / sizeOnTile or 0
+
+			return dist + consts.pathfindingSlowdownAvoidance * proportion
 		end,
 		heuristic = function(tile)
 			return self:distance(tile.x, tile.y, endTile.x, endTile.y)
@@ -69,6 +80,7 @@ local function getPathfindingAction(self, entity, targetLocationX, targetLocatio
 	local endTile = self:getTile(targetLocationX, targetLocationY)
 	if startTile and endTile then
 		local result, closestAvailableTile = getPathfindingResult(self, entity, startTile, endTile, keepLineOfSight)
+		local noFullPath = not result
 		if not result and moveCloserIfNoPath and closestAvailableTile then
 			result = getPathfindingResult(self, entity, startTile, closestAvailableTile, keepLineOfSight)
 		end
@@ -79,9 +91,9 @@ local function getPathfindingAction(self, entity, targetLocationX, targetLocatio
 				if direction then
 					local keepInvestigation = true
 					if nextTile.doorData and not nextTile.doorData.open then
-						return self.state.actionTypes.interact.construct(self, entity, nextTile.doorData.entity, direction)
+						return self.state.actionTypes.interact.construct(self, entity, nextTile.doorData.entity, direction), noFullPath
 					elseif direction ~= "zero" then
-						return self.state.actionTypes.move.construct(self, entity, direction)
+						return self.state.actionTypes.move.construct(self, entity, direction), noFullPath
 					else
 						keepInvestigation = false
 					end
@@ -94,6 +106,7 @@ local function getPathfindingAction(self, entity, targetLocationX, targetLocatio
 				entity.investigateLocation = nil
 			end
 		end
+		return nil, noFullPath
 	end
 end
 
@@ -389,7 +402,7 @@ local function pathfindToClosestTileWithSightToTilePrioritisingPreferredRange(se
 	end
 end
 
-function game:getAIActions(entity)
+function game:getAIActions(entity, globalAIInfo)
 	local state = self.state
 	if entity == state.player then
 		return
@@ -466,9 +479,28 @@ function game:getAIActions(entity)
 		end
 	end
 
+	local separationAction
+	local separationSaysDoNothing = false
 	if not newAction then
+		-- if not (math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1) then -- Not in range of melee so moving would be ok. Don't ignore separation request
+		-- Never mind that's redundant
+		-- end
+
+		local targetTile = globalAIInfo.pathfindingSeparation[entity]
+		if targetTile then
+			if targetTile == "doNothing" then
+				separationSaysDoNothing = true
+			else
+				-- Only use this if it can find a path to its destination.
+				separationAction = getPathfindingAction(self, entity, targetTile.x, targetTile.y)
+			end
+		end
+	end
+
+	if not newAction then
+		local noFullPath = true
 		if not entity.creatureType.engagesAtRange then
-			newAction = chase(self, entity, waitForSameTileMelee)
+			newAction, noFullPath = chase(self, entity, waitForSameTileMelee)
 		else
 			if entity.targetEntity then
 				if self:entityCanSeeEntity(entity, entity.targetEntity) then
@@ -477,7 +509,7 @@ function game:getAIActions(entity)
 					if isAtRange then
 						-- No new action
 					elseif actualStatus == "tooFar" then
-						newAction = chase(self, entity, waitForSameTileMelee, true)
+						newAction, noFullPath = chase(self, entity, waitForSameTileMelee, true)
 					else
 						-- actualStatus == "tooClose"
 						newAction = moveBackToPreferredRangeOfTargetEntity(self, entity) -- While keeping line of sight to player
@@ -488,8 +520,35 @@ function game:getAIActions(entity)
 					-- 	-- chase(self, entity, waitForSameTileMelee)
 
 					-- TEMP: Leads to some silly behaviour
-					newAction = chase(self, entity, waitForSameTileMelee)
+					newAction, noFullPath = chase(self, entity, waitForSameTileMelee)
 				end
+			end
+		end
+
+		if not noFullPath and (separationAction or separationSaysDoNothing) then
+			local prevent = separationSaysDoNothing -- Default
+			if not prevent then -- Try if not already true
+				-- Avoid entities in crowds moving in the wrong direction
+				if newAction then -- Will be a pathfinding action
+					if newAction.type == "move" then -- But check anyway
+						local pathingDirX, pathingDirY = self:getDirectionOffset(newAction.direction)
+						local pathingLen = self:length(pathingDirX, pathingDirY)
+
+						local separationDirX, separationDirY = self:getDirectionOffset(separationAction.direction)
+						local separationLen = self:length(separationDirX, separationDirY)
+
+						local dot = (pathingDirX * separationDirX + pathingDirY * separationDirY) / (pathingLen * separationLen)
+						if dot < 0 then
+							prevent = true
+						end
+					end
+				end
+			end
+
+			if not prevent then
+				newAction = separationAction
+			else
+				newAction = nil
 			end
 		end
 	end

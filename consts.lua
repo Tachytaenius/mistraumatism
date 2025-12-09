@@ -112,5 +112,10 @@ consts.changeToLevelTimerLength = 50
 consts.startLevelTimerLength = 50
 
 consts.defaultPathfindingDistanceLimit = 36
+consts.defaultCreatureSize = 64
+consts.maxImpedeLevel = 4
+consts.impedenceProportionStart = 0.65 -- Above 0.5 so that same-sized entities mutually impede each other when on the same tile
+consts.impedenceTimeMultiplier = 2
+consts.pathfindingSlowdownAvoidance = 3
 
 return consts

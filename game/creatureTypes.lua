@@ -14,6 +14,7 @@ function game:loadCreatureTypes()
 		tile = "@",
 		colour = "white",
 		bloodMaterialName = "bloodRed",
+		size = 64,
 
 		moveTimerLength = 6,
 		dodgeTimerLength = 3,
@@ -48,6 +49,7 @@ function game:loadCreatureTypes()
 		tile = "z",
 		colour = "lightGrey",
 		bloodMaterialName = "bloodRed",
+		size = 48,
 
 		moveTimerLength = 10,
 		sightDistance = 16,
@@ -75,6 +77,7 @@ function game:loadCreatureTypes()
 		tile = "s",
 		colour = "white",
 		fleshMaterialName = "bone",
+		size = 32,
 
 		moveTimerLength = 5,
 		sightDistance = 12,
@@ -86,6 +89,7 @@ function game:loadCreatureTypes()
 
 		alertAction = "point",
 		painDamageThreshold = 1,
+		gibText = "body shatters",
 
 		canOpenDoors = true,
 		inventorySize = 2,
@@ -99,6 +103,7 @@ function game:loadCreatureTypes()
 		colour = "darkGreen",
 		fleshMaterialName = "fleshYellow",
 		bloodMaterialName = "bloodBlue",
+		size = 32,
 
 		moveTimerLength = 16,
 		sightDistance = 6,
@@ -144,6 +149,7 @@ function game:loadCreatureTypes()
 		colour = "darkYellow",
 		fleshMaterialName = "fleshYellow",
 		bloodMaterialName = "bloodBlue",
+		size = 48,
 
 		moveTimerLength = 16,
 		sightDistance = 7,
@@ -163,6 +169,7 @@ function game:loadCreatureTypes()
 		colour = "yellow",
 		fleshMaterialName = "fleshYellow",
 		bloodMaterialName = "bloodGreen",
+		size = 96,
 
 		moveTimerLength = 7,
 		sightDistance = 16,
@@ -181,6 +188,7 @@ function game:loadCreatureTypes()
 		tile = "I",
 		colour = "darkYellow",
 		bloodMaterialName = "bloodRed",
+		size = 48,
 
 		moveTimerLength = 4,
 		sightDistance = 17,
@@ -224,6 +232,7 @@ function game:loadCreatureTypes()
 		tile = "Å",
 		colour = "darkBlue",
 		bloodMaterialName = "bloodGreen",
+		size = 128,
 
 		moveTimerLength = 3,
 		sightDistance = 18,
@@ -258,6 +267,7 @@ function game:loadCreatureTypes()
 		tile = "N",
 		colour = "darkRed",
 		bloodMaterialName = "bloodGreen",
+		size = 256,
 
 		moveTimerLength = 5,
 		sightDistance = 18,
@@ -304,6 +314,7 @@ function game:loadCreatureTypes()
 		colour = "red",
 		flashDarkerColour = true,
 		bloodMaterialName = "bloodGreen",
+		size = 1024,
 
 		moveTimerLength = 2,
 		sightDistance = 20,
@@ -359,6 +370,7 @@ function game:loadCreatureTypes()
 		tile = "Ä",
 		colour = "darkYellow",
 		bloodMaterialName = "bloodRed",
+		size = 192,
 
 		aquatic = true,
 		cantMoveOnLand = true,
@@ -382,6 +394,7 @@ function game:loadCreatureTypes()
 		tile = ",",
 		colour = "darkGreen",
 		bloodMaterialName = "bloodRed",
+		size = 8,
 
 		aquatic = true,
 		cantMoveOnLand = true,
@@ -400,6 +413,7 @@ function game:loadCreatureTypes()
 		tile = "α",
 		colour = "darkCyan",
 		bloodMaterialName = "bloodRed",
+		size = 16,
 
 		aquatic = true,
 		cantMoveOnLand = true,
@@ -420,6 +434,7 @@ function game:loadCreatureTypes()
 		colour = "darkGrey",
 		vanishOnNonGibDeath = true, -- To vanish on a gib death, noFlesh is also set
 		noFlesh = true,
+		size = 0,
 
 		moveTimerLength = 2,
 		sightDistance = 7,
@@ -460,6 +475,7 @@ function game:loadCreatureTypes()
 		colour = "darkCyan",
 		vanishOnNonGibDeath = true, -- To vanish on a gib death, noFlesh is also set
 		noFlesh = true,
+		size = 0,
 
 		moveTimerLength = 3,
 		sightDistance = 3,
@@ -483,6 +499,7 @@ function game:loadCreatureTypes()
 		tile = "Ö",
 		colour = "green",
 		bloodMaterialName = "bloodRed",
+		size = 192,
 
 		moveTimerLength = 6,
 		sightDistance = 15,

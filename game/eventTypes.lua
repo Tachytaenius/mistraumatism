@@ -283,7 +283,7 @@ function game:loadEventTypes()
 			local material = self.state.materials[eventData.gibMaterial]
 			local shownMaterialName = audible and not visible and material.soundCategory and material.soundCategory.displayName or material.displayName -- Fall back to material display name if material has no sound category, even if the explosion was heard and not seen
 			-- local explodesIntoText = "body bursts into a shower of " .. shownMaterialName -- Too long for some names
-			local explodesText = "body bursts open"
+			local explodesText = eventData.sourceEntity.creatureType.gibText or "body bursts open"
 			if playerSource then
 				return "Your " .. explodesText .. ".", "red"
 			elseif sourceKnown then

@@ -80,6 +80,7 @@ function game:loadActionTypes()
 		if specialType then
 			new.displayNameOverride = getMoveSpecialTypeDisplayNameOverride(new)
 		end
+		new.impedeLevel = 0
 		return new
 	end
 	local function canWalkTo(entity, destinationX, destinationY, ignoreGaps)
@@ -92,6 +93,30 @@ function game:loadActionTypes()
 		local offsetX, offsetY = self:getDirectionOffset(action.direction)
 		local destinationX, destinationY = entity.x + offsetX, entity.y + offsetY
 		if canWalkTo(entity, destinationX, destinationY, true) then
+			local state = self.state
+			local preMoveImpedingEntityLocations = state.preMoveImpedingEntityLocations
+			local sizeOnTile =
+				preMoveImpedingEntityLocations[entity.x] and
+				preMoveImpedingEntityLocations[entity.x][entity.y] and
+				preMoveImpedingEntityLocations[entity.x][entity.y].totalSize or 0
+			if sizeOnTile > 0 then
+				local entitySize = self:getEntitySize(entity)
+				local proportion = entitySize / sizeOnTile -- Lower means the entity is more crowded on the tile, higher means the entity is more free to move
+				proportion = proportion / (2 * consts.impedenceProportionStart)
+				local newImpedeLevel = 0
+				if proportion <= 2 ^ -consts.maxImpedeLevel then
+					newImpedeLevel = consts.maxImpedeLevel
+				else
+					newImpedeLevel = math.max(0, -select(2, math.frexp(proportion)))
+				end
+
+				local impedeDelta = newImpedeLevel - action.impedeLevel
+				if impedeDelta > 0 then
+					action.timer = action.timer + impedeDelta * consts.impedenceTimeMultiplier
+					action.impedeLevel = newImpedeLevel
+				end
+			end
+
 			action.timer = action.timer - 1
 			local dontComplete = false
 			if action.timer <= 0 then
