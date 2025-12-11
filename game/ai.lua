@@ -444,10 +444,10 @@ function game:getAIActions(entity, globalAIInfo)
 				local range
 				local distance = self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y)
 				if shootType == "gun" then
-					range = self:getHeldItem(entity).itemType.range
-					if distance <= range then
+					-- range = self:getHeldItem(entity).itemType.range -- It's on the ammo, not the item type...
+					-- if distance <= range then
 						fightAction = tryShootTargetEntity(self, entity, "heldItem")
-					end
+					-- end
 				elseif shootType == "mindAttack" then
 					fightAction = tryMindAttackTargetEntity(self, entity)
 				elseif shootType == "ability" then

@@ -84,7 +84,6 @@ function game:loadItemTypes()
 		autoFeed = true, -- Electronically self-operating, or whatever. Fired rounds in the magazine don't jam!
 		extraSpread = nil,
 		shotCooldownTimerLength = 1,
-		-- shotsPerTick = 3,
 		operationTimerLength = 1,
 		extraDamage = 3,
 		manual = false,
@@ -119,6 +118,44 @@ function game:loadItemTypes()
 		range = 19,
 		projectileTile = "∙",
 		projectileColour = "darkGrey"
+	}
+
+	itemTypes.armArtillery = {
+		isGun = true,
+		tile = "∟",
+		ammoClass = "bulletLarge",
+		displayName = "arm artillery",
+		autoFeed = true,
+		extraSpread = nil,
+		shotCooldownTimerLength = 1,
+		-- shotsPerTick = 3,
+		operationTimerLength = 1,
+		manual = false,
+		magazine = true,
+		magazineCapacity = 99,
+		gunshotSoundRange = 20
+	}
+
+	itemTypes.experimentalBullet = {
+		isAmmo = true,
+		stackable = true,
+		maxStackSize = 3,
+		tile = "î",
+		ammoClass = "bulletLarge",
+		displayName = "research round",
+		spread = 0,
+		damage = 20,
+		bleedRateAdd = 120,
+		instantBloodLoss = 6,
+		bulletCount = 1,
+		projectileSubtickMoveTimerLength = 512,
+		projectileSubtickMoveTimerLengthChange = -40, -- Per tick
+		projectileSubtickMoveTimerLengthMin = 16,
+		range = 19,
+		projectileTile = "∙",
+		projectileColour = "yellow",
+		projectileExplosionRadius = 1,
+		projectileExplosionDamage = 50
 	}
 
 	itemTypes.pumpShotgun = {

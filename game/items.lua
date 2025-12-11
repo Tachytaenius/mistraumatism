@@ -387,4 +387,20 @@ function game:getTotalArmourInfo(item)
 	return {defence = defence, durability = durability}
 end
 
+function game:getAllInventoryItems(entity)
+	local items = {}
+	if not entity.inventory then
+		return items
+	end
+	for _, slot in ipairs(entity.inventory) do
+		if slot.item then
+			table.insert(items, slot.item)
+		end
+		for _, item in ipairs(slot.otherItems) do
+			table.insert(items, item)
+		end
+	end
+	return items
+end
+
 return game

@@ -529,7 +529,10 @@ function game:loadActionTypes()
 			return
 		end
 		local tile = self:getTile(x, y)
-		if tile and self.state.tileTypes[tile.type].solidity == "projectilePassable" then
+		if not tile then
+			return
+		end
+		if self:tileBlocksAirMotion(x, y) or (tile and self.state.tileTypes[tile.type].solidity == "projectilePassable") then
 			return
 		end
 		return drop.construct(self, player, direction)
