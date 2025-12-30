@@ -301,7 +301,12 @@ function game:loadEventTypes()
 		sourceEntityRelation = "doneTo",
 		announceToPlayer = function(self, eventData, playerSource, sourceKnown, visible, audible)
 			-- local extra = eventData.violent and " violently" or ""
-			local extra = ""
+			local extra = util.chooseArgs(
+				" violently",
+				" in confused pain",
+				" in agony",
+				", twisting apart"
+			)
 			if playerSource then
 				return "You vanish" .. extra .. ".", "red"
 			elseif sourceKnown then

@@ -18,13 +18,15 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0x66] = "wornWall",
 		[0x77] = "shortGrass",
 		[0xaa] = "support",
+		[0xbb] = "pit",
 		[0xff] = "archway"
 	}
 	local materials = {
 		[0x00] = "granite",
 		[0x11] = "obsidian",
 		[0x55] = "ornateCarpet",
-		[0xaa] = "fescue"
+		[0xaa] = "fescue",
+		[0xbb] = "bloodRed"
 	}
 	local spawnX, spawnY
 	local ceilingMessage = self:newTileMessage("There is a skyward hole in the cavern ceiling above\nyou. The sunlight sifts down and glints at you\nagainst the dust.", "white")
@@ -34,16 +36,22 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0x55 then
 			self:placeMonster(x, y, "hellNoble")
 		elseif value == 0x56 then
-			self:placeMonster(x, y, "imp")
+			self:placeMonster(x, y, "behemoth")
 		elseif value == 0x57 then
-			self:placeMonster(x, y, "skeleton")
+			self:placeMonster(x, y, "imp")
 		elseif value == 0x58 then
 			self:placeMonster(x, y, "demonicPriest")
 		elseif value == 0x59 then
-			self:placeMonster(x, y, "griefPhantom")
+			self:placeMonster(x, y, "skeleton")
 		elseif value == 0x5a then
-			self:placeMonster(x, y, "demonicPriest")
-			self:placeKey(x, y, "ornateKey", "bone", "exitArena1")
+			local priest = self:placeMonster(x, y, "demonicPriest")
+			local key = self:newItemData({
+				itemTypeName = "ornateKey",
+				material = "bone",
+				lockName = "exitArena1"
+			})
+			priest.inventory[1].item = key
+			priest.inventory.selectedSlot = 1
 		elseif value == 0x5b then
 			self:placeDoorItem(x, y, "ornateDoor", "granite", false, "exitArena1")
 		elseif value == 0xaa then
@@ -66,8 +74,23 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0xe4 then
 			self:placeItem(x, y, "rocketLauncher", "polymer")
 		elseif value == 0xe5 then
-			for _=1, 8 do
+			for _=1, 2 do
 				self:placeItem(x, y, "rocket", "plasticBrown")
+			end
+		elseif value == 0xe6 then
+			self:placeItem(x, y, "pumpShotgun", "steel")
+		elseif value == 0xe7 then
+			for _=1, 7 do
+				self:placeItem(x, y, "buckshotShell", "plasticRed")
+			end
+			for _=1, 6 do
+				self:placeItem(x - 1, y, "buckshotShell", "plasticRed")
+			end
+			for _=1, 3 do
+				self:placeItem(x, y - 1, "buckshotShell", "plasticRed")
+			end
+			for _=1, 5 do
+				self:placeItem(x, y, "slugShell", "plasticGreen")
 			end
 		elseif value == 0xff then
 			spawnX, spawnY = x, y

@@ -204,7 +204,7 @@ function game:loadCreatureTypes()
 		hears = true,
 		alertAction = "hiss",
 		alertActionUsesVocalisation = true,
-		vocalisationRange = 16,
+		vocalisationRange = 11,
 		painDamageThreshold = 4,
 
 		flying = true,
@@ -256,6 +256,7 @@ function game:loadCreatureTypes()
 		flying = true,
 		attackDeadTargets = true,
 		canOpenDoors = true,
+		inventorySize = 1,
 
 		shootAggressiveness = 1,
 		wrongRangeShootAggressiveness = 0.2,
@@ -521,6 +522,50 @@ function game:loadCreatureTypes()
 		canOpenDoors = true,
 
 		psychicDamageDeathPoint = 60
+	}
+
+	creatureTypes.behemoth = {
+		displayName = "behemoth",
+		tile = "B",
+		colour = "darkMagenta",
+		bloodMaterialName = "bloodGreen",
+		size = 256,
+
+		moveTimerLength = 5,
+		sightDistance = 17,
+		maxHealth = 30,
+		maxBlood = 30,
+		bleedHealRate = 30,
+		meleeTimerLength = 4,
+		meleeDamage = 8,
+		meleeBleedRateAdd = 16,
+		meleeInstantBloodLoss = 1,
+		shootAggressiveness = 0.25,
+
+		hears = true,
+		alertAction = "snarl",
+		alertActionUsesVocalisation = true,
+		vocalisationRange = 15,
+		painDamageThreshold = 10,
+
+		flying = true,
+		attackDeadTargets = true,
+		canOpenDoors = false,
+
+		psychicDamageDeathPoint = 90,
+
+		projectileAbilities = {
+			{
+				name = "fireball",
+				shootTime = 4,
+				projectileTile = "☼",
+				projectileColour = "yellow",
+				projectileSubtickMoveTimerLength = 256,
+				damage = 6,
+				bleedRateAdd = 4,
+				range = 15
+			}
+		}
 	}
 end
 
