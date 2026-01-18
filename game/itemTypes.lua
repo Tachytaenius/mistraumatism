@@ -684,7 +684,8 @@ function game:loadItemTypes()
 		tile = "│",
 		openTile = "╟",
 		displayName = "ornate door",
-		stateChangeSoundRange = 5
+		stateChangeSoundRange = 5,
+		dynamicDoorTileInfo = {closedLineNumber = 1, openLineNumber = 2, perpendicularLineNumberOpen = 1} -- Only calculated on level generation finish
 	}
 	itemTypes.heavyDoor = {
 		isDoor = true,
@@ -696,7 +697,8 @@ function game:loadItemTypes()
 		tile = "│",
 		openTile = "╟",
 		displayName = "heavy door",
-		stateChangeSoundRange = 12
+		stateChangeSoundRange = 12,
+		dynamicDoorTileInfo = {closedLineNumber = 1, openLineNumber = 2, perpendicularLineNumberOpen = 1}
 	}
 
 	itemTypes.door = {
@@ -709,7 +711,8 @@ function game:loadItemTypes()
 		tile = "│",
 		openTile = "╟",
 		displayName = "door",
-		stateChangeSoundRange = 4
+		stateChangeSoundRange = 4,
+		dynamicDoorTileInfo = {closedLineNumber = 1, openLineNumber = 2, perpendicularLineNumberOpen = 1}
 	}
 	itemTypes.doorWindow = {
 		isDoor = true,
@@ -721,7 +724,8 @@ function game:loadItemTypes()
 		tile = "│",
 		openTile = "╟",
 		displayName = "windowed door",
-		stateChangeSoundRange = 4
+		stateChangeSoundRange = 4,
+		dynamicDoorTileInfo = {closedLineNumber = 1, openLineNumber = 2, perpendicularLineNumberOpen = 1}
 	}
 	itemTypes.airlockDoor = {
 		isDoor = true,

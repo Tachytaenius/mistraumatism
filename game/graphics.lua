@@ -454,6 +454,46 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 	end
 
+	local function getDoorDataDisplayTile(doorData)
+		local dynamicDoorTileInfo = doorData.entity.itemData.itemType.dynamicDoorTileInfo
+		if not dynamicDoorTileInfo then
+			return nil
+		end
+
+		local closedNum = dynamicDoorTileInfo.closedLineNumber or 0
+		local openNum = dynamicDoorTileInfo.openLineNumber or 0
+		local closedOtherNum = dynamicDoorTileInfo.perpendicularLineNumberClosed or 0
+		local openOtherNum = dynamicDoorTileInfo.perpendicularLineNumberOpen or 0
+
+		local open = doorData.open
+
+		local hinge = open and openNum or closedNum
+		local opposite = open and openNum or closedNum
+		local perpendicular1 = open and openOtherNum or closedOtherNum
+		local perpendicular2 = 0
+
+		local function cycle(n, a, b, c, d)
+			for _=1, n do
+				a, b, c, d = d, a, b, c
+			end
+			return a, b, c, d
+		end
+
+		local hingeSide = doorData.hinge
+
+		-- For the sake of double doors opening the same way. NOTE: Could make doors open in the direction opposite to the interactor.
+		if hingeSide == "up" then
+			hingeSide = "down"
+		elseif hingeSide == "left" then
+			hingeSide = "right"
+		end
+
+		local cycleCount = hingeSide == "right" and 0 or hingeSide == "up" and 1 or hingeSide == "left" and 2 or hingeSide == "down" and 3 or 0
+
+		local char = util.getBoxDrawingCharacter(cycle(cycleCount, hinge, perpendicular1, opposite, perpendicular2))
+		return char
+	end
+
 	local indicatorTiles = {} -- To stop indicators from clashing
 	local drawActionIndicators = self.realTime % 1.5 < 0.5
 	local drawCursor = self.realTime % 0.5 < (commands.checkCommand("moveCursor") and not commands.checkCommand("dodgeMode") and 0.4 or 0.25)
@@ -572,6 +612,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			end
 			if entity.doorTile and entity.doorTile.doorData.open then
 				tile = entity.itemData.itemType.openTile
+			end
+			if entity.doorTile and entity.doorTile.doorData then
+				tile = getDoorDataDisplayTile(entity.doorTile.doorData) or tile
 			end
 			if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
 				tile = entity.itemData.itemType.activeTile
@@ -762,6 +805,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			end
 			if entity.doorTile and entity.doorTile.doorData.open then
 				tile = entity.itemData.itemType.openTile
+			end
+			if entity.doorTile and entity.doorTile.doorData then
+				tile = getDoorDataDisplayTile(entity.doorTile.doorData) or tile
 			end
 			if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
 				tile = entity.itemData.itemType.activeTile
@@ -963,6 +1009,43 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	drawEntityStatus(state.player and self:getHeldItem(state.player) and {entityType = "item", itemData = self:getHeldItem(state.player)} or nil, "POSSESSION", inventoryHeight) -- HACK
 	if state.player and state.player.currentWornItem then
 		if commands.checkCommand("changeWornItemMode") then
+			drawInventory(true) -- Gets obscured. We just wanted the box
+
+			local x = statusX + 1
+			local y = inventoryHeight * 2 + 2
+
+			-- Clear anything that might remain in gaps
+			for x = statusX, statusX + statusWidth - 1 do
+				for y = y, y + 4 do
+					drawCharacterFramebuffer(x, y, " ", "black", "black")
+				end
+			end
+
+			if state.player.inventory then
+				-- local dropString = "»" -- "Can doff to"
+				local dropString = ""
+				-- for slotNumber, slot in ipairs(state.player.inventory) do
+				for slotNumber = 1, 9 do
+					local slot = state.player.inventory[slotNumber]
+					local append
+					if not slot then
+						append = "·"
+					elseif
+						not slot.item or
+						(
+							self:isItemStackable(slot.item, state.player.currentWornItem) and
+							self:getSlotStackSize(entity, slotNumber) < self:getMaxStackSize(slot.item)
+						)
+					then
+						append = slotNumber
+					else
+						append = "∙"
+					end
+					dropString = dropString .. append
+				end
+
+				drawStringFramebuffer(x + statusWidth - utf8.len(dropString) - 3, y + 5, dropString, "darkGrey", "black") -- Can always doff armour to slot 0 (ground); being explicit would take more room when this was intended to be subtle
+			end
 			drawEntityStatus({entityType = "item", itemData = state.player.currentWornItem} or nil, "ARMOUR", inventoryHeight * 2) -- HACK
 		else
 			drawEntityStatus({entityType = "item", itemData = state.player.currentWornItem} or nil, nil, inventoryHeight * 2, true) -- HACK
@@ -1090,6 +1173,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						end
 						if entity.doorTile and entity.doorTile.doorData.open then
 							character = entity.itemData.itemType.openTile
+						end
+						if entity.doorTile and entity.doorTile.doorData then
+							character = getDoorDataDisplayTile(entity.doorTile.doorData) or character
 						end
 						if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
 							character = entity.itemData.itemType.activeTile

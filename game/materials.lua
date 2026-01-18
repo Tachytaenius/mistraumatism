@@ -66,7 +66,6 @@ function game:loadMaterials()
 	)
 
 	addMaterial("concrete", "concrete", "lightGrey", "solid")
-	addMaterial("labTiles", "lab tiles", "white", "solid")
 	addMaterial("plaster", "plaster", "white", "solid")
 	addMaterial("leather", "leather", "darkYellow", "solid")
 	addMaterial("quartz", "quartz", "white", "solid")
@@ -95,9 +94,6 @@ function game:loadMaterials()
 	addMaterial("plywood", "plywood", "darkYellow", "solid")
 	addMaterial("lino", "lino", "darkGrey", "solid")
 
-	addMaterial("crateBrown", "brown crate", "darkYellow", "solid")
-	addMaterial("crateYellow", "yellow crate", "yellow", "solid")
-
 	addMaterial("ornateCarpet", "gold and cloth", "red", "solid")
 	addMaterial("soilLoamless", "loamless soil", "darkYellow", "solid")
 
@@ -125,10 +121,11 @@ function game:loadMaterials()
 	addMaterial("cloth", "cloth", "white", "solid")
 
 	applySoundCategory(addMaterialSoundCategory("plastic", "plastic"),
-		addMaterial("plasticRed", "red plastic", "darkRed", "solid"),
+		addMaterial("plasticRed", "red plastic", "red", "solid"),
 		addMaterial("plasticGreen", "green plastic", "darkGreen", "solid"),
 		addMaterial("plasticBlack", "black plastic", "darkGrey", "solid"),
-		addMaterial("plasticBrown", "brown plastic", "darkYellow", "solid")
+		addMaterial("plasticBrown", "brown plastic", "darkYellow", "solid"),
+		addMaterial("plasticYellow", "yellow plastic", "yellow", "solid")
 	)
 
 	addMaterial("inflictionMagic", "grief and pain", "magenta", "liquid")

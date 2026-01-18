@@ -277,6 +277,9 @@ function game:isItemStackable(itemA, itemB)
 		if itemA.itemType.isAmmo and itemA.fired ~= itemB.fired then
 			return false
 		end
+		if itemA.lockName ~= itemB.lockName then
+			return false
+		end
 		return true
 	end
 	return false

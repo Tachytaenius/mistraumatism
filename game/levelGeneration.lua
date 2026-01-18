@@ -333,9 +333,54 @@ function game:checkTileMessages()
 	self:announce(message.text, message.colour)
 end
 
+function game:setDoorHinges()
+	for _, entity in ipairs(self.state.entities) do
+		if entity.entityType == "item" and entity.itemData.itemType.isDoor and entity.itemData.itemType.dynamicDoorTileInfo then
+			local up = self:getTile(entity.x, entity.y - 1)
+			local down = self:getTile(entity.x, entity.y + 1)
+			local left = self:getTile(entity.x - 1, entity.y)
+			local right = self:getTile(entity.x + 1, entity.y)
+
+			local up = up and self.state.tileTypes[up.type].solidity
+			local down = down and self.state.tileTypes[down.type].solidity
+			local left = left and self.state.tileTypes[left.type].solidity
+			local right = right and self.state.tileTypes[right.type].solidity
+
+			local up = not up or up == "solid" or up == "projectilePassable"
+			local down = not down or down == "solid" or down == "projectilePassable"
+			local left = not left or left == "solid" or left == "projectilePassable"
+			local right = not right or right == "solid" or right == "projectilePassable"
+
+			local hinge
+			if up and down then
+				hinge = "up"
+			elseif left and right then
+				hinge = "left"
+			elseif up then
+				hinge = "up"
+			elseif down then
+				hinge = "down"
+			elseif left then
+				hinge = "left"
+			elseif right then
+				hinge = "right"
+			else
+				hinge = "up"
+			end
+
+			local doorData = entity.doorTile and entity.doorTile.doorData
+			if doorData then
+				doorData.hinge = hinge
+			end
+		end
+	end
+end
+
 function game:generateLevel(parameters)
 	local info = require("levels." .. parameters.levelName)
-	return info.createLevel(self)
+	local result = info.createLevel(self)
+	self:setDoorHinges()
+	return result
 end
 
 return game

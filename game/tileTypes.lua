@@ -320,6 +320,31 @@ function game:loadTileTypes()
 			secondaryColour = "yellow",
 			darkenColour = true,
 			character = "▒"
+		},
+		floorGrating = {
+			displayName = "floor grating",
+			solidity = "passable",
+			tile = "▒"
+		},
+		labTilesWall = {
+			displayName = "lab tiles",
+			solidity = "solid",
+			character = "┼",
+			swapColours = true,
+			blocksLight = true,
+			liquidSpatterColourInvert = true,
+			allowIncomingConnectionTypeNames = {wall = true},
+		},
+		shelving = {
+			displayName = "shelving",
+			solidity = "passable",
+			character = "≡",
+			swapColours = true
+		},
+		hazardTape = {
+			character = "▒",
+			displayName = "hazard tape",
+			solidity = "passable"
 		}
 	}
 end
