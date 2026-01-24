@@ -536,6 +536,7 @@ function game:updateEntitiesAndProjectiles()
 				local newFluidMaterial = self:getCurrentLiquid(entity)
 				local oldFluidMaterial = entity.initialSubmergedFluid
 
+				-- TODO: FIXME: exiting/entering water no longer announces
 				-- Entering/exiting fluid
 				if self:isDrowning(entity) and not entity.initialDrowningThisTick then
 					self:announce("You breathe in before the " .. newFluidMaterial .. " fully consumes you.", "darkBlue")

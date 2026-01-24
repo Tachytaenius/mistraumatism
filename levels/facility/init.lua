@@ -74,18 +74,41 @@ function info:createLevel() -- name should be the name of the directory containi
 			for _=1, 3 do
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
+		elseif value == 0x38 then
+			for _=1, 2 do
+				self:placeItem(x, y, "smallBullet", "brass")
+			end
+			self:placeMagazineWithAmmo(x, y, "pistolMagazine", "steel", "smallBullet", "brass", 9)
+		elseif value == 0x39 then
+			for _=1, 1 do
+				self:placeItem(x, y, "smallBullet", "brass")
+			end
+		elseif value == 0x3a then
+			local armourItem = self:placeItem(x, y, "tacticalArmour", "superPolymer")
+			local armourInfo = self:getTotalArmourInfo(armourItem)
+			armourItem.armourWear = math.max(0, armourInfo.durability - 6) -- 6 points from breaking
+		elseif value == 0x3b then
+			local armourItem = self:placeItem(x, y, "tacticalArmour", "superPolymer")
+			local armourInfo = self:getTotalArmourInfo(armourItem)
+			armourItem.armourWear = math.max(0, armourInfo.durability - 2)
 		elseif value == 0x55 then
 			self:placeDoorItem(x, y, "doorWindow", "steel", false)
 		elseif value == 0x56 then
 			self:placeDoorItem(x, y, "doorWindow", "steel", true)
+		elseif value == 0xa8 then
+			self:placeKey(x, y, "ornateKey", "iron", "facilityExitPortal")
+		elseif value == 0xa9 then
+			self:placeDoorItem(x, y, "door", "steel", false, "facilityExitPortal")
 		elseif value == 0xaa then
 			self:placeDoorItem(x, y, "door", "steel", false)
 		elseif value == 0xab then
 			self:placeDoorItem(x, y, "door", "steel", true)
 		elseif value == 0xac then
-			self:placeDoorItem(x, y, "door", "steel", false, "facilityCorpseStorage")
+			self:placeDoorItem(x, y, "door", "steel", false, "facilityRestrictedAreas")
 		elseif value == 0xad then
-			self:placeKey(x, y, "keycard", "plasticRed", "facilityCorpseStorage")
+			self:placeKey(x, y, "keycard", "plasticRed", "facilityRestrictedAreas")
+		elseif value == 0xe9 then
+			self:placeMonster(x, y, "imp")
 		elseif value == 0xea then
 			self:placeMonster(x, y, "brutePhantom")
 		elseif value == 0xeb then
@@ -107,7 +130,7 @@ function info:createLevel() -- name should be the name of the directory containi
 			local tile = self:getTile(x, y)
 			tile.fallLevelChange = "hellCastle"
 		elseif value == 0xf3 then
-			self:placeNote(x, y, "PRODUCTION REPORT\nTotal yield: 1.2 kL\nResistance: minimal")
+			self:placeNote(x, y, "PRODUCTION REPORT\nTotal yield: 1.2 kL\nResistance: minimal", true)
 		elseif value == 0xf4 then
 			self:placeCrate(x, y, 1, 1, "plasticBrown")
 		elseif value == 0xf5 then

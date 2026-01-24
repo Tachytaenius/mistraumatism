@@ -125,6 +125,11 @@ function game:update()
 	state.damagesQueue = state.damagesQueue or {}
 	state.eventsQueue = state.eventsQueue or {}
 
+	if state.player then
+		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = state.player.x, state.player.y, state.player.creatureType.sightDistance
+		state.playerBeforeRemoval = state.player
+	end
+
 	self:setInitialNonPersistentVariables()
 
 	self:debugOnTick()
@@ -139,11 +144,6 @@ function game:update()
 	self:handlePlayerMessages()
 
 	self:clearNonPersistentVariables()
-
-	if state.player then
-		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = state.player.x, state.player.y, state.player.creatureType.sightDistance
-		state.playerBeforeRemoval = state.player
-	end
 
 	self.state.previousTileEntityLists, self.state.tileEntityLists = self.state.tileEntityLists, nil
 	self.state.tileEntityLists = self:getTileEntityLists()

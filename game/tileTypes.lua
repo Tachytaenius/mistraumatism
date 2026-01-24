@@ -324,7 +324,8 @@ function game:loadTileTypes()
 		floorGrating = {
 			displayName = "floor grating",
 			solidity = "passable",
-			tile = "▒"
+			deleteSpatter = "liquid",
+			character = "▒"
 		},
 		labTilesWall = {
 			displayName = "lab tiles",
