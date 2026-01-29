@@ -406,4 +406,34 @@ function game:getAllInventoryItems(entity)
 	return items
 end
 
+function game:shouldRemoveItemWhenGoingBetweenLevels(item)
+	local itemType = item.itemType
+	if
+		itemType.isGun or
+		itemType.isAmmo or
+		itemType.isMeleeWeapon or
+		itemType.isKey or
+		itemType.isHealItem or
+		itemType.magazine
+	then
+		return true
+	end
+	return false
+end
+
+function game:levelChangePlayerReset()
+	local player = self.state.player
+	self:tickItems(function(item, x, y, locationType, locationEntity)
+		if
+			locationEntity == player and
+			(locationType == "worn" or locationType == "inventory")
+		then
+			-- This is an item on the player
+			return self:shouldRemoveItemWhenGoingBetweenLevels(item)
+		end
+		return false
+	end)
+	self:flushEntityRemoval()
+end
+
 return game

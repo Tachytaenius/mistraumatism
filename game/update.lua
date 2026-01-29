@@ -151,7 +151,7 @@ function game:update()
 	state.tick = state.tick + 1
 end
 
-function game:changeLevel(levelName)
+function game:changeLevel(levelName, noReset)
 	local state = self.state
 	self:handleEventsQueue()
 	self:prepareForLevel()
@@ -164,6 +164,9 @@ function game:changeLevel(levelName)
 		levelGenerationResult.postLevelGen()
 	end
 	state.entities[#state.entities+1] = state.player
+	if not noReset then
+		self:levelChangePlayerReset()
+	end
 	self:resetTileEntityLists()
 end
 

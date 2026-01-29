@@ -114,6 +114,45 @@ function game:flushEntityRemoval()
 	state.entitiesToRemove = {} -- New list
 end
 
+function game:tickItems(tickFunction) -- NOTE: Good to flush entity removal if removing items
+	local state = self.state
+	for _, entity in ipairs(state.entities) do
+		if entity.entityType == "creature" then
+			if entity.inventory then
+				for slotNumber, slot in ipairs(entity.inventory) do
+					if slot.item then
+						local remove = tickFunction(slot.item, entity.x, entity.y, "inventory", entity)
+						if remove then
+							self:takeItemFromSlot(entity, slotNumber)
+						end
+					end
+					local i = 1
+					while i <= #slot.otherItems do
+						local item = slot.otherItems[i]
+						local remove = tickFunction(item, entity.x, entity.y, "inventory", entity)
+						if remove then
+							table.remove(slot.otherItems, i)
+						else
+							i = i + 1
+						end
+					end
+				end
+			end
+			if entity.currentWornItem then
+				local remove = tickFunction(entity.currentWornItem, entity.x, entity.y, "worn", entity)
+				if remove then
+					entity.currentWornItem = nil
+				end
+			end
+		elseif entity.entityType == "item" then
+			local remove = tickFunction(entity.itemData, entity.x, entity.y, "ground", entity)
+			if remove then
+				state.entitiesToRemove[entity] = true
+			end
+		end
+	end
+end
+
 function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
@@ -215,47 +254,8 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end
 
-	-- NOTE: Good to flush entity removal if removing items
-	local function tickItems(tickFunction)
-		for _, entity in ipairs(state.entities) do
-			if entity.entityType == "creature" then
-				if entity.inventory then
-					for slotNumber, slot in ipairs(entity.inventory) do
-						if slot.item then
-							local remove = tickFunction(slot.item, entity.x, entity.y, "inventory", entity)
-							if remove then
-								self:takeItemFromSlot(entity, slotNumber)
-							end
-						end
-						local i = 1
-						while i <= #slot.otherItems do
-							local item = slot.otherItems[i]
-							local remove = tickFunction(item, entity.x, entity.y, "inventory", entity)
-							if remove then
-								table.remove(slot.otherItems, i)
-							else
-								i = i + 1
-							end
-						end
-					end
-				end
-				if entity.currentWornItem then
-					local remove = tickFunction(entity.currentWornItem, entity.x, entity.y, "worn", entity)
-					if remove then
-						entity.currentWornItem = nil
-					end
-				end
-			elseif entity.entityType == "item" then
-				local remove = tickFunction(entity.itemData, entity.x, entity.y, "ground", entity)
-				if remove then
-					state.entitiesToRemove[entity] = true
-				end
-			end
-		end
-	end
-
 	-- Reset buttons and tick levers
-	tickItems(function(item, x, y)
+	self:tickItems(function(item, x, y)
 		if item.itemType.isButton and item.pressed and not item.frozenState then
 			item.pressed = false
 			self:broadcastButtonStateChangedEvent(item, nil, false, x, y)
@@ -912,7 +912,7 @@ function game:updateEntitiesAndProjectiles()
 	    ::continue::
 	end
 
-	tickItems(function(item, x, y)
+	self:tickItems(function(item, x, y)
 		if item.shotCooldownTimer then
 			item.shotCooldownTimer = item.shotCooldownTimer - 1
 			if item.shotCooldownTimer <= 0 then
@@ -945,7 +945,7 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end)
 
-	tickItems(function(item, x, y, locationType, locationEntity)
+	self:tickItems(function(item, x, y, locationType, locationEntity)
 		if item.armourWearToAdd then
 			local armourInfo = self:getTotalArmourInfo(item)
 			item.armourWear = math.min(armourInfo.durability, (item.armourWear or 0) + item.armourWearToAdd)
