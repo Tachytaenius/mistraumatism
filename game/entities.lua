@@ -120,12 +120,6 @@ function game:tickItems(tickFunction) -- NOTE: Good to flush entity removal if r
 		if entity.entityType == "creature" then
 			if entity.inventory then
 				for slotNumber, slot in ipairs(entity.inventory) do
-					if slot.item then
-						local remove = tickFunction(slot.item, entity.x, entity.y, "inventory", entity)
-						if remove then
-							self:takeItemFromSlot(entity, slotNumber)
-						end
-					end
 					local i = 1
 					while i <= #slot.otherItems do
 						local item = slot.otherItems[i]
@@ -134,6 +128,13 @@ function game:tickItems(tickFunction) -- NOTE: Good to flush entity removal if r
 							table.remove(slot.otherItems, i)
 						else
 							i = i + 1
+						end
+					end
+
+					if slot.item then
+						local remove = tickFunction(slot.item, entity.x, entity.y, "inventory", entity)
+						if remove then
+							self:takeItemFromSlot(entity, slotNumber)
 						end
 					end
 				end
@@ -507,8 +508,7 @@ function game:updateEntitiesAndProjectiles()
 					-- self:sendEntityToLevel(entity, tile.fallLevelChange)
 					-- if entity == state.player then
 				if tile and tile.fallLevelChange and entity == state.player then
-					state.changeToLevel = tile.fallLevelChange
-					state.changeToLevelTimer = consts.changeToLevelTimerLength
+					self:startLevelChange(tile.fallLevelChange)
 				else
 					deathEventData = kill(entity, true, "fell")
 				end

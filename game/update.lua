@@ -151,6 +151,13 @@ function game:update()
 	state.tick = state.tick + 1
 end
 
+function game:startLevelChange(levelName)
+	local state = self.state
+	state.changeToLevel = levelName
+	state.changeToLevelTimer = consts.changeToLevelTimerLength
+	self:setCursor()
+end
+
 function game:changeLevel(levelName, noReset)
 	local state = self.state
 	self:handleEventsQueue()
