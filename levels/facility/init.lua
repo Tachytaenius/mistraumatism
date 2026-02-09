@@ -88,9 +88,9 @@ function info:createLevel() -- name should be the name of the directory containi
 			local armourInfo = self:getTotalArmourInfo(armourItem)
 			armourItem.armourWear = math.max(0, armourInfo.durability - 6) -- 6 points from breaking
 		elseif value == 0x3b then
-			local armourItem = self:placeItem(x, y, "tacticalArmour", "superPolymer")
-			local armourInfo = self:getTotalArmourInfo(armourItem)
-			armourItem.armourWear = math.max(0, armourInfo.durability - 2)
+			for _=1, 2 do
+				self:placeItem(x, y, "smallBullet", "brass")
+			end
 		elseif value == 0x55 then
 			self:placeDoorItem(x, y, "doorWindow", "steel", false)
 		elseif value == 0x56 then

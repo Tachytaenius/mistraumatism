@@ -899,18 +899,7 @@ function game:updateEntitiesAndProjectiles()
 
 	actionsProcessSecondPart()
 
-	for _, entity in ipairs(state.entities) do
-		if not entity.inventory then
-			goto continue
-		end
-		if not entity.inventory.selectedSlot then
-			goto continue
-		end
-		if not entity.inventory[entity.inventory.selectedSlot].item then
-			entity.inventory.selectedSlot = nil
-		end
-	    ::continue::
-	end
+	self:entitiesDeselectEmptyInventorySlots()
 
 	self:tickItems(function(item, x, y)
 		if item.shotCooldownTimer then
@@ -1430,6 +1419,21 @@ function game:getPathfindingSeparation()
 		end
 	end
 	return entityTargetTiles
+end
+
+function game:entitiesDeselectEmptyInventorySlots()
+	for _, entity in ipairs(self.state.entities) do
+		if not entity.inventory then
+			goto continue
+		end
+		if not entity.inventory.selectedSlot then
+			goto continue
+		end
+		if not entity.inventory[entity.inventory.selectedSlot].item then
+			entity.inventory.selectedSlot = nil
+		end
+	    ::continue::
+	end
 end
 
 return game

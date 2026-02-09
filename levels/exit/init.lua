@@ -44,14 +44,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0x59 then
 			self:placeMonster(x, y, "skeleton")
 		elseif value == 0x5a then
-			local priest = self:placeMonster(x, y, "demonicPriest")
-			local key = self:newItemData({
-				itemTypeName = "ornateKey",
-				material = "bone",
-				lockName = "exitArena1"
-			})
-			priest.inventory[1].item = key
-			priest.inventory.selectedSlot = 1
+			self:placeKey(x, y, "ornateKey", "bone", "exitArena1")
 		elseif value == 0x5b then
 			self:placeDoorItem(x, y, "ornateDoor", "granite", false, "exitArena1")
 		elseif value == 0xaa then
@@ -71,6 +64,7 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeItem(x, y, "largeMedkit", "plasticGreen")
 		elseif value == 0xe3 then
 			self:placeItem(x, y, "tacticalArmour", "hyperPolymer")
+			self:placeItem(x - 1, y, "combatKnife", "steel")
 		elseif value == 0xe4 then
 			self:placeItem(x, y, "rocketLauncher", "polymer")
 		elseif value == 0xe5 then

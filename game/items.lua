@@ -414,7 +414,8 @@ function game:shouldRemoveItemWhenGoingBetweenLevels(item)
 		itemType.isMeleeWeapon or
 		itemType.isKey or
 		itemType.isHealItem or
-		itemType.magazine
+		itemType.magazine or
+		itemType.wearable
 	then
 		return true
 	end
@@ -434,6 +435,7 @@ function game:levelChangePlayerReset()
 		return false
 	end)
 	self:flushEntityRemoval()
+	self:entitiesDeselectEmptyInventorySlots()
 end
 
 return game

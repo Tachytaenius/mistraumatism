@@ -19,6 +19,7 @@ function info:createLevel()
 		[0x00] = "floor",
 		[0x11] = "roughFloor",
 		[0x22] = "pit",
+		[0x23] = "floorPortal1",
 		[0x28] = "archway",
 		[0x29] = "archwayLeft",
 		[0x2a] = "archwayRight",
@@ -40,6 +41,7 @@ function info:createLevel()
 	local materials = {
 		[0x00] = "granite",
 		[0x22] = "mahogany",
+		[0x23] = "inflictionMagic",
 		[0x55] = "marbleGreen",
 		[0x56] = "marble",
 		[0x66] = "mahogany",
@@ -53,6 +55,8 @@ function info:createLevel()
 	local leversToPlace = {}
 	local leverDoors = {}
 	local secretLibraryBookDoorCoord
+	local spatterToAdd = {}
+	local rng = love.math.newRandomGenerator(1)
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x22 then
 			self:placeExaminable(x, y, "statue3", "marble", "The statue's smug self-complicity angers your animal\nheart. It is vile.")
@@ -108,13 +112,57 @@ function info:createLevel()
 			self:placeMonster(x, y, "imp")
 		elseif value == 0x9a then
 			self:placeMonster(x, y, "zombie")
+		elseif value == 0x9b then
+			self:placeMonster(x, y, "griefPhantom")
+		elseif value == 0x9c then
+			self:placeMonster(x, y, "brutePhantom")
 		elseif value == 0xaa then
 			self:placeMonster(x, y, "hellNoble")
 			self:placeItem(x, y, "throne", "gold")
 		elseif value == 0xab then
 			self:placeMonster(x, y, "hellNoble")
+		elseif value == 0xac then
+			self:placeItem(x, y, "throne", "gold")
 		elseif value == 0xbb then
 			self:placeMonster(x, y, "skeleton", "scythe", "iron")
+		elseif value == 0xbc then
+			self:placeMonster(x, y, "demonicPriest", "crozier", "iron")
+		elseif value == 0xbd then
+			local middleY = y - 3
+			-- local originalX = x
+			for x = x, x + 4, 2 do
+				-- self:placeMonster(x, middleY - 3, "brutePhantom")
+				-- self:placeMonster(x, middleY + 3, "brutePhantom")
+
+				-- self:placeMonster(x, middleY - 3 + math.floor(1.5 * (x - originalX)), "brutePhantom")
+
+				for y = y - 6, y do
+					local boneAmountMul = math.abs(y - middleY) * 0.9
+					local randomLower = math.floor(boneAmountMul * 0.9)
+					local randomUpper = math.floor(boneAmountMul * 4.3)
+					local boneAmount = rng:random(randomLower, randomUpper)
+					self:addSpatter(x, y, "bone", boneAmount)
+				end
+			end
+		elseif value == 0xbe then
+			self:placeItem(x, y, "coffin", "granite")
+		elseif value == 0xbf then
+			self:placeItem(x, y, "coffin", "granite")
+			for ox = -1, 1 do
+				for oy = -1, 1 do
+					if ox == 0 or oy == 0 then
+						table.insert(spatterToAdd, {x + ox, y + oy, "bone", rng:random(1, 2), walkableOnly = true})
+					end
+				end
+			end
+		elseif value == 0xc0 then
+			self:placeItem(x, y, "coffin", "granite")
+			self:addSpatter(x, y, "bone", rng:random(2, 3))
+			for x = x - 1, x + 1 do
+				for y = y - 1, y + 1 do
+					table.insert(spatterToAdd, {x, y, "bloodRed", rng:random(0, 2)})
+				end
+			end
 		elseif value == 0xc7 then
 			self:placeKey(x, y, "ornateKey", "iron", "hellCastleCrypt")
 		elseif value == 0xc8 then
@@ -135,7 +183,7 @@ function info:createLevel()
 			local _, gallowsEntity = self:placeItem(x, y, "gallows", "mahogany")
 			attachCorpseToItem(gallowsEntity)
 		elseif value == 0xcf then
-			self:addSpatter(x, y, "bloodRed", love.math.random(1, 2))
+			self:addSpatter(x, y, "bloodRed", rng:random(1, 2))
 		elseif value == 0xd0 then
 			leversToPlace[#leversToPlace+1] = function()
 				local hatches = {}
@@ -173,6 +221,10 @@ function info:createLevel()
 				end
 				self:placeLever(x, y, "iron", false, onActivate, onDeactivate)
 			end
+		elseif value == 0xd2 then
+			self:placeDoorItem(x, y, "ornateDoor", "granite", false, "hellCastleCrypt")
+		elseif value == 0xd3 then
+			self:placeDoorItem(x, y, "ornateDoor", "granite", false)
 		elseif value == 0xdd then
 			self:placeItem(x, y, "flower", "roseWithered")
 		elseif value == 0xec then
@@ -193,6 +245,17 @@ function info:createLevel()
 			self:placeItem(x, y, "rocketLauncher", "polymer")
 		elseif value == 0xf3 then
 			self:placeExaminable(x, y, "smallBook", "ginkgo", "It seems to be a benevolent book of spells...\nBut whose was it?")
+		elseif value == 0xf4 then
+			for _= 1, 5 do
+				self:placeItem(x, y, "buckshotShell", "plasticRed")
+			end
+		elseif value == 0xf5 then
+			for _=1, 2 do
+				self:placeItem(x, y, "bandage", "cloth")
+			end
+		elseif value == 0xfe then
+			local tile = self:getTile(x, y)
+			tile.fallLevelChange = "exit"
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end
@@ -219,6 +282,14 @@ function info:createLevel()
 	assert(spawnX and spawnY, "No spawn location")
 	for _, func in ipairs(leversToPlace) do
 		func()
+	end
+	for _, args in ipairs(spatterToAdd) do
+		local x, y, material, amount = unpack(args)
+		if args.walkableOnly and not self:getWalkable(x, y) then
+			goto continue
+		end
+		self:addSpatter(x, y, material, amount)
+		::continue::
 	end
 
 	return {

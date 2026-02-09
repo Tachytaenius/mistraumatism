@@ -58,6 +58,31 @@ function game:loadItemTypes()
 		projectileColour = "darkGrey"
 	}
 
+	itemTypes.assaultRifle = {
+		isGun = true,
+		tile = "¬",
+		ammoClass = "bulletMedium",
+		displayName = "assault rifle",
+		extraSpread = nil,
+		shotCooldownTimerLength = 1,
+		operationTimerLength = 3,
+		extraDamage = 1,
+		manual = false,
+		magazine = false,
+		magazineRequired = true,
+		magazineClass = "rifle",
+		gunshotSoundRange = 16
+	}
+
+	itemTypes.rifleMagazine = {
+		magazine = true,
+		tile = "■",
+		displayName = "rifle mag",
+		magazineCapacity = 30,
+		magazineClass = "rifle",
+		ammoClass = "bulletMedium",
+	}
+
 	itemTypes.mediumBullet = {
 		isAmmo = true,
 		stackable = true,
@@ -532,6 +557,14 @@ function game:loadItemTypes()
 		meleeBleedRateAdd = 18
 	}
 
+	itemTypes.combatKnife = {
+		tile = "`",
+		displayName = "combat knife",
+		isMeleeWeapon = true,
+		meleeDamage = 8,
+		meleeBleedRateAdd = 24
+	}
+
 	itemTypes.scythe = {
 		tile = "ƒ",
 		displayName = "scythe",
@@ -940,6 +973,20 @@ function game:loadItemTypes()
 	itemTypes.hellTendril = {
 		tile = "⌠",
 		displayName = "hell tendril",
+		noPickUp = true
+	}
+
+	itemTypes.crozier = {
+		tile = "⌠",
+		displayName = "crozier",
+		isMeleeWeapon = true,
+		meleeDamage = 6,
+		meleeBleedRateAdd = 2
+	}
+
+	itemTypes.coffin = {
+		tile = "0",
+		displayName = "coffin",
 		noPickUp = true
 	}
 

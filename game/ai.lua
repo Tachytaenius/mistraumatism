@@ -499,7 +499,10 @@ function game:getAIActions(entity, globalAIInfo)
 
 	if not newAction then
 		local noFullPath = true
-		if not entity.creatureType.engagesAtRange then
+		if not (
+			entity.creatureType.engagesAtRange and
+			entity.targetEntity
+		) then
 			newAction, noFullPath = chase(self, entity, waitForSameTileMelee)
 		else
 			if entity.targetEntity then
