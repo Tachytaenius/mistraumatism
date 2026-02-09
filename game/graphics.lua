@@ -909,7 +909,22 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 							"∙" ..
 							(item.shotCooldownTimer and "Working" or (item.itemType.noCocking and "Ready" or (item.cocked and "Cocked" or "Uncocked"))) ..
 							"\n" ..
-							(item.itemType.alteredMagazineUse == "ignore" and (item.itemType.breakAction and (item.actionOpen and "Open" or "Shut") or "") or (magazineItem and ("Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity) or "No magazine"))
+							(
+								item.itemType.alteredMagazineUse == "selectWholeMag" and (
+									"Mags: " ..
+									(item.selectedMagazine == 1 and "→" or "") .. #item.magazineDataList[1] .. "/" .. item.itemType.magazineCapacity ..
+									(#item.magazineDataList >= 2 and (
+										" " ..
+										(item.selectedMagazine == 2 and "→" or "") .. #item.magazineDataList[2] .. "/" .. item.itemType.magazineCapacity
+									) or "")
+								) or item.itemType.alteredMagazineUse == "ignore" and (
+									item.itemType.breakAction and (item.actionOpen and "Open" or "Shut") or ""
+								) or (
+									magazineItem and (
+										"Magazine: " .. #magazineItem.magazineData .. "/" .. magazineItem.itemType.magazineCapacity
+									) or "No magazine"
+								)
+							)
 					end
 					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, gunStatus, "lightGrey", "black")
 				elseif itemType.energyBattery then

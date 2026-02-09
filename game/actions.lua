@@ -334,11 +334,11 @@ function game:loadActionTypes()
 		end
 		local magIndex
 		if self:getHeldItem(player).itemType.alteredMagazineUse == "select" then
-			if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
 				magIndex = "all"
-			elseif commands.checkCommand("operateBarrel1") then
+			elseif commands.checkCommand("operateGunSide1") then
 				magIndex = 1
-			elseif commands.checkCommand("operateBarrel2") then
+			elseif commands.checkCommand("operateGunSide2") then
 				magIndex = 2
 			else
 				-- Pull triggers for loaded (with live rounds) and cocked barrels first, then try ones with cocked hammers
@@ -539,7 +539,7 @@ function game:loadActionTypes()
 	end
 
 	local useHeldItem = newActionType("useHeldItem", "use item")
-	function useHeldItem.construct(self, entity, item, manualCockedStateSelection, energyWeaponModeSet)
+	function useHeldItem.construct(self, entity, item, manualCockedStateSelection, energyWeaponModeSet, magazineSelection)
 		if not self:getHeldItem(entity) or item ~= self:getHeldItem(entity) then
 			return
 		end
@@ -559,6 +559,12 @@ function game:loadActionTypes()
 				new.item = self:getHeldItem(entity)
 				new.timer = self:getHeldItem(entity).itemType.operationTimerLength
 				new.energyWeaponModeSet = energyWeaponModeSet
+				return new
+			elseif self:getHeldItem(entity).itemType.alteredMagazineUse == "selectWholeMag" and magazineSelection then
+				local new = {type = "useHeldItem"}
+				new.item = self:getHeldItem(entity)
+				new.timer = self:getHeldItem(entity).itemType.selectMagazineTimerLength
+				new.magazineSelection = magazineSelection
 				return new
 			elseif self:getHeldItem(entity).itemType.manuallyOperateCockedStates and manualCockedStateSelection then
 				local new = {type = "useHeldItem"}
@@ -604,6 +610,7 @@ function game:loadActionTypes()
 				if itemType.energyWeapon then
 					heldItem.chargeState = action.energyWeaponModeSet
 				elseif itemType.breakAction then
+					-- NOTE: No guns are bugged from this code currently, but... should the manuallyOperateCockedStates code below require breakAction?
 					if heldItem.itemType.manuallyOperateCockedStates and action.manualCockedStateSelection then
 						heldItem.cockedStates[action.manualCockedStateSelection] = true
 					else
@@ -626,6 +633,9 @@ function game:loadActionTypes()
 							self:cycleGun(heldItem, entity.x, entity.y)
 						end
 					end
+				elseif heldItem.itemType.alteredMagazineUse == "selectWholeMag" and action.magazineSelection then
+					heldItem.selectedMagazine = action.magazineSelection
+					self:updateCurrentSelectableMagazine(heldItem)
 				else
 					self:cycleGun(heldItem, entity.x, entity.y)
 				end
@@ -638,21 +648,23 @@ function game:loadActionTypes()
 	end
 	function useHeldItem.fromInput(self, player)
 		if commands.checkCommand("useHeldItem") then
-			local manualCockedStateSelection
-			if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+			local gunSideSelection
+			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
 
-			elseif commands.checkCommand("operateBarrel1") then
-				manualCockedStateSelection = 1
-			elseif commands.checkCommand("operateBarrel2") then
-				manualCockedStateSelection = 2
+			elseif commands.checkCommand("operateGunSide1") then
+				gunSideSelection = 1
+			elseif commands.checkCommand("operateGunSide2") then
+				gunSideSelection = 2
 			end
+
 			local energyWeaponModeSet = "hold"
 			if commands.checkCommand("energyWeaponChargeMode") and not commands.checkCommand("energyWeaponDischargeMode") then
 				energyWeaponModeSet = "fromBattery"
 			elseif commands.checkCommand("energyWeaponDischargeMode") then
 				energyWeaponModeSet = "toBattery"
 			end
-			return useHeldItem.construct(self, player, self:getHeldItem(player), manualCockedStateSelection, energyWeaponModeSet) -- Can be nil
+
+			return useHeldItem.construct(self, player, self:getHeldItem(player), gunSideSelection, energyWeaponModeSet, gunSideSelection) -- Can be nil
 		end
 	end
 
@@ -733,6 +745,11 @@ function game:loadActionTypes()
 					return false
 				end
 				spaceFree = not heldItem.magazineData[action.magazineSlotSelectionIndex]
+			elseif heldItem.itemType.alteredMagazineUse == "selectWholeMag" then
+				if not action.whichMagazine then
+					return false
+				end
+				spaceFree = #heldItem.magazineDataList[action.whichMagazine] < heldItem.itemType.magazineCapacity
 			else
 				spaceFree = #heldItem.magazineData < heldItem.itemType.magazineCapacity
 			end
@@ -747,12 +764,14 @@ function game:loadActionTypes()
 		end
 		return false
 	end
-	function reload.construct(self, entity, slot, reloadType, magazineSlotSelectionIndex)
+	function reload.construct(self, entity, slot, reloadType, selectionType, selection)
 		local new = {type = "reload"}
 		new.slot = slot
 		new.reloadType = reloadType
 		new.timer = 12
-		new.magazineSlotSelectionIndex = magazineSlotSelectionIndex
+		if selectionType then
+			new[selectionType] = selection
+		end
 		if reload.validate(self, entity, new) then
 			return new
 		end
@@ -769,7 +788,8 @@ function game:loadActionTypes()
 					if heldItem.itemType.alteredMagazineUse == "select" then
 						heldItem.magazineData[action.magazineSlotSelectionIndex] = item
 					else
-						table.insert(heldItem.magazineData, item)
+						local mag = heldItem.itemType.alteredMagazineUse == "selectWholeMag" and heldItem.magazineDataList[action.whichMagazine] or heldItem.magazineData
+						table.insert(mag, item)
 					end
 				end
 				action.doneType = "completed"
@@ -803,13 +823,13 @@ function game:loadActionTypes()
 		end
 
 		if heldItem.itemType.magazine then
-			local selection
+			local selection, selectionType
 			if heldItem.itemType.alteredMagazineUse == "select" then
-				if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+				if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
 
-				elseif commands.checkCommand("operateBarrel1") then
+				elseif commands.checkCommand("operateGunSide1") then
 					selection = 1
-				elseif commands.checkCommand("operateBarrel2") then
+				elseif commands.checkCommand("operateGunSide2") then
 					selection = 2
 				else
 					-- Try cocked barrels (so that the gun is immediately ready to fire) first
@@ -832,8 +852,24 @@ function game:loadActionTypes()
 				if not selection then
 					return nil
 				end
+				selectionType = "magazineSlotSelectionIndex"
+			elseif heldItem.itemType.alteredMagazineUse == "selectWholeMag" then
+				if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+
+				elseif commands.checkCommand("operateGunSide1") then
+					selection = 1
+				elseif commands.checkCommand("operateGunSide2") then
+					selection = 2
+				else
+					-- TODO: Slightly more advanced automatic assumptions
+					selection = heldItem.selectedMagazine
+				end
+				if not selection then
+					return nil
+				end
+				selectionType = "whichMagazine"
 			end
-			return reload.construct(self, player, number, "addRoundToMagazineData", selection) -- If valid
+			return reload.construct(self, player, number, "addRoundToMagazineData", selectionType, selection) -- If valid
 		elseif heldItem.itemType.magazineRequired then
 			return reload.construct(self, player, number, "replaceMagazine") -- If valid
 		end
@@ -954,11 +990,11 @@ function game:loadActionTypes()
 
 		local magIndex
 		if self:getHeldItem(player).itemType.alteredMagazineUse == "select" then
-			if commands.checkCommand("operateBarrel1") and commands.checkCommand("operateBarrel2") then
+			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
 
-			elseif commands.checkCommand("operateBarrel1") then
+			elseif commands.checkCommand("operateGunSide1") then
 				magIndex = 1
-			elseif commands.checkCommand("operateBarrel2") then
+			elseif commands.checkCommand("operateGunSide2") then
 				magIndex = 2
 			else
 				-- Unload fired ones in cocked barrels first, so that you can reload into a cocked barrel quickly

@@ -190,12 +190,30 @@ function game:loadItemTypes()
 		displayName = "pump shotgun",
 		extraSpread = nil,
 		shotCooldownTimerLength = 1,
-		operationTimerLength = 2,
+		operationTimerLength = 3,
 		extraDamage = 1,
 		manual = true,
 		magazine = true,
 		magazineCapacity = 4,
 		gunshotSoundRange = 16
+	}
+
+	itemTypes.autoShotgun = {
+		isGun = true,
+		tile = "⌐",
+		ammoClass = "shellMedium",
+		displayName = "auto shotgun",
+		extraSpread = nil,
+		shotCooldownTimerLength = 2,
+		operationTimerLength = 2, -- Initial pump
+		extraDamage = 1,
+		manual = false,
+		magazine = true,
+		magazineCapacity = 6,
+		gunshotSoundRange = 16,
+		alteredMagazineUse = "selectWholeMag", -- A number of integrated magazines (2 in this case)
+		magazineCount = 1,
+		selectMagazineTimerLength = 1
 	}
 
 	itemTypes.huntingShotgun = {
@@ -286,7 +304,7 @@ function game:loadItemTypes()
 		extraSpread = nil,
 		noCocking = true,
 		noChamber = true, -- Assumes magazine (can be inserted or integrated)
-		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore" or "select"
+		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore" or "select" or "selectWholeMag"
 		manual = true,
 		magazine = true,
 		magazineCapacity = 1,

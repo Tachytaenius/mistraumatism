@@ -21,7 +21,22 @@ function game:newItemData(parameters)
 	new.itemType = itemType
 
 	if itemType.magazine then
-		new.magazineData = new.magazineData or {}
+		if itemType.alteredMagazineUse == "selectWholeMag" then
+			-- Make magazines if not given
+			if not new.magazineDataList then
+				new.magazineDataList = {}
+				for i = 1, itemType.magazineCount do
+					new.magazineDataList[i] = {}
+				end
+			end
+
+			-- Select magazine if not specified
+			new.selectedMagazine = new.selectedMagazine or 1
+
+			self:updateCurrentSelectableMagazine(new)
+		else
+			new.magazineData = new.magazineData or {}
+		end
 	elseif itemType.energyWeapon then
 		new.storedEnergy = 0
 		new.chargeState = "hold"
@@ -35,6 +50,10 @@ function game:newItemData(parameters)
 	end
 
 	return new
+end
+
+function game:updateCurrentSelectableMagazine(item)
+	item.magazineData = item.magazineDataList[item.selectedMagazine]
 end
 
 function game:getGunMagazine(gun)
