@@ -14,22 +14,83 @@ function game:tileBlocksAirMotion(x, y)
 	return self.state.tileTypes[tile.type].solidity == "solid"
 end
 
+function game:onProjectileExplode(projectile)
+	if projectile.explosionRadius then
+		self:explode(projectile.currentX, projectile.currentY, projectile.explosionRadius, projectile.explosionDamage, projectile.shooter)
+	end
+
+	if projectile.projectileExplosionProjectiles then
+		for _, projectileType in ipairs(projectile.projectileExplosionProjectiles) do
+			for _=1, projectileType.count do
+				-- These new projectiles should be ticked for the first time in the same tick as this explosion
+				self:newProjectile({
+					shooter = projectile.shooter,
+					startX = projectile.currentX,
+					startY = projectile.currentY,
+
+					tile = projectileType.tile or "∙",
+					colour = projectileType.colour or "darkGrey",
+					subtickMoveTimerLength = math.min(
+						projectileType.subtickMoveTimerLengthMin or math.huge,
+						love.math.random(
+							projectileType.subtickMoveTimerLength,
+							projectileType.subtickMoveTimerLength * 4
+						)
+					),
+					subtickMoveTimerLengthChange = projectileType.subtickMoveTimerLengthChange,
+					subtickMoveTimerLengthMin = projectileType.subtickMoveTimerLengthMin,
+					subtickMoveTimerLengthMax = projectileType.subtickMoveTimerLengthMax,
+					damage = projectileType.damage,
+					bleedRateAdd = projectileType.bleedRateAdd,
+					instantBloodLoss = projectileType.instantBloodLoss,
+					range = projectileType.range,
+					maxPierces = projectileType.maxPierces,
+					projectileExplosionProjectiles = projectileType.projectileExplosionProjectiles, -- Too much recursion may not be wise here
+					explosionRadius = projectileType.explosionRadius,
+					explosionDamage = projectileType.explosionDamage,
+					disappearTimer = projectileType.projectileInitialDisappearTimer,
+					stopOnHitButDontDisappear = projectileType.projectileStopOnHitButDontDisappear,
+
+					entityHitRandomSeed = projectile.entityHitRandomSeed,
+
+					aimX = projectile.currentX + 1,
+					aimY = projectile.currentY,
+					bulletSpread = consts.tau,
+
+					noShooterSafety = true,
+
+					trailParticleInfo = projectileType.trailParticleInfo
+				})
+			end
+		end
+	end
+end
+
 function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, projectilesToStop)
 	checkForEntityHit = checkForEntityHit or function() end
-	tryExplode = tryExplode or function() end
-	if checkForEntityHit() then -- Initial check before moving in case something walked into it
+	tryExplode = tryExplode or function()
+		if projectile.stopOnHitButDontDisappear then
+			return
+		end
+		self:onProjectileExplode(projectile)
+	end
+	local belowTile = self:getTile(projectile.currentX, projectile.currentY)
+	local fallBelow = belowTile and self.state.tileTypes[belowTile.type].solidity == "fall"
+	if not projectile.stopped and checkForEntityHit() then -- Initial check before moving in case something walked into it (not done if stopped)
 		tryExplode()
 		projectilesToStop[projectile] = true
 	else
 		local currentTime = 0
 		while currentTime < consts.projectileSubticks do
-			if not projectile.trajectoryOctant then
+			if projectile.stopped or not projectile.trajectoryOctant then
 				-- Already did checkForEntityHit
-				local tile = self:getTile(projectile.currentX, projectile.currentY)
-				if self.state.tileTypes[tile.type].solidity ~= "fall" then -- If you are (somehow) flying, currently over a pit, and fire a rocket straight down, it should not blow you up since the floor is so far below.
+				if not fallBelow then -- If you are (somehow) flying, currently over a pit, and fire a rocket straight down, it should not blow you up since the floor is so far below.
 					tryExplode()
+					projectilesToStop[projectile] = true
+				else
+					-- Fall
+					projectilesToStop[projectile] = "forceDelete"
 				end
-				projectilesToStop[projectile] = true
 				break
 			else
 				currentTime, projectile.moveTimer, projectile.subtickAge = util.progressSubtickTimeAndTimer(currentTime, projectile.moveTimer, projectile.subtickAge, consts.projectileSubticks)
@@ -263,62 +324,27 @@ function game:updateProjectiles()
 			projectile.pierces = (projectile.pierces or 0) + 1
 			return projectile.pierces > (projectile.maxPierces or 0)
 		end
-		local function tryExplode()
-			if projectile.explosionRadius then
-				self:explode(projectile.currentX, projectile.currentY, projectile.explosionRadius, projectile.explosionDamage, projectile.shooter)
-			end
-
-			if projectile.projectileExplosionProjectiles then
-				for _, projectileType in ipairs(projectile.projectileExplosionProjectiles) do
-					for _=1, projectileType.count do
-						-- These new projectiles should be ticked for the first time in the same tick as this explosion
-						self:newProjectile({
-							shooter = projectile.shooter,
-							startX = projectile.currentX,
-							startY = projectile.currentY,
-
-							tile = projectileType.tile or "∙",
-							colour = projectileType.colour or "darkGrey",
-							subtickMoveTimerLength = math.min(
-								projectileType.subtickMoveTimerLengthMin or math.huge,
-								love.math.random(
-									projectileType.subtickMoveTimerLength,
-									projectileType.subtickMoveTimerLength * 4
-								)
-							),
-							subtickMoveTimerLengthChange = projectileType.subtickMoveTimerLengthChange,
-							subtickMoveTimerLengthMin = projectileType.subtickMoveTimerLengthMin,
-							subtickMoveTimerLengthMax = projectileType.subtickMoveTimerLengthMax,
-							damage = projectileType.damage,
-							bleedRateAdd = projectileType.bleedRateAdd,
-							instantBloodLoss = projectileType.instantBloodLoss,
-							range = projectileType.range,
-							maxPierces = projectileType.maxPierces,
-							projectileExplosionProjectiles = projectileType.projectileExplosionProjectiles, -- Too much recursion may not be wise here
-							explosionRadius = projectileType.explosionRadius,
-							explosionDamage = projectileType.explosionDamage,
-
-							entityHitRandomSeed = projectile.entityHitRandomSeed,
-
-							aimX = projectile.currentX + 1,
-							aimY = projectile.currentY,
-							bulletSpread = consts.tau,
-
-							noShooterSafety = true,
-
-							trailParticleInfo = projectileType.trailParticleInfo
-						})
-					end
-				end
+		local exploded = false
+		if projectile.disappearTimer then
+			projectile.disappearTimer = projectile.disappearTimer - 1
+			if projectile.disappearTimer <= 0 then
+				self:onProjectileExplode(projectile)
+				exploded = true
+				projectilesToStop[projectile] = "forceDelete"
 			end
 		end
-		self:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, projectilesToStop)
+		if not exploded then
+			self:moveObjectAsProjectile(projectile, checkForEntityHit, nil, projectilesToStop)
+		end
 	end
 
 	local i = 1
 	while i <= #state.projectiles do
 		local projectile = state.projectiles[i]
-		if projectilesToStop[projectile] then
+		if projectilesToStop[projectile] and projectile.stopOnHitButDontDisappear and projectilesToStop[projectile] ~= "forceDelete" then
+			projectile.stopped = true
+			i = i + 1
+		elseif projectilesToStop[projectile] then
 			table.remove(state.projectiles, i) -- Could swap with end
 		else
 			i = i + 1

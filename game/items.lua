@@ -167,7 +167,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 			end
 			if gunType.automaticEjection then
 				gun.ejectorStates = gun.ejectorStates or {}
-				gun.ejectorStates[selection] = true
+				gun.ejectorStates[gun.itemType.alteredMagazineUse == "select" and selection or 1] = true
 			end
 			setResult("fired")
 			gun.shotCooldownTimer = gunType.shotCooldownTimerLength -- Can be nil
@@ -181,7 +181,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 					startX = entity.x,
 					startY = entity.y,
 					tile = roundType.projectileTile,
-					colour = roundType.projectileColour,
+					colour = roundType.inheritAmmoColour and self.state.materials[roundToShoot.material].colour or roundType.projectileColour,
 					subtickMoveTimerLength = roundType.projectileSubtickMoveTimerLength,
 					subtickMoveTimerLengthChange = roundType.projectileSubtickMoveTimerLengthChange,
 					subtickMoveTimerLengthMin = roundType.projectileSubtickMoveTimerLengthMin,
@@ -195,6 +195,8 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 					projectileExplosionProjectiles = roundType.projectileExplosionProjectiles,
 					explosionRadius = roundType.projectileExplosionRadius,
 					explosionDamage = roundType.projectileExplosionDamage,
+					disappearTimer = roundType.projectileInitialDisappearTimer,
+					stopOnHitButDontDisappear = roundType.projectileStopOnHitButDontDisappear,
 
 					aimX = aimX,
 					aimY = aimY,
@@ -211,6 +213,44 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 			end
 		end
 	end
+end
+
+function game:throwItem(entity, action, item, targetEntity)
+	-- Expects item to already have been removed from entity's inventory
+	local itemType = item.itemType
+	local spread = 0
+	local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
+	local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1)
+	self:newProjectile({
+		shooter = entity,
+		startX = entity.x,
+		startY = entity.y,
+		tile = itemType.projectileTile,
+		colour = itemType.inheritAmmoColour and self.state.materials[item.material].colour or itemType.projectileColour,
+		subtickMoveTimerLength = itemType.projectileSubtickMoveTimerLength,
+		subtickMoveTimerLengthChange = itemType.projectileSubtickMoveTimerLengthChange,
+		subtickMoveTimerLengthMin = itemType.projectileSubtickMoveTimerLengthMin,
+		subtickMoveTimerLengthMax = itemType.projectileSubtickMoveTimerLengthMax,
+		damage = itemType.damage,
+		bleedRateAdd = itemType.bleedRateAdd,
+		instantBloodLoss = itemType.instantBloodLoss,
+		range = itemType.range,
+		entityHitRandomSeed = entityHitRandomSeed,
+		maxPierces = itemType.maxPierces,
+		projectileExplosionProjectiles = itemType.projectileExplosionProjectiles,
+		explosionRadius = itemType.projectileExplosionRadius,
+		explosionDamage = itemType.projectileExplosionDamage,
+		disappearTimer = itemType.projectileInitialDisappearTimer,
+		stopOnHitButDontDisappear = itemType.projectileStopOnHitButDontDisappear,
+
+		aimX = aimX,
+		aimY = aimY,
+		bulletSpread = spread,
+
+		trailParticleInfo = itemType.trailParticleInfo,
+
+		targetEntity = targetEntity -- Can be nil
+	})
 end
 
 function game:cycleGun(gun, x, y)
@@ -434,7 +474,8 @@ function game:shouldRemoveItemWhenGoingBetweenLevels(item)
 		itemType.isKey or
 		itemType.isHealItem or
 		itemType.magazine or
-		itemType.wearable
+		itemType.wearable or
+		itemType.isThrownProjectile
 	then
 		return true
 	end

@@ -1236,6 +1236,8 @@ function game:abilityShoot(entity, action, ability, targetEntity)
 			maxPierces = ability.maxPierces,
 			explosionRadius = ability.projectileExplosionRadius,
 			explosionDamage = ability.projectileExplosionDamage,
+			stopOnHitButDontDisappear = ability.projectileStopOnHitButDontDisappear,
+			disappearTimer = ability.projectileInitialDisappearTimer,
 
 			aimX = aimX,
 			aimY = aimY,

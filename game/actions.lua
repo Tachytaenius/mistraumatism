@@ -215,6 +215,9 @@ function game:loadActionTypes()
 	local shoot = newActionType("shoot", "shoot")
 	function shoot.construct(self, entity, targetX, targetY, targetEntity, shotType, abilityName, magazineSlotSelectionIndex)
 		local new = {type = "shoot"}
+		if shotType == "throwHeldItem" then
+			new.displayNameOverride = "throw"
+		end
 		new.relativeX = targetX - entity.x
 		new.relativeY = targetY - entity.y
 		local ability
@@ -229,19 +232,22 @@ function game:loadActionTypes()
 			end
 		end
 		new.magazineSlotSelectionIndex = magazineSlotSelectionIndex
-		new.timer = ability and ability.shootTime or 1
+		new.timer = ability and ability.shootTime or shotType == "throwHeldItem" and 4 or 1
 		new.targetEntity = targetEntity
 		new.shotType = shotType
 		new.abilityName = abilityName
 		return new
 	end
 	function shoot.process(self, entity, action)
-		if action.shotType == "heldItem" then
-			if not (self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun) then
+		if action.shotType == "heldItem" or action.shotType == "throwHeldItem" then
+			if not (self:getHeldItem(entity) and (
+				self:getHeldItem(entity).itemType.isGun and action.shotType == "heldItem" or
+				self:getHeldItem(entity).itemType.isThrownProjectile and action.shotType == "throwHeldItem"
+			)) then
 				action.doneType = "cancelled"
 				return
 			end
-			if self:getHeldItem(entity).itemType.breakAction and self:getHeldItem(entity).actionOpen then
+			if self:getHeldItem(entity).itemType.isGun and self:getHeldItem(entity).itemType.breakAction and self:getHeldItem(entity).actionOpen then
 				action.doneType = "cancelled"
 				return
 			end
@@ -268,7 +274,12 @@ function game:loadActionTypes()
 			end
 			if ability then
 				self:abilityShoot(entity, action, ability, targetEntity)
-			else
+			elseif action.shotType == "throwHeldItem" then
+				local heldItem = self:getHeldItem(entity)
+				local itemToThrow = self:takeItemFromSlot(entity, entity.inventory.selectedSlot)
+				assert(itemToThrow == heldItem, "Removed an item from the selected slot of an entity but it wasn't the held item?")
+				self:throwItem(entity, action, itemToThrow, targetEntity)
+			elseif action.shotType == "heldItem" then
 				local shotResultInfo = {}
 				if action.magazineSlotSelectionIndex == "all" then
 					for i = 1, self:getHeldItem(entity).itemType.magazineCapacity do
@@ -322,15 +333,21 @@ function game:loadActionTypes()
 		if not commands.checkCommand("shoot") then
 			return
 		end
-		if not (self:getHeldItem(player) and self:getHeldItem(player).itemType.isGun) then
+		local heldItem = self:getHeldItem(player)
+		local gun = heldItem and heldItem.itemType.isGun
+		local thrown = heldItem and heldItem.itemType.isThrownProjectile
+		if not (gun or thrown) then
 			return
 		end
-		if self:getHeldItem(player).itemType.breakAction and self:getHeldItem(player).actionOpen then
+		if gun and self:getHeldItem(player).itemType.breakAction and self:getHeldItem(player).actionOpen then
 			return
 		end
 		local cursor = self.state.cursor
 		if not cursor then
 			return
+		end
+		if thrown then
+			return shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity(), "throwHeldItem")
 		end
 		local magIndex
 		if self:getHeldItem(player).itemType.alteredMagazineUse == "select" then

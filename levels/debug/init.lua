@@ -18,7 +18,7 @@ function info:createLevel()
 
 			if
 				x == 0 or x == self.state.map.width - 1 or y == 0 or y == self.state.map.height - 1 or
-				love.math.random() < 0.1
+				love.math.random() < 0.1 and false
 			then
 				self:replaceTileInfo(x, y, {type = "wall", material = "granite"})
 			else
@@ -35,6 +35,17 @@ function info:createLevel()
 
 	local monster = self:placeMonster(6, 7, "hellKing")
 	monster.noAI = true
+
+	for _=1, 20 do
+		self:placeMonster(20, 20, "zombie")
+	end
+
+	for x = 9, 15 do
+		for y = 9, 15 do
+			self:replaceTileInfo(x, y, {type = "pit", material = "granite"})
+		end
+	end
+	self:replaceTileInfo(12, 12, {type = "wall", material = "granite"})
 
 	-- self:placeItem(1, 1, "tacticalArmour", "hyperPolymer")
 
@@ -181,6 +192,18 @@ function info:createLevel()
 					assert(slot and self:addItemToSlot(player, slot, item), "Item was not added to inventory")
 				end
 			end
+
+			self:placeItem(player.x, player.y, "rocketLauncher", "polymer")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+
+			self:placeItem(player.x + 1, player.y, "grenadeLauncher", "steel")
+			self:placeItem(player.x + 1, player.y, "ammoGrenade", "plasticRed")
+			self:placeItem(player.x + 1, player.y, "ammoGrenade", "plasticRed")
+
+			self:placeItem(player.x, player.y - 1, "thrownGrenade", "plasticGreen")
+			self:placeItem(player.x, player.y - 1, "thrownGrenade", "plasticGreen")
+			self:placeItem(player.x, player.y - 1, "thrownGrenade", "plasticGreen")
 		end
 	}
 end

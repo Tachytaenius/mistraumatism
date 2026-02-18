@@ -207,10 +207,10 @@ function game:loadItemTypes()
 		magazineCapacity = 6,
 		gunshotSoundRange = 16,
 		alteredMagazineUse = "selectWholeMag", -- A number of integrated magazines (2 in this case)
-		magazineCount = 1,
+		magazineCount = 2,
 		selectMagazineTimerLength = 1
 	}
-
+ 
 	itemTypes.huntingShotgun = {
 		isGun = true,
 		displayAsDoubleShotgun = true, -- For held item info
@@ -288,14 +288,13 @@ function game:loadItemTypes()
 
 	itemTypes.rocketLauncher = {
 		isGun = true,
-		-- breakAction = true,
-		-- operationTimerLength = 12,
 		cycleDoesntMoveAmmo = true,
 		tile = "I",
 		ammoClass = "rocket",
 		displayName = "RPG launcher",
 		extraSpread = nil,
-		noCocking = true,
+		-- noCocking = true,
+		operationTimerLength = 1,
 		noChamber = true, -- Assumes magazine (can be inserted or integrated)
 		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore" or "select" or "selectWholeMag"
 		manual = true,
@@ -309,8 +308,9 @@ function game:loadItemTypes()
 		stackable = false,
 		noCasing = true,
 		tile = "↑",
-		projectileTile = "^",
+		projectileTile = "↑",
 		projectileColour = "darkYellow",
+		inheritAmmoColour = true, -- projectileColour is a default
 		ammoClass = "rocket",
 		displayName = "rocket",
 		damage = 40,
@@ -323,7 +323,7 @@ function game:loadItemTypes()
 		range = 18,
 		projectileExplosionRadius = 4,
 		projectileExplosionDamage = 325,
-		projectileExplosionProjectiles = {
+		-- projectileExplosionProjectiles = {
 			-- {
 			-- 	count = 12,
 			-- 	tile = "*",
@@ -352,6 +352,19 @@ function game:loadItemTypes()
 			-- 	range = 3,
 			-- 	hitDeadEntities = true
 			-- }
+		-- },
+		projectileExplosionProjectiles = {
+			{ -- Shrapnel
+				count = 35,
+				tile = "`",
+				colour = "darkGrey",
+				subtickMoveTimerLength = 96,
+				damage = 4,
+				maxPierces = 1,
+				bleedRateAdd = 1,
+				instantBloodLoss = 1,
+				range = 4
+			}
 		},
 		trailParticleInfo = {
 			{
@@ -360,6 +373,91 @@ function game:loadItemTypes()
 				foregroundColour = "darkGrey",
 				backgroundColour = "black",
 				lifetime = 1
+			}
+		}
+	}
+
+	itemTypes.grenadeLauncher = {
+		isGun = true,
+		breakAction = true,
+		automaticEjection = true,
+		operationTimerLength = 5,
+		cycleDoesntMoveAmmo = true,
+		tile = "I",
+		ammoClass = "grenade",
+		displayName = "grenade firer",
+		extraSpread = nil,
+		cycleOnBreakActionClose = true,
+		noChamber = true,
+		alteredMagazineUse = "ignore",
+		manual = true,
+		magazine = true,
+		magazineCapacity = 1,
+		gunshotSoundRange = 16
+	}
+
+	itemTypes.ammoGrenade = {
+		isAmmo = true,
+		stackable = true,
+		maxStackSize = 2,
+		tile = "⌂",
+		projectileTile = "^",
+		projectileColour = "darkGrey",
+		ammoClass = "grenade",
+		displayName = "launch grenade",
+		damage = 20,
+		bulletCount = 1,
+		bleedRateAdd = 50,
+		instantBloodLoss = 5,
+		projectileSubtickMoveTimerLength = 128,
+		range = 14,
+		projectileExplosionRadius = 3,
+		projectileExplosionDamage = 150,
+		projectileExplosionProjectiles = {
+			{ -- Shrapnel
+				count = 30,
+				tile = "`",
+				colour = "darkGrey",
+				subtickMoveTimerLength = 96,
+				damage = 4,
+				maxPierces = 1,
+				bleedRateAdd = 1,
+				instantBloodLoss = 1,
+				range = 4
+			}
+		}
+	}
+
+	itemTypes.thrownGrenade = {
+		isThrownProjectile = true,
+		stackable = true,
+		maxStackSize = 2,
+		tile = "δ",
+		projectileTile = "o",
+		projectileColour = "darkGreen",
+		inheritAmmoColour = true,
+		displayName = "hand grenade",
+		damage = 0,
+		bulletCount = 1,
+		bleedRateAdd = 0,
+		instantBloodLoss = 0,
+		projectileSubtickMoveTimerLength = 192,
+		range = 9,
+		projectileExplosionRadius = 3,
+		projectileExplosionDamage = 90,
+		projectileInitialDisappearTimer = 24, -- Explodes on disappear
+		projectileStopOnHitButDontDisappear = true,
+		projectileExplosionProjectiles = {
+			{ -- Shrapnel
+				count = 20,
+				tile = "`",
+				colour = "darkGrey",
+				subtickMoveTimerLength = 96,
+				damage = 3,
+				maxPierces = 1,
+				bleedRateAdd = 1,
+				instantBloodLoss = 1,
+				range = 4
 			}
 		}
 	}
