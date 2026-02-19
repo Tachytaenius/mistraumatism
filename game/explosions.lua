@@ -1,4 +1,5 @@
 local consts = require("consts")
+local util = require("util")
 
 local game = {}
 
@@ -27,7 +28,7 @@ function game:explode(x, y, radius, damage, sourceEntity)
 			if not self:hitscan(x, y, tileX, tileY, self.tileBlocksAirMotion) then
 				goto continue
 			end
-			local add = radius == 0 and damage or math.floor(math.max(0, 1 - dist / radius) * damage)
+			local add = radius == 0 and damage or math.floor(util.cosInterp(damage, 0, math.min(1, dist / radius)))
 			if add <= 0 then
 				goto continue
 			end
