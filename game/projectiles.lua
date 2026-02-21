@@ -29,7 +29,7 @@ function game:onProjectileExplode(projectile)
 					startY = projectile.currentY,
 
 					tile = projectileType.tile or "∙",
-					colour = projectileType.colour or "darkGrey",
+					colour = projectileType.inheritAmmoColour and projectile.colour or projectileType.colour or "darkGrey",
 					subtickMoveTimerLength = math.min(
 						projectileType.subtickMoveTimerLengthMin or math.huge,
 						love.math.random(
@@ -43,7 +43,7 @@ function game:onProjectileExplode(projectile)
 					damage = projectileType.damage,
 					bleedRateAdd = projectileType.bleedRateAdd,
 					instantBloodLoss = projectileType.instantBloodLoss,
-					range = projectileType.range,
+					range = projectileType.range, -- Can't use projectileRangeStopsAtTargetPos because there is no target pos
 					maxPierces = projectileType.maxPierces,
 					projectileExplosionProjectiles = projectileType.projectileExplosionProjectiles, -- Too much recursion may not be wise here
 					explosionRadius = projectileType.explosionRadius,

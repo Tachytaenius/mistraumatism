@@ -33,19 +33,19 @@ function info:createLevel()
 		end
 	end
 
-	local monster = self:placeMonster(6, 7, "hellKing")
-	monster.noAI = true
+	-- local monster = self:placeMonster(6, 7, "hellKing")
+	-- monster.noAI = true
 
 	for _=1, 20 do
-		self:placeMonster(20, 20, "zombie")
+		-- self:placeMonster(20, 20, "zombie")
 	end
 
-	for x = 9, 15 do
-		for y = 9, 15 do
-			self:replaceTileInfo(x, y, {type = "pit", material = "granite"})
-		end
-	end
-	self:replaceTileInfo(12, 12, {type = "wall", material = "granite"})
+	-- for x = 9, 15 do
+	-- 	for y = 9, 15 do
+	-- 		self:replaceTileInfo(x, y, {type = "pit", material = "granite"})
+	-- 	end
+	-- end
+	-- self:replaceTileInfo(12, 12, {type = "wall", material = "granite"})
 
 	-- self:placeItem(1, 1, "tacticalArmour", "hyperPolymer")
 
@@ -171,27 +171,27 @@ function info:createLevel()
 			-- player.inventory[1].item = shotgun
 			-- player.inventory.selectedSlot = 1
 
-			local shotgun = self:newItemData({itemTypeName = "autoShotgun", material = "polymer"})
-			player.inventory[1].item = shotgun
-			player.inventory.selectedSlot = 1
-			player.inventory[2].item = self:newItemData({itemTypeName = "pumpShotgun", material = "polymer"})
-			player.inventory[3].item = self:newItemData({itemTypeName = "sawnShotgun", material = "steel"})
-			for _, params in ipairs({
-				{
-					itemTypeName = "buckshotShell",
-					material = "plasticRed"
-				},
-				{
-					itemTypeName = "slugShell",
-					material = "plasticGreen"
-				}
-			}) do
-				for _= 1, 8 do
-					local item = self:newItemData(params)
-					local slot = self:getBestFreeInventorySlotForItem(player, item)
-					assert(slot and self:addItemToSlot(player, slot, item), "Item was not added to inventory")
-				end
-			end
+			-- local shotgun = self:newItemData({itemTypeName = "autoShotgun", material = "polymer"})
+			-- player.inventory[1].item = shotgun
+			-- player.inventory.selectedSlot = 1
+			-- player.inventory[2].item = self:newItemData({itemTypeName = "pumpShotgun", material = "polymer"})
+			-- player.inventory[3].item = self:newItemData({itemTypeName = "sawnShotgun", material = "steel"})
+			-- for _, params in ipairs({
+			-- 	{
+			-- 		itemTypeName = "buckshotShell",
+			-- 		material = "plasticRed"
+			-- 	},
+			-- 	{
+			-- 		itemTypeName = "slugShell",
+			-- 		material = "plasticGreen"
+			-- 	}
+			-- }) do
+			-- 	for _= 1, 8 do
+			-- 		local item = self:newItemData(params)
+			-- 		local slot = self:getBestFreeInventorySlotForItem(player, item)
+			-- 		assert(slot and self:addItemToSlot(player, slot, item), "Item was not added to inventory")
+			-- 	end
+			-- end
 
 			self:placeItem(player.x, player.y, "rocketLauncher", "polymer")
 			self:placeItem(player.x, player.y, "rocket", "plasticBrown")

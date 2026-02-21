@@ -1230,7 +1230,7 @@ function game:abilityShoot(entity, action, ability, targetEntity)
 			damage = ability.damage,
 			bleedRateAdd = ability.bleedRateAdd,
 			instantBloodLoss = ability.instantBloodLoss,
-			range = ability.range,
+			range = ability.projectileRangeStopsAtTargetPos and math.min(ability.range, self:length(action.relativeX, action.relativeY)) or ability.range,
 			entityHitRandomSeed = entityHitRandomSeed,
 			projectileExplosionProjectiles = ability.projectileExplosionProjectiles,
 			maxPierces = ability.maxPierces,

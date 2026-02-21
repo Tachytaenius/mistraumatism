@@ -430,6 +430,7 @@ function game:loadItemTypes()
 
 	itemTypes.thrownGrenade = {
 		isThrownProjectile = true,
+		projectileRangeStopsAtTargetPos = true,
 		stackable = true,
 		maxStackSize = 2,
 		tile = "δ",
@@ -437,11 +438,11 @@ function game:loadItemTypes()
 		projectileColour = "darkGreen",
 		inheritAmmoColour = true,
 		displayName = "hand grenade",
-		damage = 0,
+		damage = 0, -- Damage from being hit by one, not from the explosion
 		bulletCount = 1,
 		bleedRateAdd = 0,
 		instantBloodLoss = 0,
-		projectileSubtickMoveTimerLength = 192,
+		projectileSubtickMoveTimerLength = 224,
 		range = 9,
 		projectileExplosionRadius = 3,
 		projectileExplosionDamage = 90,
