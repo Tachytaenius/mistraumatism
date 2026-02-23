@@ -653,7 +653,7 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		local tile = self:getTile(entity.x, entity.y)
-		if tile.explosionInfo then
+		if tile and tile.explosionInfo then
 			for _, damageInfo in ipairs(tile.explosionInfo.damagesThisTick) do
 				self:damageEntity(entity, damageInfo.damage, damageInfo.sourceEntity, damageInfo.bleedRateAdd, damageInfo.instantBloodLoss)
 			end

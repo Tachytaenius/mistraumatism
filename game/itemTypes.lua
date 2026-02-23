@@ -456,7 +456,7 @@ function game:loadItemTypes()
 				subtickMoveTimerLength = 96,
 				damage = 3,
 				maxPierces = 1,
-				bleedRateAdd = 1,
+				bleedRateAdd = 30,
 				instantBloodLoss = 1,
 				range = 4
 			}

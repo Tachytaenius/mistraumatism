@@ -6,6 +6,19 @@ local game = {}
 
 -- self is game instance
 
+local function shouldAITryToUnlockDoor(self, entity, lockName)
+	-- NOTE: Should include other inventory items. This would require switching items upon getting to the door, though
+	local item = self:getHeldItem(entity)
+	local itemLockName = item and item.lockName
+	if not lockName then
+		return true
+	end
+	if not itemLockName then
+		return false
+	end
+	return itemLockName == lockName
+end
+
 local function tilePathCheckFunction(self, tileX, tileY, entity)
 	local tile = self:getTile(tileX, tileY)
 	if not tile then
@@ -15,7 +28,10 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 		if not tile.doorData.open and not (
 			entity.creatureType.canOpenDoors and
 			tile.doorData.entity.itemData.itemType.interactable and
-			not tile.doorData.lockName
+			(
+				not tile.doorData.lockName or
+				shouldAITryToUnlockDoor(self, entity, tile.doorData.lockName)
+			)
 		) then
 			return false
 		end

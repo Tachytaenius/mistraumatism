@@ -315,12 +315,12 @@ function game:loadCreatureTypes()
 		colour = "red",
 		flashDarkerColour = true,
 		bloodMaterialName = "bloodGreen",
-		size = 1024,
+		size = 4096,
 
 		moveTimerLength = 2,
 		sightDistance = 20,
-		maxHealth = 400,
-		maxBlood = 400,
+		maxHealth = 1600,
+		maxBlood = 1600,
 		bleedHealRate = 128,
 		meleeTimerLength = 1,
 		meleeDamage = 40,
@@ -511,6 +511,8 @@ function game:loadCreatureTypes()
 		meleeDamage = 8,
 		meleeBleedRateAdd = 12,
 		meleeInstantBloodLoss = 0,
+
+		inventorySize = 1,
 
 		hears = true,
 		alertAction = "snarl",

@@ -152,6 +152,15 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0xfb then
 			self:placeItem(x, y, "labTable", "steel")
 			self:addSpatter(x, y, "bloodRed", 5)
+		elseif value == 0xfc then
+			local ogre = self:placeMonster(x, y, "ogre")
+			ogre.inventory[1].item = self:newItemData({
+				itemTypeName = "keycard", material = "plasticYellow",
+				lockName = "reactorManagement"
+			})
+			ogre.inventory.selectedSlot = 1
+		elseif value == 0xfd then
+			self:placeDoorItem(x, y, "door", "steel", false, "reactorManagement")
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end
