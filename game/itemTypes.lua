@@ -360,8 +360,8 @@ function game:loadItemTypes()
 				colour = "darkGrey",
 				subtickMoveTimerLength = 96,
 				damage = 4,
-				maxPierces = 1,
-				bleedRateAdd = 1,
+				maxPierces = 2,
+				bleedRateAdd = 20,
 				instantBloodLoss = 1,
 				range = 4
 			}
@@ -411,7 +411,7 @@ function game:loadItemTypes()
 		instantBloodLoss = 5,
 		projectileSubtickMoveTimerLength = 128,
 		range = 14,
-		projectileExplosionRadius = 3,
+		projectileExplosionRadius = 4,
 		projectileExplosionDamage = 150,
 		projectileExplosionProjectiles = {
 			{ -- Shrapnel
@@ -420,7 +420,7 @@ function game:loadItemTypes()
 				colour = "darkGrey",
 				subtickMoveTimerLength = 96,
 				damage = 4,
-				maxPierces = 1,
+				maxPierces = 2,
 				bleedRateAdd = 1,
 				instantBloodLoss = 1,
 				range = 4
@@ -445,7 +445,7 @@ function game:loadItemTypes()
 		projectileSubtickMoveTimerLength = 224,
 		range = 9,
 		projectileExplosionRadius = 3,
-		projectileExplosionDamage = 90,
+		projectileExplosionDamage = 120,
 		projectileInitialDisappearTimer = 24, -- Explodes on disappear
 		projectileStopOnHitButDontDisappear = true,
 		projectileExplosionProjectiles = {
@@ -455,10 +455,10 @@ function game:loadItemTypes()
 				colour = "darkGrey",
 				subtickMoveTimerLength = 96,
 				damage = 3,
-				maxPierces = 1,
+				maxPierces = 2,
 				bleedRateAdd = 30,
 				instantBloodLoss = 1,
-				range = 4
+				range = 3
 			}
 		}
 	}
@@ -484,7 +484,7 @@ function game:loadItemTypes()
 			projectileTile = "°",
 			projectileColour = "white",
 			spread = 0,
-			damage = 200,
+			damage = 300,
 			bleedRateAdd = 1000,
 			instantBloodLoss = 25,
 			bulletCount = 1,
