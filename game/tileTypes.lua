@@ -298,21 +298,24 @@ function game:loadTileTypes()
 			solidity = "fall",
 			secondaryColour = "darkCyan",
 			animationTiles = {"▓", "▒", "░", "▒"},
-			animationTime = 8
+			animationTime = 8,
+			deleteSpatter = "all"
 		},
 		floorPortal2 = {
 			displayName = "floor portal",
 			solidity = "fall",
 			secondaryColour = "darkCyan",
 			animationTiles = {"▒", "░", "▒", "▓"},
-			animationTime = 8
+			animationTime = 8,
+			deleteSpatter = "all"
 		},
 		floorPortal3 = {
 			displayName = "floor portal",
 			solidity = "fall",
 			secondaryColour = "darkCyan",
 			animationTiles = {"░", "▒", "▓", "▒"},
-			animationTime = 8
+			animationTime = 8,
+			deleteSpatter = "all"
 		},
 		sand = {
 			displayName = "sand",

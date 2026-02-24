@@ -208,7 +208,7 @@ function info:createLevel() -- name should be the name of the directory containi
 	wardRoom(41, 51, -1, -1)
 
 	self:placeItem(45, 61, "boxCutter", "steel")
-	self:placeNote(46, 62, "MEDICATION INVENTORY")
+	self:placeNote(45, 62, "MEDICATION INVENTORY")
 
 	self:placeItem(53, 61, "toilet", "porcelain")
 
