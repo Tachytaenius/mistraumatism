@@ -14,6 +14,7 @@ end
 
 function game:realtimeUpdate(dt)
 	if self.mode == "gameplay" then
+		local hadTickBecauseOfWaiting = false
 		local function inner()
 			if not self.state.player or self.state.player.dead then
 				self:setCursor()
@@ -48,7 +49,10 @@ function game:realtimeUpdate(dt)
 				local startTime = love.timer.getTime()
 				self.state.playerLostControlThisTick = self.state.playerWasInControl
 				self.state.playerWasInControl = false
-				self:update()
+				if self.state.waiting then
+					hadTickBecauseOfWaiting = true
+				end
+				self:update() -- Clears self.state.waiting
 				local endTime = love.timer.getTime()
 				local tickTime = endTime - startTime
 				if #self.tickTimes >= math.floor(self.framebufferWidth / 4) then
@@ -61,6 +65,7 @@ function game:realtimeUpdate(dt)
 		end
 		inner() -- Didn't want to refactor around the returns
 		self:updateEntitiesToDraw(dt)
+		self.state.hadTickBecauseOfWaiting = hadTickBecauseOfWaiting
 	elseif self.mode == "text" then
 		if not self.textInfo.text then
 			local text = love.filesystem.read(self.textInfo.path)

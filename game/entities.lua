@@ -659,6 +659,7 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 
+		-- Must match isEntityBleedingOut
 		if entity.blood then -- Bleed even if dead
 			-- Lose blood to bleeding
 			local bled = math.floor((entity.bleedTimer + entity.bleedingAmount) / consts.bleedTimerLength)
@@ -1435,6 +1436,46 @@ function game:entitiesDeselectEmptyInventorySlots()
 			entity.inventory.selectedSlot = nil
 		end
 	    ::continue::
+	end
+end
+
+function game:isEntityBleedingOut(entity)
+	if not entity.blood then
+		return
+	end
+	if entity.dead then
+		return
+	end
+	local healRate = entity.creatureType.bleedHealRate or 0
+	local bleedingAmount = entity.bleedingAmount
+	local bleedTimer = entity.bleedTimer
+	local blood = entity.blood
+	local bleedHealTimer = entity.bleedHealTimer
+
+	local lostAnyBlood = false
+	-- Must match the bleeding code in updateEntitiesAndProjectiles
+	while true do
+		local bled = math.floor((bleedTimer + bleedingAmount) / consts.bleedTimerLength)
+		if bled > 0 then
+			lostAnyBlood = true
+		end
+		bleedTimer = (bleedTimer + bleedingAmount) % consts.bleedTimerLength
+		blood = math.max(0, blood - bled)
+
+		if blood <= 0 then
+			return true, lostAnyBlood
+		end
+
+		local healed
+		if healRate > 0 then
+			healed = math.floor((bleedHealTimer + healRate) / consts.bleedHealTimerLength)
+			bleedHealTimer = (bleedHealTimer + healRate) % consts.bleedHealTimerLength
+		end
+		bleedingAmount = math.max(0, bleedingAmount - (healed or 0))
+
+		if bleedingAmount <= 0 then
+			return false, lostAnyBlood
+		end
 	end
 end
 

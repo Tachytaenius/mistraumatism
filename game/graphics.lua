@@ -748,12 +748,56 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 	end
 
-	-- Status panel
+	-- Status panel etc
 
 	local statusX = self.viewportWidth + 2
 	local statusY = 1
 	local statusWidth = self.framebufferWidth - self.viewportWidth - 3
 	local statusHeight = self.framebufferHeight - self.consoleHeight - 3
+
+	-- Draw current status indicator
+	local none = not state.player
+	local dead = state.player and state.player.dead
+	local waiting = state.waiting or state.hadTickBecauseOfWaiting
+	local acting = state.player and #state.player.actions > 0
+	local ready = not none and not dead and not waiting and not acting
+	local message, colour
+	if none then
+		message, colour = "NONE", "darkYellow"
+	elseif dead then -- TODO: Go here (instead of none) if gibbed or fallen down a pit?
+		message, colour = "DEAD", "darkRed"
+	elseif waiting then
+		message, colour = "WAIT", "darkCyan"
+	elseif ready then
+		message, colour = "READ", "darkGreen"
+	elseif acting then
+		message, colour = "MOVE", "darkBlue"
+	else
+		message, colour = "????", "darkGrey"
+	end
+	drawStringFramebuffer(2, self.viewportHeight + 1, message, "lightGrey", "darkGrey") -- colour, "black")
+
+	-- Draw bleeding indicator
+	local noBlood = not state.player or not state.player.blood or state.player.dead
+	if not noBlood then
+		local message, colour = "═══════", "darkGrey"
+		drawStringFramebuffer(statusX + statusWidth - utf8.len(message) - 1, 0, message, colour, "black")
+
+		local bleeding = state.player.bleedingAmount > 0
+		local bleedingOut, willLoseBlood = self:isEntityBleedingOut(state.player)
+		local message, colour
+		local shiftX = 0
+		if bleedingOut then
+			local flash = self.realTime % 1 < 0.5
+			message, colour = "MORTAL!", flash and "magenta" or "darkMagenta" -- Mortal wound
+		elseif willLoseBlood then
+			message, colour = "BLEED", "red"
+			shiftX = -1
+		end
+		if bleedingOut or willLoseBlood then
+			drawStringFramebuffer(statusX + statusWidth - utf8.len(message) - 1 + shiftX, 0, message, colour, "black")
+		end
+	end
 
 	local entityStatusHeight = 6
 	local function drawEntityStatus(entity, title, yShift, noText)
