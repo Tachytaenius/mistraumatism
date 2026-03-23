@@ -183,11 +183,11 @@ local function moveAwayFromEntity(self, entity, fleeInfo, keepLineOfSight)
 
 	local fleeDistance = self:distance(entity.x, entity.y, fleeInfo.lastKnownX, fleeInfo.lastKnownY)
 
-	local canSeeTarget = self:entityCanSeeEntity(entity, entity.targetEntity)
+	local canSeeTarget = self:entityCanSeeEntity(entity, fleeInfo.entity)
 	local nextTargetX, nextTargetY
 	if canSeeTarget then
-		nextTargetX, nextTargetY = entity.targetEntity.x, entity.targetEntity.y
-		local targetMove = self:getMovementAction(entity.targetEntity)
+		nextTargetX, nextTargetY = fleeInfo.entity.x, fleeInfo.entity.y
+		local targetMove = self:getMovementAction(fleeInfo.entity)
 		if targetMove and targetMove.timer == 1 then
 			local ox, oy = self:getDirectionOffset(targetMove.direction)
 			nextTargetX, nextTargetY = nextTargetX + ox, nextTargetY + oy

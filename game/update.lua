@@ -5,6 +5,9 @@ local game = {}
 
 function game:isPlayerInControl()
 	local state = self.state
+	if state.changeToLevelTimer or state.startLevelTimer then
+		return false
+	end
 	local player = state.player
 	if not player or state.waiting or player.dead or self:checkWillFall(state.player) then
 		return false
@@ -176,6 +179,7 @@ function game:changeLevel(levelName, noReset)
 		levelGenerationResult.postLevelGen()
 	end
 	state.entities[#state.entities+1] = state.player
+	state.entities.creatures[#state.entities.creatures+1] = state.player
 	if not noReset then
 		self:levelChangePlayerReset()
 	end

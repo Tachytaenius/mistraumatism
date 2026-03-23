@@ -53,6 +53,7 @@ function game:newCreatureEntity(parameters)
 	end
 
 	state.entities[#state.entities+1] = new
+	table.insert(state.entities.creatures, new)
 
 	if self.state.nonPersistentVariablesOn then
 		self:setCreatureInitNonPersistentVariables(new)
@@ -90,6 +91,12 @@ function game:flushEntityRemoval()
 
 			entity.removed = true
 			table.remove(state.entities, i)
+			for creaturesI, creaturesEntity in ipairs(state.entities.creatures) do
+				if creaturesEntity == entity then
+					table.remove(state.entities.creatures, creaturesI)
+					break
+				end
+			end
 
 			-- Remove links
 			-- Flee info links are pruned when handled
@@ -276,7 +283,7 @@ function game:updateEntitiesAndProjectiles()
 	for _, entity in ipairs(state.entities) do
 		assert(not (entity.targetEntity and entity.targetEntity.removed), "An entity is targetting a removed entity")
 
-		if entity == state.player or entity.noAI or entity.dead then
+		if entity == state.player or entity.noAI or entity.dead or entity.entityType ~= "creature" then
 			-- TODO: Clear AI state?
 			goto continue
 		end
@@ -329,7 +336,7 @@ function game:updateEntitiesAndProjectiles()
 			end
 		end
 		-- Look for new entries not in the current list
-		for _, fleeEntity in ipairs(state.entities) do
+		for _, fleeEntity in ipairs(state.entities.creatures) do
 			if fleeEntities[fleeEntity] or not self:shouldEntityFlee(entity, fleeEntity) then
 				goto continue
 			end
@@ -373,7 +380,7 @@ function game:updateEntitiesAndProjectiles()
 
 		-- No target
 		-- Targetting system would (probably) need a bit of work if it wasn't all many-on-one (monsters vs player). I'll say "TODO" (for searching the code for such comments)
-		for _, potentialTarget in ipairs(state.entities) do
+		for _, potentialTarget in ipairs(state.entities.creatures) do
 			if
 				potentialTarget.dead or
 				potentialTarget == entity or
@@ -415,7 +422,7 @@ function game:updateEntitiesAndProjectiles()
 		if not (entity.entityType == "creature" and not entity.dead and entity.targetEntity) then
 			goto continue
 		end
-		for _, otherEntity in ipairs(state.entities) do
+		for _, otherEntity in ipairs(state.entities.creatures) do
 			if
 				otherEntity.entityType == "creature" and
 				not otherEntity.dead and
@@ -1372,29 +1379,35 @@ function game:getPathfindingSeparation()
 			-- local entity = crowdedTile[i]
 		-- The above approach makes crowds of monsters impede each other more.
 		for _, entity in ipairs(crowdedTile) do
-
 			local function checkFunction(tileX, tileY)
 				return self:tilePathCheckFunction(tileX, tileY, entity)
 			end
 			local potentialNextSteps = self:getCheckedNeighbourTiles(entity.x, entity.y, checkFunction, true)
-			if #potentialNextSteps > 0 then
+			if #entity.actions == 0 and #potentialNextSteps > 0 then -- Skip entities that have actions
 				local choices = {}
 				local size = self:getEntitySize(entity)
 				for _, choice in ipairs(potentialNextSteps) do
 					local sizeOnTile =
 						locations[choice.x] and
 						locations[choice.x][choice.y] and
-						locations[choice.x][choice.y].totalSize or 0
-					local weight = sizeOnTile > 0 and size / sizeOnTile or 1
+						locations[choice.x][choice.y].totalSize or 0 -- May include own size, as the entity could be in its centre tile, which is included in the choices
+					local totalSizeOnTileWithEntity = entity.x==choice.x and entity.y==choice.y and sizeOnTile or (sizeOnTile + size) -- Total size if the entity chooses that tile
+					local weight = 1
+					if totalSizeOnTileWithEntity > 0 then -- If not then the entity definitely has 0 size because otherwise it would've contributed some
+						weight = size / totalSizeOnTileWithEntity
+					end
 
 					local movingInSizeOnTile =
 						movingLocations[choice.x] and
 						movingLocations[choice.x][choice.y] and
-						movingLocations[choice.x][choice.y].totalSize or 0
-					local movingWeight = movingInSizeOnTile > 0 and size / movingInSizeOnTile or 1
-					
-					local totalWeight = ((weight + movingWeight) / 2) ^ 50 -- Really bias against tiles that are occupied
+						movingLocations[choice.x][choice.y].totalSize or 0 -- Should not include own size, as the entity is not moving to any tile
+					local moveTotalSizeOnTileWithEntity = movingInSizeOnTile + size -- Assume entity is not contributing to movingInSizeOnTile already, so add
+					local movingWeight = 1
+					if moveTotalSizeOnTileWithEntity > 0 then
+						movingWeight = size / moveTotalSizeOnTileWithEntity
+					end
 
+					local totalWeight = ((weight + movingWeight) / 2) ^ 50 -- Really bias against tiles that are occupied
 					table.insert(choices, {
 						value = choice,
 						weight = totalWeight

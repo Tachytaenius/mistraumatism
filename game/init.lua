@@ -27,6 +27,7 @@ function game:prepareForLevel()
 	state.gibs = {}
 	state.particles = {}
 	state.entities = {}
+	state.entities.creatures = {}
 	state.airlockData = {}
 	state.entitiesToSendToLevels = {}
 end
