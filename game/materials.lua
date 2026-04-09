@@ -95,8 +95,9 @@ function game:loadMaterials()
 	addMaterial("lino", "lino", "darkGrey", "solid")
 
 	addMaterial("ornateCarpet", "gold and cloth", "red", "solid")
-	addMaterial("soilLoamless", "loamless soil", "darkYellow", "solid")
 
+	addMaterial("soilLoamless", "loamless soil", "darkYellow", "solid")
+	addMaterial("soilLoamy", "loamy soil", "darkYellow", "solid")
 	applySoundCategory(addMaterial("grass", "grass"),
 		addMaterial("zoysia", "zoysia", "green", "solid"),
 		addMaterial("fescue", "fescue", "green", "solid")
@@ -105,6 +106,12 @@ function game:loadMaterials()
 	addMaterial("ivy", "ivy", "darkGreen", "solid")
 	local borage = addMaterial("borage", "borage", "blue", "solid")
 	borage.flowerTile = "*"
+	local daisy = addMaterial("daisy", "daisy", "white", "solid")
+	daisy.flowerTile = "*"
+	local bluebell = addMaterial("bluebell", "bluebell", "blue", "solid")
+	bluebell.flowerTile = "⌠"
+	local foxglove = addMaterial("foxglove", "foxglove", "darkMagenta", "solid")
+	foxglove.flowerTile = "⌠"
 	local roseWithered = addMaterial("rose", "rose", "red", "solid")
 	roseWithered.flowerTile = "@"
 	local roseWithered = addMaterial("roseWithered", "withered rose", "darkYellow", "solid")
@@ -114,8 +121,13 @@ function game:loadMaterials()
 		addMaterial("mahogany", "mahogany", "darkYellow", "solid"),
 		addMaterial("ginkgo", "ginkgo", "darkYellow", "solid"),
 		addMaterial("palm", "palm", "darkYellow", "solid"),
-		addMaterial("elder", "elder", "darkYellow", "solid")
+		addMaterial("elder", "elder", "darkYellow", "solid"),
+		addMaterial("oak", "oak", "darkYellow", "solid"),
+		addMaterial("appleWood", "apple wood", "darkYellow", "solid")
 	)
+	addMaterial("elderLeaf", "elder leaf", "darkGreen", "solid")
+	addMaterial("oakLeaf", "oak leaf", "darkGreen", "solid")
+	addMaterial("appleLeaf", "apple leaf", "darkGreen", "solid")
 
 	addMaterial("paper", "paper", "white", "solid")
 	addMaterial("cloth", "cloth", "white", "solid")

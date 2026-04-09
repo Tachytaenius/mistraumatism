@@ -61,6 +61,27 @@ function game:loadTileTypes()
 			solidity = "passable",
 			character = "░"
 		},
+		softEarth = {
+			displayName = "soft earth",
+			solidity = "passable",
+			character = "▒",
+			secondaryColour = "darkGrey"
+		},
+		leafLitter = {
+			displayName = "leaf litter",
+			solidity = "passable",
+			character = "▒",
+			secondaryColour = "darkYellow"
+		},
+		treeTrunk = {
+			displayName = "tree trunk",
+			solidity = "solid",
+			character = "O",
+			blocksLight = true,
+			lightSlipPast = true,
+			alwaysShowConnections = true,
+			boxDrawingNumber = 1
+		},
 		ornateCarpet = {
 			displayName = "ornate carpet",
 			solidity = "passable",
@@ -349,7 +370,14 @@ function game:loadTileTypes()
 			character = "▒",
 			displayName = "hazard tape",
 			solidity = "passable"
-		}
+		},
+		fence = {
+			displayName = "fence",
+			pretendConnectionTypeName = "wall",
+			solidity = "projectilePassable",
+			blocksLight = false,
+			character = "╬"
+		},
 	}
 end
 

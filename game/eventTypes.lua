@@ -43,6 +43,10 @@ function game:loadEventTypes()
 		sourceEntityRelation = "objectUse",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "door", "wasOpening", "open", "opens", "close", "closes")
 	}
+	eventTypes.gateChangeState = {
+		sourceEntityRelation = "objectUse",
+		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "gate", "wasOpening", "open", "opens", "close", "closes")
+	}
 	eventTypes.doorLockChangeState = {
 		sourceEntityRelation = "objectUse",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "door", "wasUnlocking", "unlock", "unlocks", "lock", "locks")

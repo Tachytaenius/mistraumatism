@@ -569,6 +569,55 @@ function game:loadCreatureTypes()
 			}
 		}
 	}
+
+	creatureTypes.greySquirrel = {
+		displayName = "grey squirrel",
+		tile = ",",
+		colour = "lightGrey",
+		bloodMaterialName = "bloodRed",
+		size = 8,
+
+		moveTimerLength = 2,
+		sightDistance = 9,
+		maxHealth = 2,
+		maxBlood = 2,
+		bleedHealRate = 12,
+
+		hears = true
+	}
+
+	creatureTypes.redFox = {
+		displayName = "red fox",
+		tile = "f",
+		colour = "darkRed",
+		bloodMaterialName = "bloodRed",
+		size = 24,
+
+		moveTimerLength = 3,
+		sightDistance = 9,
+		maxHealth = 5,
+		maxBlood = 5,
+		bleedHealRate = 20,
+
+		hears = true
+	}
+
+	creatureTypes.blackbird = {
+		displayName = "blackbird",
+		tile = "'",
+		colour = "darkGrey",
+		bloodMaterialName = "bloodRed",
+		size = 6,
+
+		moveTimerLength = 1,
+		sightDistance = 8,
+		maxHealth = 1,
+		maxBlood = 1,
+		bleedHealRate = 8,
+		flying = true,
+
+		hears = true
+	}
 end
 
 return game

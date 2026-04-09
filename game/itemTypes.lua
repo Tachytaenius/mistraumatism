@@ -830,6 +830,20 @@ function game:loadItemTypes()
 		stateChangeSoundRange = 5,
 		dynamicDoorTileInfo = {closedLineNumber = 1, openLineNumber = 2, perpendicularLineNumberOpen = 1} -- Only calculated on level generation finish
 	}
+	itemTypes.fenceGate = {
+		isDoor = true,
+		anchorsOverPits = true,
+		interactable = true,
+		interactionType = state.interactionTypes.door,
+		noPickUp = true,
+		doorWindow = true,
+		tile = "│",
+		openTile = "╟",
+		displayName = "fence gate",
+		isGate = true,
+		stateChangeSoundRange = 5,
+		dynamicDoorTileInfo = {closedLineNumber = 2, openLineNumber = 2, perpendicularLineNumberOpen = 2} -- Only calculated on level generation finish
+	}
 	itemTypes.heavyDoor = {
 		isDoor = true,
 		anchorsOverPits = true,

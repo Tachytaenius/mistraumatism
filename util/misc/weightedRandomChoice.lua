@@ -1,5 +1,5 @@
-return function(choices)
-	local randomNumber = love.math.random()
+return function(choices, generator)
+	local randomNumber = generator and generator:random() or love.math.random()
 	local weightSum = 0
 	for _, choice in ipairs(choices) do
 		weightSum = weightSum + choice.weight
