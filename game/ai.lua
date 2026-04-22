@@ -159,8 +159,11 @@ local function chase(self, entity, sameTileMelee, keepLineOfSight)
 	end
 	if entity.investigateLocation and (not entity.targetEntity or onlyGoingToLastKnownLocation) then
 		investigating = true
-		if entity.investigateLocation.eventData and state.eventTypes[entity.investigateLocation.eventData.type].investigateLocationOverride then
-			local overrideLocation = entity.investigateLocation.eventData[state.eventTypes[entity.investigateLocation.eventData.type].investigateLocationOverride]
+		local overrideLocation =
+			entity.investigateLocation.eventData and
+			state.eventTypes[entity.investigateLocation.eventData.type].investigateLocationOverride and
+			entity.investigateLocation.eventData[state.eventTypes[entity.investigateLocation.eventData.type].investigateLocationOverride]
+		if overrideLocation then
 			targetLocationX, targetLocationY = overrideLocation.x, overrideLocation.y
 		else
 			targetLocationX, targetLocationY = entity.investigateLocation.x, entity.investigateLocation.y

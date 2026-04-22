@@ -917,8 +917,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					local durability = info and info.durability or 0
 					local wear = item.armourWear or 0
 					local damageMultiplier = self:getDefenceMultiplier(defence)
-					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, "Wear: " .. wear .. "/" .. durability, "lightGrey", "black")
-					drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, defence .. " def∙" .. math.floor(damageMultiplier * 100 + 0.5) .. "% dmg", "lightGrey", "black")
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, defence .. " def∙" .. math.floor(damageMultiplier * 100 + 0.5) .. "% dmg", "lightGrey", "black")
+					drawStringFramebuffer(statusX + 1, statusY + 4 + yShift, "Wear: " .. wear .. "/" .. durability, "lightGrey", "black")
 				elseif itemType.isGun then
 					local gunStatus
 					if itemType.energyWeapon then
@@ -1124,10 +1124,10 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local x = statusX + 1
 			local y = inventoryHeight * 2 + 2
 
-			drawStringFramebuffer(x + 2, y, tostring(wear), "lightGrey", "black")
-			drawStringFramebuffer(x + 2, y + 1, tostring(durability), "lightGrey", "black")
-			drawStringFramebuffer(x, y + 2, tostring(defence), "lightGrey", "black")
-			drawStringFramebuffer(x, y + 3, math.floor(damageMultiplier * 100 + 0.5) .. "%", "lightGrey", "black")
+			-- drawStringFramebuffer(x + 2, y, tostring(wear), "lightGrey", "black")
+			-- drawStringFramebuffer(x + 2, y + 1, tostring(durability), "lightGrey", "black")
+			-- drawStringFramebuffer(x, y + 2, tostring(defence), "lightGrey", "black")
+			-- drawStringFramebuffer(x, y + 3, math.floor(damageMultiplier * 100 + 0.5) .. "%", "lightGrey", "black")
 
 			-- drawStringFramebuffer(x + 2, y, tostring(math.floor(damageMultiplier * 100 + 0.5)), "lightGrey", "black")
 			-- drawStringFramebuffer(x + 2, y + 1, "%D", "lightGrey", "black") -- "% of incoming damage to be taken"
@@ -1139,6 +1139,14 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			-- -- drawStringFramebuffer(x, y + 2, tostring(defence), "lightGrey", "black")
 			-- drawStringFramebuffer(x, y + 2, math.floor(damageMultiplier * 100 + 0.5) .. "%", "lightGrey", "black")
 			-- -- drawStringFramebuffer(x, y + 3, "WORN", "lightGrey", "black")
+
+			local damageMultiplierS = string.format("%.2f", damageMultiplier)
+			local damageMultiplierS1 = damageMultiplierS:sub(1, 2)
+			local damageMultiplierS2 = damageMultiplierS:sub(3, 4)
+			drawStringFramebuffer(x + 2, y, damageMultiplierS1, "lightGrey", "black")
+			drawStringFramebuffer(x + 2, y + 1, damageMultiplierS2, "lightGrey", "black")
+			drawStringFramebuffer(x, y + 2, tostring(wear), "lightGrey", "black")
+			drawStringFramebuffer(x, y + 3, tostring(durability), "lightGrey", "black")
 		end
 	else
 		drawInventory(false)

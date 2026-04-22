@@ -314,55 +314,140 @@ function game:loadCreatureTypes()
 		tile = "K",
 		colour = "red",
 		flashDarkerColour = true,
-		bloodMaterialName = "bloodGreen",
-		size = 4096,
+		-- bloodMaterialName = "bloodGreen",
+		size = 8192,
 
-		moveTimerLength = 2,
+		moveTimerLength = 3,
 		sightDistance = 20,
-		maxHealth = 1600,
-		maxBlood = 1600,
-		bleedHealRate = 128,
+		maxHealth = 2000,
+		-- maxBlood = 3200,
+		-- bleedHealRate = 128,
 		meleeTimerLength = 1,
-		meleeDamage = 40,
+		meleeDamage = 80,
 		meleeBleedRateAdd = 256,
 		meleeInstantBloodLoss = 20,
-		shootAggressiveness = 0.25,
+
+		engagesAtRange = true,
+		preferredEngagementRange = 6,
+		shootAggressiveness = 1,
+		wrongRangeShootAggressiveness = 0.25,
 
 		hears = true,
 		alertAction = "warcry",
 		alertActionUsesVocalisation = true,
-		vocalisationRange = 20,
-		painDamageThreshold = 25,
+		vocalisationRange = 30,
+		painDamageThreshold = 400,
 
 		chargeMelee = true,
 		canOpenDoors = true,
 		attackDeadTargets = true,
 
 		projectileAbilities = {
+			-- {
+			-- 	name = "boulder",
+			-- 	shootTime = 8,
+			-- 	projectileTile = "•",
+			-- 	projectileColour = "lightGrey",
+			-- 	projectileSubtickMoveTimerLength = 48,
+			-- 	projectileSubtickMoveTimerLengthChange = 32,
+			-- 	projectileSubtickMoveTimerLengthMax = 256,
+			-- 	damage = 30,
+			-- 	bleedRateAdd = 200,
+			-- 	instantBloodLoss = 18,
+			-- 	range = 14
+			-- },
+			-- {
+			-- 	name = "fireball",
+			-- 	shootTime = 6,
+			-- 	projectileTile = "☼",
+			-- 	projectileColour = "green",
+			-- 	projectileSubtickMoveTimerLength = 32,
+			-- 	damage = 20,
+			-- 	bleedRateAdd = 100,
+			-- 	instantBloodLoss = 9,
+			-- 	range = 20
+			-- }
+
 			{
-				name = "boulder",
-				shootTime = 8,
-				projectileTile = "•",
-				projectileColour = "lightGrey",
-				projectileSubtickMoveTimerLength = 48,
-				projectileSubtickMoveTimerLengthChange = 32,
-				projectileSubtickMoveTimerLengthMax = 256,
-				damage = 30,
-				bleedRateAdd = 200,
-				instantBloodLoss = 18,
-				range = 14
-			},
-			{
-				name = "fireball",
-				shootTime = 6,
+				name = "vilePulse",
+				shootTime = 12,
 				projectileTile = "☼",
-				projectileColour = "green",
-				projectileSubtickMoveTimerLength = 32,
-				damage = 20,
-				bleedRateAdd = 100,
-				instantBloodLoss = 9,
-				range = 20
-			}
+				projectileColour = "lightGrey",
+				projectileSubtickMoveTimerLength = 24,
+				damage = 160,
+				bleedRateAdd = 4,
+				instantBLoodLoss = 4,
+				range = 40,
+				projectileExplosionProjectiles = {
+					{ -- Shrapnel
+						count = 5,
+						tile = "`",
+						colour = "darkGrey",
+						subtickMoveTimerLength = 128,
+						damage = 1,
+						instantBloodLoss = 2,
+						range = 10,
+						trailParticleInfo = {
+							{
+								count = 1,
+								tile = "▒",
+								foregroundColour = "black",
+								backgroundColour = "red",
+								lifetime = 4
+							}
+						}
+					}
+				},
+				trailParticleInfo = {
+					{
+						count = 1,
+						tile = "▒",
+						foregroundColour = "darkGrey",
+						backgroundColour = "lightGrey",
+						lifetime = 2
+					}
+				}
+			},
+			-- {
+			-- 	name = "vileBeam",
+			-- 	shootTime = 1,
+			-- 	-- projectileTile = "☼",
+			-- 	-- projectileColour = "darkGrey",
+			-- 	projectileSubtickMoveTimerLength = 192,
+			-- 	damage = 14,
+			-- 	bleedRateAdd = 4,
+			-- 	instantBLoodLoss = 4,
+			-- 	range = 40,
+			-- 	projectileExplosionProjectiles = {
+			-- 		{ -- Shrapnel
+			-- 			count = 1,
+			-- 			tile = "`",
+			-- 			colour = "darkGrey",
+			-- 			subtickMoveTimerLength = 128,
+			-- 			damage = 1,
+			-- 			instantBloodLoss = 2,
+			-- 			range = 10,
+			-- 			trailParticleInfo = {
+			-- 				{
+			-- 					count = 1,
+			-- 					tile = "▒",
+			-- 					foregroundColour = "black",
+			-- 					backgroundColour = "red",
+			-- 					lifetime = 4
+			-- 				}
+			-- 			}
+			-- 		}
+			-- 	},
+			-- 	trailParticleInfo = {
+			-- 		{
+			-- 			count = 1,
+			-- 			tile = "▒",
+			-- 			foregroundColour = "darkGrey",
+			-- 			backgroundColour = "lightGrey",
+			-- 			lifetime = 2
+			-- 		}
+			-- 	}
+			-- }
 		}
 	}
 

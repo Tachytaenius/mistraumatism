@@ -18,6 +18,7 @@ function game:broadcastHatchStateChangedEvent(tile, opener, manual)
 		sourceEntity = opener,
 		x = tile.x,
 		y = tile.y,
+		manualOperationLocation = manual and opener and {x = opener.x, y = opener.y},
 		type = "hatchChangeState",
 		soundRange = self.state.tileTypes[tile.type].stateChangeSoundRange,
 		wasOpening = hatchState == "open"
@@ -29,6 +30,7 @@ function game:broadcastDoorStateChangedEvent(tile, opener, manual)
 		sourceEntity = opener,
 		x = tile.x,
 		y = tile.y,
+		manualOperationLocation = manual and opener and {x = opener.x, y = opener.y},
 		type = "doorChangeState",
 		soundRange = tile.doorData.entity.itemData.itemType.stateChangeSoundRange,
 		wasOpening = tile.doorData.open -- Rather than closing
@@ -40,6 +42,7 @@ function game:broadcastGateStateChangedEvent(tile, opener, manual)
 		sourceEntity = opener,
 		x = tile.x,
 		y = tile.y,
+		manualOperationLocation = manual and opener and {x = opener.x, y = opener.y},
 		type = "gateChangeState",
 		soundRange = tile.doorData.entity.itemData.itemType.stateChangeSoundRange,
 		wasOpening = tile.doorData.open -- Rather than closing
@@ -51,6 +54,7 @@ function game:broadcastButtonStateChangedEvent(item, interactor, manual, x, y)
 		sourceEntity = interactor,
 		x = x,
 		y = y,
+		manualOperationLocation = manual and interactor and {x = interactor.x, y = interactor.y},
 		type = "buttonChangeState",
 		soundRange = item.itemType.stateChangeSoundRange,
 		wasPressing = item.pressed -- Rather than un-pressing
@@ -62,6 +66,7 @@ function game:broadcastLeverStateChangedEvent(item, interactor, manual, x, y)
 		sourceEntity = interactor,
 		x = x,
 		y = y,
+		manualOperationLocation = manual and interactor and {x = interactor.x, y = interactor.y},
 		type = "leverChangeState",
 		soundRange = item.itemType.stateChangeSoundRange,
 		wasActivating = item.active -- Rather than deactivating

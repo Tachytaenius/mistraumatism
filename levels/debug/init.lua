@@ -33,7 +33,7 @@ function info:createLevel()
 		end
 	end
 
-	-- local monster = self:placeMonster(6, 7, "hellKing")
+	local monster = self:placeMonster(3, 11, "hellKing")
 	-- monster.noAI = true
 
 	for _=1, 20 do

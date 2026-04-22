@@ -41,25 +41,32 @@ function game:loadEventTypes()
 	end
 	eventTypes.doorChangeState = {
 		sourceEntityRelation = "objectUse",
+		investigateLocationOverride = "manualOperationLocation",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "door", "wasOpening", "open", "opens", "close", "closes")
 	}
 	eventTypes.gateChangeState = {
 		sourceEntityRelation = "objectUse",
+		investigateLocationOverride = "manualOperationLocation",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "gate", "wasOpening", "open", "opens", "close", "closes")
 	}
 	eventTypes.doorLockChangeState = {
 		sourceEntityRelation = "objectUse",
+		investigateLocationOverride = "manualOperationLocation",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "door", "wasUnlocking", "unlock", "unlocks", "lock", "locks")
 	}
 	eventTypes.hatchChangeState = {
 		sourceEntityRelation = "objectUse",
+		investigateLocationOverride = "manualOperationLocation",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "hatch", "wasOpening", "open", "opens", "shut", "shuts")
 	}
 	eventTypes.buttonChangeState = {
 		sourceEntityRelation = "objectUse",
+		investigateLocationOverride = "manualOperationLocation",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "button", "wasPressing", "press", "presses", "reset", "resets")
 	}
 	eventTypes.leverChangeState = {
+		sourceEntityRelation = "objectUse",
+		investigateLocationOverride = "manualOperationLocation",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "lever", "wasActivating", "activate", "activates", "deactivate", "deactivates")
 	}
 

@@ -246,7 +246,7 @@ function info:createLevel()
 		elseif value == 0xf3 then
 			self:placeExaminable(x, y, "smallBook", "ginkgo", "It seems to be a benevolent book of spells...\nBut whose was it?")
 		elseif value == 0xf4 then
-			for _= 1, 5 do
+			for _= 1, 4 do
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
 		elseif value == 0xf5 then
