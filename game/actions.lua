@@ -1175,7 +1175,7 @@ function game:loadActionTypes()
 	end
 	function mindAttack.construct(self, entity, target)
 		local new = {type = "mindAttack"}
-		new.timer = 1
+		new.timer = entity.creatureType.mindAttackActionTimerLength or 1
 		new.target = target
 		if mindAttack.validate(self, entity, new) then
 			return new
@@ -1185,10 +1185,7 @@ function game:loadActionTypes()
 		action.timer = action.timer - 1
 		if action.timer <= 0 then
 			if mindAttack.validate(self, entity, action) then
-				if action.target.creatureType.psychicDamageDeathPoint then
-					action.target.psychicDamage = (action.target.psychicDamage or 0) + entity.creatureType.telepathicMindAttackDamageRate
-					action.target.psychicDamageTakenThisTick = (action.target.psychicDamageTakenThisTick or 0) + entity.creatureType.telepathicMindAttackDamageRate
-				end
+				self:mindAttackOtherEntity(entity, action.target, entity.creatureType.telepathicMindAttackDamageRate)
 				action.doneType = "completed"
 			else
 				action.doneType = "cancelled"
@@ -1332,6 +1329,46 @@ function game:loadActionTypes()
 			return
 		end
 		return donItem.construct(self, player) -- If valid
+	end
+
+	local summon = newActionType("summon", "summon")
+	function summon.validate(self, entity, action)
+		-- TODO
+		return true
+	end
+	function summon.construct(self, entity, abilityName)
+		local new = {type = "summon"}
+
+		local ability
+		if entity.creatureType.summonAbilities then
+			for _, v in ipairs(entity.creatureType.summonAbilities) do
+				if v.name == abilityName then
+					ability = v
+					break
+				end
+			end
+		end
+		if not ability then
+			return
+		end
+
+		new.ability = ability
+		new.timer = ability.actionTime
+
+		if summon.validate(self, entity, new) then
+			return new
+		end
+	end
+	function summon.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if summon.validate(self, entity, action) then
+				self:doSummonAbility(entity, action.ability)
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
 	end
 end
 

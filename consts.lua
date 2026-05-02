@@ -90,7 +90,7 @@ consts.bleedTimerLength = 1536
 consts.bleedHealTimerLength = 512
 consts.maxBleedingAmount = 900
 consts.drownTimerRecoveryRate = 4
-consts.telepathicMindAttackRecoveryRate = 2 -- Only once no attacks have happened for a while
+consts.telepathicMindAttackRecoveryRate = 10 -- Only once no attacks have happened for a while
 consts.noPsychicDamageTimerLength = 80
 consts.gibFleshTiles = {"²", "ⁿ"}
 consts.explosionGradient = {"black", "darkGrey", "lightGrey", "darkYellow", "yellow", "white"}
@@ -103,7 +103,7 @@ consts.itemDefaultMaxStackSize = 9
 
 consts.startLevelName = "facility"
 
-consts.investigationTimeoutThreshold = 40
+consts.investigationTimeoutThreshold = 400
 
 consts.armourDefenceAtBreakPoint = 0.1
 consts.defenceMax = 26
@@ -117,5 +117,25 @@ consts.maxImpedeLevel = 4
 consts.impedenceProportionStart = 0.65 -- Above 0.5 so that same-sized entities mutually impede each other when on the same tile
 consts.impedenceTimeMultiplier = 2
 consts.pathfindingSlowdownAvoidance = 3
+
+consts.spatterCharacters = {}
+consts.spatterCharacters.liquid = {
+	nil,
+	"~",
+	"≈",
+	"≈", -- "█"
+}
+consts.spatterCharacters.solid = {
+	".",
+	"•",
+	"░",
+	"▒"
+}
+consts.spatterCharacters.layerCovering = {
+	"░",
+	"▒",
+	"▓",
+	"█"
+}
 
 return consts

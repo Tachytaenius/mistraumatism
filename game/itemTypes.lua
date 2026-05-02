@@ -68,7 +68,7 @@ function game:loadItemTypes()
 		manual = false,
 		magazine = false,
 		magazineRequired = true,
-		magazineClass = "rifle",
+		magazineClass = "assaultRifle",
 		gunshotSoundRange = 16
 	}
 
@@ -77,7 +77,7 @@ function game:loadItemTypes()
 		tile = "■",
 		displayName = "rifle mag",
 		magazineCapacity = 30,
-		magazineClass = "rifle",
+		magazineClass = "assaultRifle",
 		ammoClass = "bulletMedium",
 	}
 
@@ -466,10 +466,10 @@ function game:loadItemTypes()
 	itemTypes.railgun = {
 		isGun = true,
 		tile = "⌐",
-		maxEnergy = 100,
-		energyPerShot = 100,
-		energyChargeRate = 2,
-		energyDischargeRate = 3, -- Railgun to cell
+		maxEnergy = 50,
+		energyPerShot = 50,
+		energyChargeRate = 1,
+		energyDischargeRate = 2, -- Railgun to cell
 		energyWeapon = true,
 		displayName = "railgun",
 		extraSpread = nil,
@@ -484,9 +484,9 @@ function game:loadItemTypes()
 			projectileTile = "°",
 			projectileColour = "white",
 			spread = 0,
-			damage = 300,
-			bleedRateAdd = 1000,
-			instantBloodLoss = 25,
+			damage = 600,
+			bleedRateAdd = 500,
+			instantBloodLoss = 2,
 			bulletCount = 1,
 			projectileSubtickMoveTimerLength = 1,
 			range = 22,
@@ -501,14 +501,14 @@ function game:loadItemTypes()
 				}
 			}
 		},
-		gunshotSoundRange = 18
+		gunshotSoundRange = 25
 	}
 
 	itemTypes.railgunEnergyCell = {
 		energyBattery = true,
 		maxEnergy = 200,
-		energyDischargeRate = 6,
-		energyChargeRate = 5, -- Railgun to cell
+		energyDischargeRate = 2,
+		energyChargeRate = 1, -- Railgun to cell
 		displayName = "railgun cell",
 		tile = "Φ",
 		swapColours = true,
@@ -848,7 +848,7 @@ function game:loadItemTypes()
 		isDoor = true,
 		anchorsOverPits = true,
 		interactable = true,
-		interactionType = state.interactionTypes.heavyDoor,
+		interactionType = state.interactionTypes.door,
 		noPickUp = true,
 		doorWindow = false,
 		tile = "│",
@@ -998,14 +998,14 @@ function game:loadItemTypes()
 	itemTypes.smallMedkit = {
 		isHealItem = true,
 		tile = "+",
-		displayName = "small medkit", 
+		displayName = "small medkit",
 		swapColours = true,
 		secondaryColour = "white",
 		interactable = true,
 		healingRequiresHolding = false,
 		healItemUseTimer = 22,
 		healItemUseTimerOnGround = 25,
-		healItemBleedRateSubtract = 20,
+		healItemBleedRateSubtract = 30,
 		healItemHealthAdd = 5,
 		healItemBloodReplenish = 3,
 		healItemDeleteOnUse = false,
@@ -1022,7 +1022,7 @@ function game:loadItemTypes()
 		healingRequiresHolding = false,
 		healItemUseTimer = 24,
 		healItemUseTimerOnGround = 27,
-		healItemBleedRateSubtract = 40,
+		healItemBleedRateSubtract = 45,
 		healItemHealthAdd = 10,
 		healItemBloodReplenish = 8,
 		healItemDeleteOnUse = false,

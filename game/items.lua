@@ -173,7 +173,8 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 			gun.shotCooldownTimer = gunType.shotCooldownTimerLength -- Can be nil
 			local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
 			local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single shotgun blast
-			for _=1, roundType.bulletCount or 1 do
+			local count = roundType.bulletCount or 1
+			for i = 1, count do
 				local spread = (roundType.spread or 0) + (gunType.extraSpread or 0)
 				spread = spread ~= 0 and spread or nil
 				self:newProjectile({
@@ -201,6 +202,9 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 					aimX = aimX,
 					aimY = aimY,
 					bulletSpread = spread,
+					evenSpread = roundType.evenSpread,
+					bulletIndex = i,
+					bulletCount = count,
 
 					trailParticleInfo = roundType.trailParticleInfo,
 

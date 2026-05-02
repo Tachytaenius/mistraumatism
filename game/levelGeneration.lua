@@ -15,6 +15,16 @@ function game:replaceTileInfo(x, y, info)
 	end
 end
 
+function game:overwriteTileInfo(x, y, info) -- No clear
+	local tile = self:getTile(x, y)
+	if not tile then
+		return
+	end
+	for k, v in pairs(info) do
+		tile[k] = v
+	end
+end
+
 function game:placeRectangle(x, y, w, h, tileType, tileMaterial)
 	for x = x, x + w - 1 do
 		for y = y, y + h - 1 do
@@ -195,6 +205,9 @@ end
 
 function game:mechanismShutDoor(x, y)
 	local tile = self:getTile(x, y)
+	if not tile.doorData then
+		return
+	end
 	if tile.doorData.entity and self:isDoorBlocked(tile.doorData.entity) then
 		return
 	end

@@ -85,6 +85,7 @@ function game:newState(params)
 	state.incrementEntityDisplaysTimerLength = 1
 	state.incrementEntityDisplaysSwitchIndicatorTime = 0.08
 	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimerLength
+	-- state.suppressIncrementEntityDisplaysIndicator = true -- For game start (disabled because it seems unnaturally out of cycle to be visible without indicator for so long)
 end
 
 function game:getCanvasSize(fontImageWidth, fontImageHeight)

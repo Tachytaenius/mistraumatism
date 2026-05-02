@@ -404,7 +404,13 @@ function game:newProjectile(parameters)
 		local relativeX = parameters.aimX - parameters.startX
 		local relativeY = parameters.aimY - parameters.startY
 		local angle = math.atan2(relativeY, relativeX)
-		local newAngle = angle + (love.math.random() - 0.5) * parameters.bulletSpread
+		local spreadProportion -- -0.5 to 0.5
+		if parameters.evenSpread then
+			spreadProportion = (parameters.bulletIndex - 0.5) / parameters.bulletCount - 0.5 -- Even spacing for 360 degrees
+		else
+			spreadProportion = love.math.random() - 0.5
+		end
+		local newAngle = angle + spreadProportion * parameters.bulletSpread
 		local r = consts.spreadRetargetDistance
 		targetX = math.floor(math.cos(newAngle) * r + 0.5) + parameters.startX -- Round
 		targetY = math.floor(math.sin(newAngle) * r + 0.5) + parameters.startY

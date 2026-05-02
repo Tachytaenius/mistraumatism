@@ -7,7 +7,10 @@ local game = {}
 -- self is game instance
 
 local function shouldAITryToUnlockDoor(self, entity, lockName)
-	-- NOTE: Should include other inventory items. This would require switching items upon getting to the door, though
+	-- NOTE (TODO?): Should include other inventory items. This would require switching items upon getting to the door, though
+	if entity.creatureType.canUnlockAnyDoor then
+		return true
+	end
 	local item = self:getHeldItem(entity)
 	local itemLockName = item and item.lockName
 	if not lockName then
@@ -439,11 +442,39 @@ function game:getAIActions(entity, globalAIInfo)
 		local canSee = self:entityCanSeeEntity(entity, entity.targetEntity)
 		local fightAction
 		if canSee then
-			local shootType =
-				self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun and "gun" or
-				entity.creatureType.telepathicMindAttackDamageRate and "mindAttack" or
-				entity.creatureType.projectileAbilities and #entity.creatureType.projectileAbilities > 0 and "ability" or
-				nil
+			local summoning = false
+			if
+				not entity.targetEntity.dead and
+				entity.creatureType.summonAbilities and
+				entity.creatureType.summonAggressiveness and
+				love.math.random() < (entity.creatureType.summonAggressiveness or 1)
+			then
+				local ability = entity.creatureType.summonAbilities[love.math.random(#entity.creatureType.summonAbilities)]
+				if ability then
+					summoning = true
+					fightAction = self.state.actionTypes.summon.construct(self, entity, ability.name)
+				end
+			end
+
+			local shootTypeChoices = {}
+			if self:getHeldItem(entity) and self:getHeldItem(entity).itemType.isGun then
+				table.insert(shootTypeChoices, "gun")
+			end
+			if entity.creatureType.telepathicMindAttackDamageRate then
+				table.insert(shootTypeChoices, "mindAttack")
+			end
+			if entity.creatureType.projectileAbilities and #entity.creatureType.projectileAbilities > 0 then
+				table.insert(shootTypeChoices, "ability")
+			end
+			local shootType
+			if #shootTypeChoices >= 1 then
+				shootType = shootTypeChoices[love.math.random(#shootTypeChoices)]
+			end
+
+			-- Had already decided what to do
+			if summoning then
+				shootType = nil
+			end
 			-- Don't shoot if the entity is dead (we'd only be here if entity.creatureType.attackDeadTargets is true, and its purpose is to make monsters destroy corpses, which seems better suited for melee)
 			if entity.targetEntity.dead then
 				shootType = nil

@@ -41,7 +41,7 @@ function game:loadCreatureTypes()
 		canOpenDoors = true,
 		inventorySize = 9,
 
-		psychicDamageDeathPoint = 120
+		psychicDamageDeathPoint = 1200,
 	}
 
 	creatureTypes.zombie = {
@@ -69,7 +69,7 @@ function game:loadCreatureTypes()
 		canOpenDoors = true,
 		inventorySize = 2,
 
-		psychicDamageDeathPoint = 24
+		psychicDamageDeathPoint = 240
 	}
 
 	creatureTypes.skeleton = {
@@ -94,7 +94,7 @@ function game:loadCreatureTypes()
 		canOpenDoors = true,
 		inventorySize = 2,
 
-		psychicDamageDeathPoint = 16
+		psychicDamageDeathPoint = 160
 	}
 
 	creatureTypes.slug = {
@@ -211,7 +211,7 @@ function game:loadCreatureTypes()
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
-		psychicDamageDeathPoint = 120,
+		psychicDamageDeathPoint = 1200,
 
 		projectileAbilities = {
 			{
@@ -260,7 +260,8 @@ function game:loadCreatureTypes()
 
 		shootAggressiveness = 1,
 		wrongRangeShootAggressiveness = 0.2,
-		telepathicMindAttackDamageRate = 1
+		telepathicMindAttackDamageRate = 10,
+		mindAttackActionTimerLength = 1
 	}
 
 	creatureTypes.hellNoble = {
@@ -293,7 +294,7 @@ function game:loadCreatureTypes()
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
-		psychicDamageDeathPoint = 120,
+		psychicDamageDeathPoint = 1200,
 
 		projectileAbilities = {
 			{
@@ -317,30 +318,52 @@ function game:loadCreatureTypes()
 		-- bloodMaterialName = "bloodGreen",
 		size = 8192,
 
-		moveTimerLength = 3,
+		moveTimerLength = 5,
+		flying = true,
 		sightDistance = 20,
-		maxHealth = 2000,
-		-- maxBlood = 3200,
-		-- bleedHealRate = 128,
+		maxHealth = 3000,
 		meleeTimerLength = 1,
-		meleeDamage = 80,
-		meleeBleedRateAdd = 256,
+		meleeDamage = 1000,
+		meleeBleedRateAdd = 1024,
 		meleeInstantBloodLoss = 20,
+		immuneToOwnAttacks = true,
+		gibOnDeath = true,
+		minGibForce = 15,
 
-		engagesAtRange = true,
-		preferredEngagementRange = 6,
+		-- engagesAtRange = true,
+		-- preferredEngagementRange = 7,
 		shootAggressiveness = 1,
 		wrongRangeShootAggressiveness = 0.25,
+		-- telepathicMindAttackDamageRate = 80,
+		-- mindAttackActionTimerLength = 2,
+		passiveMindAttackDamageRate = 12,
+		passiveMindAttackRange = 14,
+		passiveMindAttackTeamThreshold = "friendly", -- Will attack friendlies or worse
+		targetLocationSenseRange = 15,
 
 		hears = true,
-		alertAction = "warcry",
+		alertAction = "chant",
 		alertActionUsesVocalisation = true,
 		vocalisationRange = 30,
-		painDamageThreshold = 400,
+		painDamageThreshold = 2000,
 
 		chargeMelee = true,
 		canOpenDoors = true,
+		canOpenHeavyDoors = true,
+		canUnlockAnyDoor = true,
 		attackDeadTargets = true,
+
+		summonAggressiveness = 0.25,
+		summonAbilities = {
+			{
+				name = "humanSummon",
+				maxAliveCreatures = 24, -- TODO
+				creatureTypeName = "human",
+				creaturesPerSummon = 8,
+				radius = 5,
+				actionTime = 8
+			},
+		},
 
 		projectileAbilities = {
 			-- {
@@ -370,14 +393,19 @@ function game:loadCreatureTypes()
 
 			{
 				name = "vilePulse",
-				shootTime = 12,
+				shootTime = 10,
 				projectileTile = "☼",
 				projectileColour = "lightGrey",
 				projectileSubtickMoveTimerLength = 24,
 				damage = 160,
-				bleedRateAdd = 4,
+				bleedRateAdd = 40,
 				instantBLoodLoss = 4,
 				range = 40,
+				shotCount = 3,
+				evenSpread = true,
+				spread = 1,
+				projectileExplosionRadius = 1,
+				projectileExplosionDamage = 600,
 				projectileExplosionProjectiles = {
 					{ -- Shrapnel
 						count = 5,
@@ -385,7 +413,8 @@ function game:loadCreatureTypes()
 						colour = "darkGrey",
 						subtickMoveTimerLength = 128,
 						damage = 1,
-						instantBloodLoss = 2,
+						-- instantBloodLoss = 2,
+						bleedRateAdd = 10,
 						range = 10,
 						trailParticleInfo = {
 							{
@@ -405,6 +434,40 @@ function game:loadCreatureTypes()
 						foregroundColour = "darkGrey",
 						backgroundColour = "lightGrey",
 						lifetime = 2
+					}
+				}
+			},
+			{
+				name = "vileEncroacher",
+				shootTime = 2,
+				projectileTile = "☼",
+				projectileColour = "lightGrey",
+				projectileSubtickMoveTimerLength = 1024,
+				damage = 200,
+				bleedRateAdd = 600,
+				instantBLoodLoss = 6,
+				range = 20,
+				shotCount = 6,
+				spread = 0.2,
+				projectileExplosionProjectiles = {
+					{ -- Shrapnel
+						count = 10,
+						tile = "`",
+						colour = "darkGrey",
+						subtickMoveTimerLength = 64,
+						damage = 1,
+						-- instantBloodLoss = 2,
+						bleedRateAdd = 10,
+						range = 5,
+						trailParticleInfo = {
+							{
+								count = 1,
+								tile = "▒",
+								foregroundColour = "black",
+								backgroundColour = "red",
+								lifetime = 4
+							}
+						}
 					}
 				}
 			},
@@ -608,7 +671,7 @@ function game:loadCreatureTypes()
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
-		psychicDamageDeathPoint = 60
+		psychicDamageDeathPoint = 600
 	}
 
 	creatureTypes.behemoth = {
@@ -639,7 +702,7 @@ function game:loadCreatureTypes()
 		attackDeadTargets = true,
 		canOpenDoors = false,
 
-		psychicDamageDeathPoint = 90,
+		psychicDamageDeathPoint = 900,
 
 		projectileAbilities = {
 			{

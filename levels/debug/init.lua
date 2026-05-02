@@ -72,9 +72,15 @@ function info:createLevel()
 	-- self:placeItem(7, 7, "rocketLauncher", "polymer")
 	-- self:placeItem(7, 7, "rocket", "plasticBrown")
 
-	-- self:placeItem(1, 1, "railgun", "polymer")
-	-- local cell = self:placeItem(1, 1, "railgunEnergyCell", "polymer")
-	-- cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
+	self:placeItem(1, 1, "railgun", "polymer")
+	local cell = self:placeItem(1, 1, "railgunEnergyCell", "polymer")
+	cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
+	local cell = self:placeItem(1, 1, "railgunEnergyCell", "polymer")
+	cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
+	local cell = self:placeItem(1, 1, "railgunEnergyCell", "polymer")
+	cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
+	local cell = self:placeItem(1, 1, "railgunEnergyCell", "polymer")
+	cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
 
 	-- self:placeItem(2, 1, "plasmaShotgun", "polymer")
 	-- self:placeItem(3, 1, "plasmaRifle", "polymer")
@@ -196,6 +202,16 @@ function info:createLevel()
 			self:placeItem(player.x, player.y, "rocketLauncher", "polymer")
 			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
 			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
+			self:placeItem(player.x, player.y, "rocket", "plasticBrown")
 
 			self:placeItem(player.x + 1, player.y, "grenadeLauncher", "steel")
 			self:placeItem(player.x + 1, player.y, "ammoGrenade", "plasticRed")
@@ -204,6 +220,14 @@ function info:createLevel()
 			self:placeItem(player.x, player.y - 1, "thrownGrenade", "plasticGreen")
 			self:placeItem(player.x, player.y - 1, "thrownGrenade", "plasticGreen")
 			self:placeItem(player.x, player.y - 1, "thrownGrenade", "plasticGreen")
+
+			local x, y = player.x - 1, player.y - 1
+			self:placeItem(x, y, "assaultRifle", "polymer")
+			self:placeMagazineWithAmmo(x, y, "rifleMagazine", "steel", "mediumBullet", "brass", 30)
+			self:placeMagazineWithAmmo(x, y, "rifleMagazine", "steel", "mediumBullet", "brass", 30)
+			self:placeMagazineWithAmmo(x, y, "rifleMagazine", "steel", "mediumBullet", "brass", 30)
+			self:placeMagazineWithAmmo(x, y, "rifleMagazine", "steel", "mediumBullet", "brass", 30)
+			self:placeMagazineWithAmmo(x, y, "rifleMagazine", "steel", "mediumBullet", "brass", 30)
 		end
 	}
 end

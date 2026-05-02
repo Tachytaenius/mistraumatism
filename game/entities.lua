@@ -41,6 +41,13 @@ function game:newCreatureEntity(parameters)
 	new.dead = false
 	new.actions = {}
 
+	if creatureType.summonAbilities then
+		new.summonedEntities = {}
+		for i, ability in ipairs(creatureType.summonAbilities) do
+			new.summonedEntities[i] = {ability = ability}
+		end
+	end
+
 	if creatureType.inventorySize then
 		new.inventory = {}
 		for i = 1, creatureType.inventorySize do
@@ -279,6 +286,34 @@ function game:updateEntitiesAndProjectiles()
 		end
 	end)
 
+	for _, entity in ipairs(state.entities.creatures) do
+		if entity.creatureType.passiveMindAttackRange then
+			for _, otherEntity in ipairs(state.entities.creatures) do
+				if entity == otherEntity then
+					goto continue
+				end
+				if not self:entityCanSeeEntity(entity, otherEntity) then
+					goto continue
+				end
+				local teamRelation = self:getTeamRelation(entity.team, otherEntity.team)
+				local teamRelationNumber =
+					teamRelation == "friendly" and 1 or
+					teamRelation == "neutral" and 0 or
+					teamRelation == "enemy" and -1
+				local relationThreshold = entity.creatureType.passiveMindAttackTeamThreshold or "enemy"
+				local thresholdNumber =
+					relationThreshold == "friendly" and 1 or
+					relationThreshold == "neutral" and 0 or
+					relationThreshold == "enemy" and -1
+				if teamRelationNumber > thresholdNumber then
+					goto continue
+				end
+				self:mindAttackOtherEntity(entity, otherEntity, entity.creatureType.passiveMindAttackDamageRate or 0)
+				::continue::
+			end
+		end
+	end
+
 	-- AI visibility etc
 	for _, entity in ipairs(state.entities) do
 		assert(not (entity.targetEntity and entity.targetEntity.removed), "An entity is targetting a removed entity")
@@ -365,7 +400,9 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		if entity.targetEntity then
-			if self:entityCanSeeEntity(entity, entity.targetEntity) then
+			local dist = self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y)
+			local sensed = entity.creatureType.targetLocationSenseRange and dist <= entity.creatureType.targetLocationSenseRange
+			if sensed or self:entityCanSeeEntity(entity, entity.targetEntity) then
 				entity.lastKnownTargetLocation = {
 					x = entity.targetEntity.x,
 					y = entity.targetEntity.y
@@ -466,6 +503,7 @@ function game:updateEntitiesAndProjectiles()
 	processActions("shoot")
 	processActions("mindAttack")
 	processActions("melee")
+	processActions("summon")
 	self:updateProjectiles()
 	local function actionsProcessSecondPart()
 		-- Moved to this function (called after death checks) to change some things
@@ -746,6 +784,7 @@ function game:updateEntitiesAndProjectiles()
 		end
 		-- state.damagesQueue is set to a new table after all entities are handled by this loop
 
+		local killedThisTick = false
 		if not entity.dead then
 			local cause
 			if entity.health <= 0 then
@@ -759,12 +798,13 @@ function game:updateEntitiesAndProjectiles()
 			end
 			if cause then
 				deathEventData = kill(entity, false, cause)
+				killedThisTick = true
 			end
 		end
 
 		local gibbed = false
 		local gibThreshold = -entity.creatureType.maxHealth * 2.2
-		if entity.health <= gibThreshold then
+		if entity.health <= gibThreshold or entity.creatureType.gibOnDeath and killedThisTick then
 			gibbed = true
 			state.entitiesToRemove[entity] = true
 
@@ -781,6 +821,9 @@ function game:updateEntitiesAndProjectiles()
 				})
 
 				local gibForce = (gibThreshold - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
+				if entity.creatureType.minGibForce then
+					gibForce = math.max(gibForce, entity.creatureType.minGibForce)
+				end
 				local fleshAmount = math.floor(entity.creatureType.maxHealth ^ 0.85 * 3.2)
 				local extraBlood = entity.creatureType.gibBloodRelease or entity.creatureType.maxBlood and math.floor(entity.creatureType.maxBlood * 1.1) or 0
 				local bloodAmount = (entity.blood or 0) + extraBlood
@@ -1016,6 +1059,11 @@ function game:getDefenceMultiplier(defence)
 end
 
 function game:damageEntity(entity, damage, source, bleedRateAdd, instantBloodLoss, ignoreArmour)
+	-- Check
+	if entity.creatureType.immuneToOwnAttacks and entity == source then
+		return
+	end
+
 	-- Deal
 
 	local effectiveDamage = damage or 0
@@ -1173,6 +1221,7 @@ function game:updateEntitiesToDraw(dt)
 	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimer - dt
 	if state.incrementEntityDisplaysTimer <= 0 then
 		state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimerLength
+		state.suppressIncrementEntityDisplaysIndicator = false
 		incrementEntityDisplays = true
 	end
 	state.incrementingEntityDisplays = incrementEntityDisplays -- Just so that we can guarantee at least one frame of switching indicator
@@ -1222,7 +1271,8 @@ end
 function game:abilityShoot(entity, action, ability, targetEntity)
 	local aimX, aimY = entity.x + action.relativeX, entity.y + action.relativeY
 	local entityHitRandomSeed = love.math.random(0, 2 ^ 32 - 1) -- So that you can't shoot every entity on a single tile with a single spread
-	for _=1, ability.shotCount or 1 do
+	local count = ability.shotCount or 1
+	for i = 1, count do
 		local spread = ability.spread or 0
 		spread = spread ~= 0 and spread or nil
 		self:newProjectile({
@@ -1250,6 +1300,9 @@ function game:abilityShoot(entity, action, ability, targetEntity)
 			aimX = aimX,
 			aimY = aimY,
 			bulletSpread = spread,
+			evenSpread = ability.evenSpread,
+			bulletIndex = i,
+			bulletCount = count,
 
 			trailParticleInfo = ability.trailParticleInfo,
 
@@ -1489,6 +1542,67 @@ function game:isEntityBleedingOut(entity)
 		if bleedingAmount <= 0 then
 			return false, lostAnyBlood
 		end
+	end
+end
+
+function game:mindAttackOtherEntity(source, target, amount)
+	if target.creatureType.psychicDamageDeathPoint then
+		target.psychicDamage = (target.psychicDamage or 0) + amount
+		target.psychicDamageTakenThisTick = (target.psychicDamageTakenThisTick or 0) + amount
+	end
+end
+
+function game:doSummonAbility(entity, ability)
+	local lastKnownTargetLocation
+	if entity.lastKnownTargetLocation then
+		lastKnownTargetLocation = {
+			entity.lastKnownTargetLocation.x,
+			entity.lastKnownTargetLocation.y
+		}
+	end
+	local choices = {}
+	local x, y, radius = entity.x, entity.y, ability.radius
+	local checkFunction = function(self, x, y)
+		return self:getWalkable(x, y, true, self.state.creatureTypes[ability.creatureTypeName].flying)
+	end
+	for tileX = x - radius, x + radius do
+		for tileY = y - radius, y + radius do
+			local tile = self:getTile(tileX, tileY)
+
+			-- if tileX == x and tileY == y then
+			-- 	choices[#choices+1] = tile
+			-- 	goto continue
+			-- end
+
+			if not tile then
+				goto continue
+			end
+			if not checkFunction(self, tileX, tileY) then
+				goto continue
+			end
+			local dist = self:distance(x, y, tileX, tileY)
+			if dist > radius then
+				goto continue
+			end
+			if not self:hitscan(x, y, tileX, tileY, self.tileBlocksAirMotion) then
+				goto continue
+			end
+			choices[#choices+1] = tile
+			::continue::
+		end
+	end
+	if #choices == 0 then
+		return
+	end
+	for _=1, ability.creaturesPerSummon do
+		local choice = choices[love.math.random(#choices)]
+		self:newCreatureEntity({
+			x = choice.x, y = choice.y,
+			team = entity.team,
+			creatureTypeName = ability.creatureTypeName,
+			targetEntity = entity.targetEntity,
+			lastKnownTargetLocation = lastKnownTargetLocation
+		})
 	end
 end
 

@@ -45,6 +45,8 @@ function game:loadMaterials()
 
 	addMaterial("water", "water", "darkBlue", "liquid")
 	addMaterial("ice", "ice", "cyan", "solid")
+	local snow = addMaterial("snow", "snow", "white", "solid")
+	snow.spatterCharSet = "layerCovering"
 
 	local steel = addMaterial("steel", "steel", "darkGrey", "solid")
 	steel.armourInfo = {
@@ -87,7 +89,8 @@ function game:loadMaterials()
 		addMaterial("granite", "granite", "lightGrey", "solid"),
 		addMaterial("marble", "marble", "white", "solid"),
 		addMaterial("marbleGreen", "green marble", "darkGreen", "solid"),
-		addMaterial("obsidian", "obsidian", "darkGrey", "solid")
+		addMaterial("obsidian", "obsidian", "darkGrey", "solid"),
+		addMaterial("basalt", "basalt", "darkGrey", "solid")
 	)
 
 	addMaterial("porcelain", "porcelain", "white", "solid")

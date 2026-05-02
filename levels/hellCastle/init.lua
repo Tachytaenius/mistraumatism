@@ -77,7 +77,7 @@ function info:createLevel()
 		elseif value == 0x2a then
 			self:placeExaminable(x, y, "statue3", "granite", "They worship an icon of abuse.")
 		elseif value == 0x2c then
-			self:placeDoorItem(x, y, "heavyDoor", "mahogany", false)
+			self:placeDoorItem(x, y, "heavyDoor", "mahogany", false, "noKey")
 			secretLibraryBookDoorCoord = {x = x, y = y}
 		elseif value == 0x2d then
 			leversToPlace[#leversToPlace+1] = function()
@@ -255,7 +255,7 @@ function info:createLevel()
 			end
 		elseif value == 0xfe then
 			local tile = self:getTile(x, y)
-			tile.fallLevelChange = "exit"
+			tile.fallLevelChange = "patriarchalCesspool"
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end

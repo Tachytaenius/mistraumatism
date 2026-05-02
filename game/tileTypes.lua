@@ -160,6 +160,15 @@ function game:loadTileTypes()
 			solidity = "passable",
 			character = "░"
 		},
+		frozenFloor = {
+			displayName = "frozen floor",
+			solidity = "passable",
+			character = "░",
+			secondaryColour = "white",
+			-- character = "▒",
+			-- secondaryColourDarkenedMaterial = true,
+			swapColours = true,
+		},
 		brickWall = {
 			displayName = "brick wall",
 			solidity = "solid",
@@ -377,7 +386,7 @@ function game:loadTileTypes()
 			solidity = "projectilePassable",
 			blocksLight = false,
 			character = "╬"
-		},
+		}
 	}
 end
 

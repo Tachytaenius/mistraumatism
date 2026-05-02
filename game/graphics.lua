@@ -408,6 +408,12 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					cell.foregroundColour = darker
 				end
 			end
+			if tileType.secondaryColourDarkenedMaterial then
+				local darker = consts.darkerColours[state.materials[tile.material].colour]
+				if darker then
+					cell.backgroundColour = darker
+				end
+			end
 			local box
 			cell.character, box = getTileCharacter(tileX, tileY)
 			if tileType.swapColours and not (box and tileType.swapColoursSingleOnly) then
@@ -431,15 +437,21 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						cell.foregroundColour = material.colour
 					end
 					if tileType.solidity ~= "solid" and not (tile.liquid and matterState == "liquid") then
+						local amountRank
 						if largestSpatter.amount >= consts.spatterThreshold4 then
-							-- cell.character = matterState == "liquid" and "█" or "▓"
-							cell.character = matterState == "liquid" and "≈" or "▒"
+							amountRank = 4
 						elseif largestSpatter.amount >= consts.spatterThreshold3 then
-							cell.character = matterState == "liquid" and "≈" or "░"
+							amountRank = 3
 						elseif largestSpatter.amount >= consts.spatterThreshold2 then
-							cell.character = matterState == "liquid" and "~" or "•"
-						elseif largestSpatter.amount >= 1 and matterState == "solid" then
-							cell.character = "."
+							amountRank = 2
+						elseif largestSpatter.amount >= 1 then
+							amountRank = 1
+						end
+
+						local set = material.spatterCharSet or matterState
+						local spatterChar = consts.spatterCharacters[set][amountRank]
+						if spatterChar then
+							cell.character = spatterChar
 						end
 					end
 				end
@@ -549,6 +561,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		drawCharacterWorldToViewport(destX, destY, character, colour, "black")
 	end
 	local function shouldReplaceWithSwitchIndicator(entity)
+		if state.suppressIncrementEntityDisplaysIndicator then
+			return false
+		end
 		local x, y = entity.x, entity.y
 		if state.tileEntityLists[x] and state.tileEntityLists[x][y] then
 			if #state.tileEntityLists[x][y].all <= 1 then

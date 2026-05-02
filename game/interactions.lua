@@ -97,8 +97,12 @@ function game:loadInteractionTypes()
 		end
 		if doorData and doorData.lockName then
 			local item = self:getHeldItem(interactor)
-			if not item or item.lockName ~= doorData.lockName then
-				self:announce("This door is locked, you need a specific key.", "darkYellow")
+			if (not item or item.lockName ~= doorData.lockName) and not interactor.creatureType.canUnlockAnyDoor then
+				local shutOrOpen = doorData.open and "open" or "shut"
+				local keyMention = doorData.lockName == "noKey" and "" or " and needs a key"
+				if interactor == self.state.player and self.state.player then
+					self:announce("The door is locked " .. shutOrOpen .. keyMention .. ".", "darkYellow")
+				end
 				return
 			end
 		end
@@ -125,7 +129,7 @@ function game:loadInteractionTypes()
 		local unlocked = false
 		if doorData and doorData.lockName then
 			local item = self:getHeldItem(interactor)
-			if item.lockName ~= doorData.lockName then
+			if not interactor.creatureType.canUnlockAnyDoor and (not item or item.lockName ~= doorData.lockName) then
 				return
 			else
 				unlocked = true
@@ -270,17 +274,6 @@ function game:loadInteractionTypes()
 	end
 	interactionTypes.lever.startInfoHeld = interactionTypes.lever.startInfoWorld
 	interactionTypes.lever.resultHeld = interactionTypes.lever.resultWorld
-
-	interactionTypes.heavyDoor = {}
-	function interactionTypes.heavyDoor:startInfoWorld(interactor, interactionType, interactee)
-		return 12
-	end
-	function interactionTypes.heavyDoor:resultWorld(interactor, interactionType, interactee, info)
-		if not self.state.player or interactor ~= self.state.player then
-			return
-		end
-		self:announce("The door is too heavy to move.", "lightGrey")
-	end
 
 	interactionTypes.healItem = {}
 	local function checkHealHasEffect(entity, item)
