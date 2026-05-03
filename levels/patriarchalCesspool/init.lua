@@ -44,8 +44,12 @@ function info:createLevel() -- name should be the name of the directory containi
 				self:placeItem(x, y, "rocket", "plasticBrown")
 			end
 
-			self:placeItem(x + 1, y, "pistol", "steel")
-			self:placeMagazineWithAmmo(x + 1, y, "pistolMagazine", "steel", "smallBullet", "brass")
+			-- self:placeItem(x + 1, y, "pistol", "steel")
+			-- self:placeMagazineWithAmmo(x + 1, y, "pistolMagazine", "steel", "smallBullet", "brass")
+			self:placeItem(x + 1, y, "revolverDoubleAction", "steel")
+			for _=1, 12 do
+				self:placeItem(x + 1, y, "mediumBullet", "brass")
+			end
 
 			self:placeItem(x, y + 1, "smallMedkit", "plasticGreen")
 

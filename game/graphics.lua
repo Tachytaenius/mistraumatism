@@ -960,6 +960,26 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 							(item.actionOpen and "Open" or "Shut") ..
 							"\n" ..
 							(not item.cockedStates[1] and not item.cockedStates[2] and "Both uncocked" or (item.cockedStates[1] and "Cocked" or "Uncocked") .. "∙" .. (item.cockedStates[2] and "Cocked" or "Uncocked"))
+					elseif itemType.displayAsRevolver then
+						local current = self:getAmmoSelection()
+						-- local nextRound = item.magazineData[#item.magazineData]
+						local roundInfo = {}
+						for i = 1, item.itemType.magazineCount do
+							local round = item.magazineDataList[i][1]
+							local roundChar = not round and "○" or not round.fired and "•" or "x"
+							if i == current then
+								roundInfo[i] = "→" .. roundChar
+							else
+								roundInfo[i] = roundChar
+							end
+						end
+						gunStatus =
+							-- (nextRound and (nextRound.fired and "Fired" or "Live") or "Empty") ..
+							-- "∙" ..
+							(item.shotCooldownTimer and "Working" or (item.itemType.noCocking and "Ready" or (item.cocked and "Cocked" or "Uncocked"))) .. "\n" ..
+							(item.actionOpen and "Open" or "Shut") ..
+							"∙" ..
+							table.concat(roundInfo)
 					else
 						local magazineItem = item.magazineData and item or item.insertedMagazine or nil -- The gun itself, an inserted magazine, or nothing
 						local nextRound = item.itemType.noChamber and magazineItem and magazineItem.magazineData[#magazineItem.magazineData] or item.chamberedRound

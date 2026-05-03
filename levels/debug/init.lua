@@ -33,8 +33,10 @@ function info:createLevel()
 		end
 	end
 
-	local monster = self:placeMonster(3, 11, "hellKing")
-	-- monster.noAI = true
+	-- for x = 4, 15 do
+	-- 	local monster = self:placeMonster(x, 15, "imp")
+	-- 	monster.noAI = true
+	-- end
 
 	for _=1, 20 do
 		-- self:placeMonster(20, 20, "zombie")
@@ -81,6 +83,37 @@ function info:createLevel()
 	cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
 	local cell = self:placeItem(1, 1, "railgunEnergyCell", "polymer")
 	cell.storedEnergy = self.state.itemTypes.railgunEnergyCell.maxEnergy
+
+	self:placeItem(3, 3, "revolverSingleAction", "steel")
+	for _=1, 16 do
+		self:placeItem(3, 3, "smallBullet", "brass")
+	end
+
+	self:placeItem(2, 3, "revolverDoubleAction", "steel")
+	for _=1, 12 do
+		self:placeItem(2, 3, "mediumBullet", "brass")
+	end
+
+	self:placeItem(4, 4, "pistol", "steel")
+	for _=1, 3 do
+		self:placeMagazineWithAmmo(4, 4, "pistolMagazine", "steel", "smallBullet", "brass")
+	end
+
+	self:placeItem(5, 2, "sawnShotgun", "steel")
+	self:placeItem(5, 2, "huntingShotgun", "steel")
+	self:placeItem(5, 2, "pumpShotgun", "steel")
+	self:placeItem(5, 2, "autoShotgun", "polymer")
+	for _=1, 16 do
+		self:placeItem(5, 3, "buckshotShell", "plasticRed")
+	end
+	for _=1, 16 do
+		self:placeItem(6, 3, "slugShell", "plasticGreen")
+	end
+
+	-- self:placeItem(5, 4, "grenadeLauncher", "steel")
+	-- for _=1, 4 do
+	-- 	self:placeItem(5, 4, "ammoGrenade", "plasticRed")
+	-- end
 
 	-- self:placeItem(2, 1, "plasmaShotgun", "polymer")
 	-- self:placeItem(3, 1, "plasmaRifle", "polymer")

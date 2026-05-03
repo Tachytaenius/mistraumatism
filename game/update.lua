@@ -23,9 +23,11 @@ function game:realtimeUpdate(dt)
 				self:setCursor()
 			end
 
-			if not (self.state.player or self.state.lastPlayerX) and self.state.lastPlayerY then
+			if not (self.state.player or self.state.lastPlayerX) and self.state.lastPlayerY then -- NOTE: Is this supposed to be like that?
 				return
 			end
+
+			self:updateAmmoSelection()
 
 			if self:isPlayerInControl() then
 				self.state.playerWasInControl = true

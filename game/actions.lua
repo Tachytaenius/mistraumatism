@@ -232,7 +232,8 @@ function game:loadActionTypes()
 			end
 		end
 		new.magazineSlotSelectionIndex = magazineSlotSelectionIndex
-		new.timer = ability and ability.shootTime or shotType == "throwHeldItem" and 4 or 1
+		local item = self:getHeldItem(entity)
+		new.timer = ability and ability.shootTime or shotType == "throwHeldItem" and 4 or (item and item.itemType.shootActionTimerLength or 1)
 		new.targetEntity = targetEntity
 		new.shotType = shotType
 		new.abilityName = abilityName
@@ -266,6 +267,20 @@ function game:loadActionTypes()
 		end
 
 		action.timer = action.timer - 1
+		local heldItem = self:getHeldItem(entity)
+		if action.shotType == "heldItem" and heldItem then
+			if action.timer == heldItem.itemType.rotateForwardsWhenShootActionTimerReaches then
+				self:rotateMagazineDataList(heldItem, "forwards")
+			end
+			if action.timer == heldItem.itemType.cockWhenShootActionReaches then
+				if not heldItem.cocked then
+					if self:getHeldItem(entity).itemType.rotateForwardsWhenCocked then
+						self:rotateMagazineDataList(self:getHeldItem(entity), "forwards")
+					end
+					self:getHeldItem(entity).cocked = true
+				end
+			end
+		end
 		if action.timer <= 0 then
 			action.doneType = "completed"
 			local targetEntity
@@ -350,7 +365,7 @@ function game:loadActionTypes()
 			return shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity(), "throwHeldItem")
 		end
 		local magIndex
-		if self:getHeldItem(player).itemType.alteredMagazineUse == "select" then
+		if self:getHeldItem(player).itemType.alteredMagazineUse == "selectEitherShot" then
 			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
 				magIndex = "all"
 			elseif commands.checkCommand("operateGunSide1") then
@@ -556,7 +571,7 @@ function game:loadActionTypes()
 	end
 
 	local useHeldItem = newActionType("useHeldItem", "use item")
-	function useHeldItem.construct(self, entity, item, manualCockedStateSelection, energyWeaponModeSet, magazineSelection)
+	function useHeldItem.construct(self, entity, item, manualCockedStateSelection, energyWeaponModeSet, magazineSelection, isConstructingFromInput)
 		if not self:getHeldItem(entity) or item ~= self:getHeldItem(entity) then
 			return
 		end
@@ -564,7 +579,7 @@ function game:loadActionTypes()
 		if itemType.interactionType and itemType.interactionType.startInfoHeld then
 			local new = {type = "useHeldItem"}
 			new.item = self:getHeldItem(entity)
-			new.timer, new.useInfo = itemType.interactionType.startInfoHeld(self, entity, "held", new.item)
+			new.timer, new.useInfo = itemType.interactionType.startInfoHeld(self, entity, "held", new.item, isConstructingFromInput)
 			if not new.timer then
 				return
 			end
@@ -634,7 +649,7 @@ function game:loadActionTypes()
 						heldItem.actionOpen = not heldItem.actionOpen
 						if heldItem.actionOpen and heldItem.itemType.automaticEjection then
 							if heldItem.ejectorStates then
-								for i = 1, heldItem.itemType.magazineCapacity do -- Assuming alteredMagazineUse == "select" or whatever
+								for i = 1, heldItem.itemType.magazineCapacity do -- Assuming alteredMagazineUse == "selectEitherShot" or whatever
 									if heldItem.ejectorStates[i] then
 										local ejected = heldItem.magazineData[i]
 										heldItem.magazineData[i] = nil
@@ -650,7 +665,7 @@ function game:loadActionTypes()
 							self:cycleGun(heldItem, entity.x, entity.y)
 						end
 					end
-				elseif heldItem.itemType.alteredMagazineUse == "selectWholeMag" and action.magazineSelection then
+				elseif heldItem.itemType.alteredMagazineUse == "selectWholeMag" and action.magazineSelection and not heldItem.itemType.fixedMagazineSelection then
 					heldItem.selectedMagazine = action.magazineSelection
 					self:updateCurrentSelectableMagazine(heldItem)
 				else
@@ -681,7 +696,7 @@ function game:loadActionTypes()
 				energyWeaponModeSet = "toBattery"
 			end
 
-			return useHeldItem.construct(self, player, self:getHeldItem(player), gunSideSelection, energyWeaponModeSet, gunSideSelection) -- Can be nil
+			return useHeldItem.construct(self, player, self:getHeldItem(player), gunSideSelection, energyWeaponModeSet, gunSideSelection, true) -- Can be nil
 		end
 	end
 
@@ -757,7 +772,7 @@ function game:loadActionTypes()
 			end
 		elseif action.reloadType == "addRoundToMagazineData" then
 			local spaceFree
-			if heldItem.itemType.alteredMagazineUse == "select" then
+			if heldItem.itemType.alteredMagazineUse == "selectEitherShot" then
 				if not action.magazineSlotSelectionIndex then
 					return false
 				end
@@ -802,7 +817,7 @@ function game:loadActionTypes()
 				if action.reloadType == "replaceMagazine" then
 					heldItem.insertedMagazine = item
 				elseif action.reloadType == "addRoundToMagazineData" then
-					if heldItem.itemType.alteredMagazineUse == "select" then
+					if heldItem.itemType.alteredMagazineUse == "selectEitherShot" then
 						heldItem.magazineData[action.magazineSlotSelectionIndex] = item
 					else
 						local mag = heldItem.itemType.alteredMagazineUse == "selectWholeMag" and heldItem.magazineDataList[action.whichMagazine] or heldItem.magazineData
@@ -841,7 +856,7 @@ function game:loadActionTypes()
 
 		if heldItem.itemType.magazine then
 			local selection, selectionType
-			if heldItem.itemType.alteredMagazineUse == "select" then
+			if heldItem.itemType.alteredMagazineUse == "selectEitherShot" then
 				if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
 
 				elseif commands.checkCommand("operateGunSide1") then
@@ -871,15 +886,30 @@ function game:loadActionTypes()
 				end
 				selectionType = "magazineSlotSelectionIndex"
 			elseif heldItem.itemType.alteredMagazineUse == "selectWholeMag" then
-				if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
-
-				elseif commands.checkCommand("operateGunSide1") then
-					selection = 1
-				elseif commands.checkCommand("operateGunSide2") then
-					selection = 2
+				if heldItem.itemType.loadAsRevolver then
+					selection = self:getAmmoSelection()
+					if not selection or heldItem.magazineDataList[selection][1] then
+						-- Invalid selection (slot already has a round), auto select
+						local offset = (heldItem.cocked and heldItem.itemType.loadMagazineStartOffsetCocked or heldItem.itemType.loadMagazineStartOffset) or 0
+						for i = 1, heldItem.itemType.magazineCount do
+							local i = (i - 1 + offset) % heldItem.itemType.magazineCount + 1
+							if not heldItem.magazineDataList[i][1] then
+								selection = i
+								break
+							end
+						end
+					end
 				else
-					-- TODO: Slightly more advanced automatic assumptions
-					selection = heldItem.selectedMagazine
+					if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+
+					elseif commands.checkCommand("operateGunSide1") then
+						selection = 1
+					elseif commands.checkCommand("operateGunSide2") then
+						selection = 2
+					else
+						-- TODO: Slightly more advanced automatic assumptions
+						selection = heldItem.selectedMagazine
+					end
 				end
 				if not selection then
 					return nil
@@ -912,7 +942,7 @@ function game:loadActionTypes()
 		end
 		local itemToUnload
 		if heldItem.itemType.magazine then
-			if selectType == "select" then
+			if selectType == "selectEitherShot" then
 				if not action.magazineSlotSelectionIndex then
 					return false
 				end
@@ -980,7 +1010,7 @@ function game:loadActionTypes()
 			local heldItem = self:getHeldItem(entity)
 			local unloadedItem
 			if heldItem.itemType.magazine then
-				if heldItem.itemType.alteredMagazineUse == "select" then
+				if heldItem.itemType.alteredMagazineUse == "selectEitherShot" then
 					unloadedItem = heldItem.magazineData[action.magazineSlotSelectionIndex]
 					heldItem.magazineData[action.magazineSlotSelectionIndex] = nil
 				elseif heldItem.itemType.alteredMagazineUse == "selectWholeMag" then
@@ -1017,7 +1047,7 @@ function game:loadActionTypes()
 		end
 
 		local selection, selectionKey
-		if self:getHeldItem(player).itemType.alteredMagazineUse == "select" then
+		if self:getHeldItem(player).itemType.alteredMagazineUse == "selectEitherShot" then
 			local magIndex
 			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
 
@@ -1058,15 +1088,42 @@ function game:loadActionTypes()
 			selection = magIndex
 			selectionKey = "magazineSlotSelectionIndex"
 		elseif self:getHeldItem(player).itemType.alteredMagazineUse == "selectWholeMag" then
-			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
-
-			elseif commands.checkCommand("operateGunSide1") then
-				selection = 1
-			elseif commands.checkCommand("operateGunSide2") then
-				selection = 2
+			if heldItem.itemType.loadAsRevolver then
+				selection = self:getAmmoSelection()
+				if not selection then
+					-- No selection, auto select
+					-- Try fired rounds first
+					local found = false
+					local offset = (heldItem.cocked and heldItem.itemType.loadMagazineStartOffsetCocked or heldItem.itemType.loadMagazineStartOffset) or 0
+					for i = 1, heldItem.itemType.magazineCount do
+						local i = (i - 1 + offset) % heldItem.itemType.magazineCount + 1
+						if heldItem.magazineDataList[i][1] and heldItem.magazineDataList[i][1].fired then
+							selection = i
+							found = true
+							break
+						end
+					end
+					if not found then
+						for i = 1, heldItem.itemType.magazineCount do
+							if heldItem.magazineDataList[i][1] then
+								selection = i
+								found = true
+								break
+							end
+						end
+					end
+				end
 			else
-				-- TODO: Slightly more advanced automatic assumptions
-				selection = heldItem.selectedMagazine
+				if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+
+				elseif commands.checkCommand("operateGunSide1") then
+					selection = 1
+				elseif commands.checkCommand("operateGunSide2") then
+					selection = 2
+				else
+					-- TODO: Slightly more advanced automatic assumptions
+					selection = heldItem.selectedMagazine
+				end
 			end
 			if not selection then
 				return nil

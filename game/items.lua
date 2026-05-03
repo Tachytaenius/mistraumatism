@@ -44,7 +44,7 @@ function game:newItemData(parameters)
 		new.storedEnergy = 0
 	end
 	if not itemType.noCocking then
-		if itemType.alteredMagazineUse == "select" then
+		if itemType.alteredMagazineUse == "selectEitherShot" then
 			new.cockedStates = {}
 		end
 	end
@@ -54,6 +54,74 @@ end
 
 function game:updateCurrentSelectableMagazine(item)
 	item.magazineData = item.magazineDataList[item.selectedMagazine]
+end
+
+function game:rotateMagazineDataList(item, direction)
+	-- Best to keep all accesses into magazineDataList as done by index, probably. As in, don't save the magazine tables to varaibles outside of magazineDataList since they can move around
+	if direction == "forwards" then
+		util.rotateArrayDownwards(item.magazineDataList) -- Every element is replaced by its next element
+	elseif direction == "backwards" then
+		util.rotateArrayUpwards(item.magazineDataList)
+	else
+		error("Unknown magazine list rotation direction " .. direction)
+	end
+	self:updateCurrentSelectableMagazine(item)
+end
+
+function game:cancelAmmoSelection()
+	self.state.ammoSelectionIndex = nil
+	self.state.ammoSelectionItem = nil
+end
+
+function game:checkAmmoSelection()
+	local player = self.state.player
+	if not player then
+		self:cancelAmmoSelection()
+		return
+	end
+	local item = self:getHeldItem(player)
+	if not item or not item.itemType.loadAsRevolver or item ~= self.state.ammoSelectionItem then
+		self:cancelAmmoSelection()
+	end
+	self.state.ammoSelectionItem = item
+end
+
+function game:updateAmmoSelection()
+	self:checkAmmoSelection()
+	local player = self.state.player
+	if not player then
+		return
+	end
+	local item = self:getHeldItem(player)
+	if not item or not item.itemType.loadAsRevolver then
+		return
+	end
+
+	local movement = 0
+	if commands.checkCommand("ammoListMode") then
+		if commands.checkCommand("deselectTarget") then
+			self.state.ammoSelectionIndex = nil
+		elseif not self.state.ammoSelectionIndex then
+			if commands.checkCommand("scrollListBackwards") or commands.checkCommand("scrollListForwards") then
+				self.state.ammoSelectionIndex = 1
+			end
+		else
+			if commands.checkCommand("scrollListBackwards") then
+				movement = movement - 1
+			end
+			if commands.checkCommand("scrollListForwards") then
+				movement = movement + 1
+			end
+		end
+	end
+	if self.state.ammoSelectionIndex then
+		self.state.ammoSelectionIndex = (self.state.ammoSelectionIndex - 1 + movement) % item.itemType.magazineCount + 1
+	end
+end
+
+function game:getAmmoSelection()
+	self:checkAmmoSelection()
+	return self.state.ammoSelectionIndex
 end
 
 function game:getGunMagazine(gun)
@@ -71,10 +139,10 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 	if gun.itemType.breakAction and gun.actionOpen then
 		return
 	end
-	if gun.itemType.alteredMagazineUse == "select" then
+	if gun.itemType.alteredMagazineUse == "selectEitherShot" then
 		assert(selection, "No selection passed to shootGun when firing a selection-type gun")
 	end
-	local selectType = gun.itemType.alteredMagazineUse == "select"
+	local selectType = gun.itemType.alteredMagazineUse == "selectEitherShot"
 	local energyType = gun.itemType.energyWeapon
 	local function setResult(result)
 		local index = selection or 1
@@ -167,7 +235,7 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 			end
 			if gunType.automaticEjection then
 				gun.ejectorStates = gun.ejectorStates or {}
-				gun.ejectorStates[gun.itemType.alteredMagazineUse == "select" and selection or 1] = true
+				gun.ejectorStates[gun.itemType.alteredMagazineUse == "selectEitherShot" and selection or 1] = true
 			end
 			setResult("fired")
 			gun.shotCooldownTimer = gunType.shotCooldownTimerLength -- Can be nil
@@ -213,6 +281,9 @@ function game:shootGun(entity, action, gun, targetEntity, selection, shotResultI
 			end
 		else
 			if entity == self.state.player then
+				if gun.itemType.engageCooldownOnClick then
+					gun.shotCooldownTimer = gunType.shotCooldownTimerLength -- Can be nil
+				end
 				setResult(energyType and "nothing" or "click")
 			end
 		end
@@ -259,7 +330,7 @@ end
 
 function game:cycleGun(gun, x, y)
 	local magazineData = gun.magazineData or gun.insertedMagazine and gun.insertedMagazine.magazineData or nil
-	if gun.itemType.alteredMagazineUse ~= "select" and not gun.itemType.cycleDoesntMoveAmmo then
+	if gun.itemType.alteredMagazineUse ~= "selectEitherShot" and not gun.itemType.cycleDoesntMoveAmmo then
 		if not gun.itemType.noChamber then
 			if gun.chamberedRound then
 				if x and y then
@@ -283,11 +354,14 @@ function game:cycleGun(gun, x, y)
 		end
 	end
 	if not gun.itemType.noCocking then
-		if gun.itemType.alteredMagazineUse == "select" then
+		if gun.itemType.alteredMagazineUse == "selectEitherShot" then
 			for i = 1, gun.itemType.magazineCapacity do
 				gun.cockedStates[i] = true
 			end
-		else
+		elseif not gun.cocked then
+			if gun.itemType.rotateForwardsWhenCocked then
+				self:rotateMagazineDataList(gun, "forwards")
+			end
 			gun.cocked = true
 		end
 	end

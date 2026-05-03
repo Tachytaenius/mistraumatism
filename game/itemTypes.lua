@@ -15,6 +15,10 @@ function game:loadItemTypes()
 
 	-- NOTE: The gun behaviour variables (like noChamber or alteredMagazineUse) were designed to reach specific intended behaviours, and random combinations of the variables probably won't lead to good results.
 
+	-- NOTE: The differences between guns are not always only in the name. For example, the double action and single action revolvers both take different ammunition, the sawn-off shotgun has external manually-cocked hammers, etc.
+
+	-- NOTE: The gun item type field names are informed by the hacky evolution of the codebase, not actual technical accuracy!
+
 	itemTypes.pistol = {
 		isGun = true,
 		tile = "¬",
@@ -42,18 +46,18 @@ function game:loadItemTypes()
 	itemTypes.smallBullet = {
 		isAmmo = true,
 		stackable = true,
-		maxStackSize = 4,
+		maxStackSize = 7,
 		tile = "i",
 		ammoClass = "bulletSmall",
 		displayName = "small bullet",
 		spread = 0,
-		damage = 14,
+		damage = 16,
 		bleedRateAdd = 10,
 		instantBloodLoss = 2,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 18,
 		range = 17,
-		projectileTile = "∙",
+		projectileTile = "·",
 		projectileColour = "darkGrey"
 	}
 
@@ -81,21 +85,79 @@ function game:loadItemTypes()
 		ammoClass = "bulletMedium",
 	}
 
+	itemTypes.revolverSingleAction = {
+		isGun = true,
+		tile = "¬",
+		ammoClass = "bulletSmall",
+		displayName = "SA revolver",
+		extraSpread = nil,
+		gunshotSoundRange = 15,
+		manual = true,
+		cycleDoesntMoveAmmo = true,
+		displayAsRevolver = true, -- For item info
+		breakAction = true,
+		noChamber = true,
+		magazine = true,
+		alteredMagazineUse = "selectWholeMag",
+		loadAsRevolver = true,
+		loadMagazineStartOffset = 1,
+		loadMagazineStartOffsetCocked = 0,
+		selectMagazineTimerLength = 1, -- Rotate cylinder
+		magazineCapacity = 1,
+		magazineCount = 8,
+		fixedMagazineSelection = true, -- Not strictly necessary since all the operation is done via the interaction type
+		rotateForwardsWhenCocked = true,
+		-- Using an interaction type instead of complicated behaviour dictated by confusing item type attributes
+		interactable = true,
+		interactionType = state.interactionTypes.revolver,
+		revolverType = "singleAction"
+	}
+
+	itemTypes.revolverDoubleAction = {
+		isGun = true,
+		tile = "¬",
+		ammoClass = "bulletMedium",
+		displayName = "DA revolver",
+		extraSpread = nil,
+		gunshotSoundRange = 17,
+		shootActionTimerLength = 3,
+		rotateForwardsWhenShootActionTimerReaches = 2,
+		cockWhenShootActionReaches = 2,
+		engageCooldownOnClick = true,
+		manual = true,
+		cycleDoesntMoveAmmo = true,
+		displayAsRevolver = true,
+		breakAction = true,
+		noChamber = true,
+		magazine = true,
+		alteredMagazineUse = "selectWholeMag",
+		loadMagazineStartOffset = 1,
+		loadAsRevolver = true,
+		selectMagazineTimerLength = 1,
+		magazineCapacity = 1,
+		magazineCount = 6,
+		fixedMagazineSelection = true, -- Not strictly necessary since all the operation is done via the interaction type
+		-- Using an interaction type instead of complicated behaviour dictated by confusing item type attributes
+		interactable = true,
+		interactionType = state.interactionTypes.revolver,
+		revolverType = "doubleAction"
+	}
+
 	itemTypes.mediumBullet = {
 		isAmmo = true,
 		stackable = true,
-		maxStackSize = 4,
+		maxStackSize = 6,
 		tile = "ì",
 		ammoClass = "bulletMedium",
 		displayName = "medium bullet",
 		spread = 0,
-		damage = 17,
+		damage = 24,
 		bleedRateAdd = 24,
 		instantBloodLoss = 3,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 16,
 		range = 18,
-		projectileTile = "∙",
+		projectileTile = "·",
 		projectileColour = "darkGrey"
 	}
 
@@ -127,12 +189,12 @@ function game:loadItemTypes()
 	itemTypes.largeBullet = {
 		isAmmo = true,
 		stackable = true,
-		maxStackSize = 3,
+		maxStackSize = 4,
 		tile = "î",
 		ammoClass = "bulletLarge",
 		displayName = "large bullet",
 		spread = 0,
-		damage = 23,
+		damage = 32,
 		bleedRateAdd = 96,
 		instantBloodLoss = 5,
 		bulletCount = 1,
@@ -210,7 +272,7 @@ function game:loadItemTypes()
 		magazineCount = 2,
 		selectMagazineTimerLength = 1
 	}
- 
+
 	itemTypes.huntingShotgun = {
 		isGun = true,
 		displayAsDoubleShotgun = true, -- For held item info
@@ -225,7 +287,7 @@ function game:loadItemTypes()
 		noChamber = true,
 		breakAction = true, -- Either in open (load/unload) mode or closed (fire (if cocked)) mode
 		cycleOnBreakActionClose = true,
-		alteredMagazineUse = "select", -- Implies multiple cocking components (number: magazineCapacity)
+		alteredMagazineUse = "selectEitherShot", -- Implies multiple cocking components (number: magazineCapacity)
 		magazine = true,
 		magazineCapacity = 2,
 		gunshotSoundRange = 16
@@ -245,7 +307,7 @@ function game:loadItemTypes()
 		cycleOnBreakActionClose = false, -- Manually-cocked external hammers
 		manuallyOperateCockedStates = true,
 		manualCockTime = 1,
-		alteredMagazineUse = "select",
+		alteredMagazineUse = "selectEitherShot",
 		magazine = true,
 		magazineCapacity = 2,
 		gunshotSoundRange = 16
@@ -265,7 +327,7 @@ function game:loadItemTypes()
 		instantBloodLoss = 1,
 		projectileSubtickMoveTimerLength = 20,
 		range = 16,
-		projectileTile = "∙",
+		projectileTile = "·",
 		projectileColour = "darkGrey"
 	}
 
@@ -276,7 +338,7 @@ function game:loadItemTypes()
 		tile = "▬",
 		ammoClass = "shellMedium",
 		displayName = "slug shell",
-		damage = 30,
+		damage = 40,
 		bulletCount = 1,
 		bleedRateAdd = 80,
 		instantBloodLoss = 7,
@@ -296,7 +358,7 @@ function game:loadItemTypes()
 		-- noCocking = true,
 		operationTimerLength = 1,
 		noChamber = true, -- Assumes magazine (can be inserted or integrated)
-		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore" or "select" or "selectWholeMag"
+		alteredMagazineUse = "ignore", -- nil for normal use of magazine, or "ignore" or "selectEitherShot" or "selectWholeMag"
 		manual = true,
 		magazine = true,
 		magazineCapacity = 1,
@@ -484,11 +546,11 @@ function game:loadItemTypes()
 			projectileTile = "°",
 			projectileColour = "white",
 			spread = 0,
-			damage = 600,
+			damage = 500,
 			bleedRateAdd = 500,
 			instantBloodLoss = 2,
 			bulletCount = 1,
-			projectileSubtickMoveTimerLength = 1,
+			projectileSubtickMoveTimerLength = 8,
 			range = 22,
 			maxPierces = 5,
 			trailParticleInfo = {

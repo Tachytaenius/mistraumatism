@@ -31,6 +31,7 @@ return {
 	useHeldItem = "pressed",
 	interact = "pressed",
 
+	ammoListMode = "hold",
 	scrollListBackwards = "repeat",
 	scrollListForwards = "repeat",
 
@@ -42,6 +43,8 @@ return {
 	operateGunSide2 = "hold",
 	energyWeaponChargeMode = "hold",
 	energyWeaponDischargeMode = "hold",
+	rotateAmmoBackwards = "hold",
+	rotateAmmoForwards = "hold",
 	changeWornItemMode = "hold",
 	handleInventorySlot1 = "pressed",
 	handleInventorySlot2 = "pressed",

@@ -960,6 +960,9 @@ function game:updateEntitiesAndProjectiles()
 				if not item.itemType.manual then
 					self:cycleGun(item, x, y)
 				end
+				if item.itemType.rotateForwardsWhenCooldownFinished then
+					self:rotateMagazineDataList(item, "forwards")
+				end
 			end
 		end
 		if item.itemType.energyWeapon then

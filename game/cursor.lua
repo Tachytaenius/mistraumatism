@@ -170,7 +170,7 @@ function game:updateCursor()
 		end
 	end
 
-	if state.cursor and commands.checkCommand("deselectTarget") then
+	if state.cursor and commands.checkCommand("deselectTarget") and not commands.checkCommand("ammoListMode") then
 		self:forceDeselectCursorEntity(nil)
 	end
 
@@ -178,11 +178,13 @@ function game:updateCursor()
 	if entityList and state.cursor then
 		local selectedEntity = self:getCursorEntity()
 		local movement = 0
-		if commands.checkCommand("scrollListBackwards") then
-			movement = movement - 1
-		end
-		if commands.checkCommand("scrollListForwards") then
-			movement = movement + 1
+		if not commands.checkCommand("ammoListMode") then
+			if commands.checkCommand("scrollListBackwards") then
+				movement = movement - 1
+			end
+			if commands.checkCommand("scrollListForwards") then
+				movement = movement + 1
+			end
 		end
 		local justGainedSelection = false
 		-- if not selectedEntity and (moved or movement ~= 0 or self:entityListChanged(state.cursor.x, state.cursor.y, "selectable")) then

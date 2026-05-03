@@ -315,7 +315,7 @@ function game:loadCreatureTypes()
 		tile = "K",
 		colour = "red",
 		flashDarkerColour = true,
-		-- bloodMaterialName = "bloodGreen",
+		fleshMaterialName = "inflictionMagic",
 		size = 8192,
 
 		moveTimerLength = 5,
@@ -339,13 +339,12 @@ function game:loadCreatureTypes()
 		passiveMindAttackDamageRate = 12,
 		passiveMindAttackRange = 14,
 		passiveMindAttackTeamThreshold = "friendly", -- Will attack friendlies or worse
-		targetLocationSenseRange = 15,
+		targetLocationSenseRange = 35,
 
 		hears = true,
 		alertAction = "chant",
 		alertActionUsesVocalisation = true,
 		vocalisationRange = 30,
-		painDamageThreshold = 2000,
 
 		chargeMelee = true,
 		canOpenDoors = true,

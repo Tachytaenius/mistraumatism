@@ -31,6 +31,7 @@ return {
 		clearCursor = "k",
 		deselectTarget = "#",
 
+		ammoListMode = "lalt",
 		scrollListBackwards = "[",
 		scrollListForwards = "]",
 
@@ -50,6 +51,8 @@ return {
 		operateGunSide2 = "lalt",
 		energyWeaponChargeMode = "lctrl",
 		energyWeaponDischargeMode = "lalt",
+		rotateAmmoBackwards = "lalt",
+		rotateAmmoForwards = "lctrl",
 		changeWornItemMode = "o",
 		handleInventorySlot1 = "1",
 		handleInventorySlot2 = "2",

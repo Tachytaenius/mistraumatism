@@ -90,6 +90,7 @@ function info:createLevel()
 				self:placeLever(x + 5, y + 2, "leather", false, onActivate, onDeactivate, nil, nil, "leverBook")
 			end
 			self:placeExaminable(x + 1, y + 4, "largeBook", "gold", "It's a torture manual... The techniques listed would\ncause unimaginable pain.")
+			-- NOTE: These books have no relation to potential real-life books of the same name, if any exist.
 			self:placeExaminable(x + 2, y + 2, "book", "leather", "It's the first volume of a novel entitled \"Spoils\".")
 			self:placeExaminable(x + 2, y + 2, "book", "leather", "It's the second volume of a novel entitled \"Spoils\".")
 			self:placeExaminable(x + 3, y + 2, "book", "leather", "It's the third volume of a novel entitled \"Spoils\".")

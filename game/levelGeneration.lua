@@ -136,9 +136,7 @@ function game:placeCritter(x, y, creatureTypeName, ...)
 end
 
 function game:placeDoorItem(x, y, itemTypeName, material, open, lockName)
-	if open and lockName then
-		error("Can't place a door which is open and locked because opening with a key removes the door's lock. Proper door locking/unlocking would be a TODO.")
-	end
+	-- Proper locking/unlocking is TODO
 	local tile = self:getTile(x, y)
 	if not tile then
 		return

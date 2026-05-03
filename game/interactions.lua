@@ -1,3 +1,5 @@
+local commands = require("commands")
+
 local game = {}
 
 function game:isDoorBlocked(doorEntity)
@@ -360,6 +362,111 @@ function game:loadInteractionTypes()
 		end
 	end
 	interactionTypes.healItem.resultHeld = interactionTypes.healItem.resultWorld
+
+	interactionTypes.revolver = {}
+	function interactionTypes.revolver:startInfoHeld(interactor, interactionType, interactee, isConstructingFromInput)
+		local item = interactee
+		local itemType = item.itemType
+		local revolverType = itemType.revolverType
+		if not revolverType then
+			return
+		end
+
+		local motionLength, motion
+		if isConstructingFromInput then
+			local inputA = commands.checkCommand("rotateAmmoBackwards")
+			local inputB = commands.checkCommand("rotateAmmoForwards")
+			local unloadInput = commands.checkCommand("unloadMode")
+			local reloadInput = commands.checkCommand("reloadMode")
+			-- if inputA and inputB then
+			-- 	motionLength = 2
+			-- 	motion = item.actionOpen and "close" or "open"
+			-- elseif inputA then
+			-- 	motionLength = 1
+			-- 	motion = "rotateBackwards"
+			-- elseif inputB then
+			-- 	motionLength = 1
+			-- 	motion = "rotateForwards"
+			-- else
+			-- 	if item.actionOpen then
+			-- 		motionLength = 2
+			-- 		motion = "eject"
+			-- 	elseif revolverType == "singleAction" then
+			-- 		motionLength = 2
+			-- 		motion = "cock"
+			-- 	end
+			-- end
+			if reloadInput then
+				motionLength = 2
+				motion = item.actionOpen and "close" or "open"
+			elseif unloadInput then
+				if item.actionOpen then
+					motionLength = 2
+					motion = "eject"
+				else
+					return
+				end
+			elseif inputA and inputB then
+				return
+			elseif inputA then
+				motionLength = 1
+				motion = "rotateForwards"
+			elseif inputB then
+				motionLength = 1
+				motion = "rotateBackwards"
+			else
+				if not item.actionOpen then
+					motionLength = 2
+					motion = "cock"
+				else
+					return
+				end
+			end
+		end
+
+		if not (motionLength and motion) then
+			return
+		end
+		return motionLength, {motion = motion}
+	end
+	function interactionTypes.revolver:resultHeld(interactor, interactionType, interactee, info)
+		local item = interactee
+		local itemType = item.itemType
+		local revolverType = itemType.revolverType
+		if not revolverType then
+			return
+		end
+
+		local motion = info.motion
+		if not motion then
+			return
+		end
+
+		if motion == "close" then
+			item.actionOpen = false
+		elseif motion == "open" then
+			item.actionOpen = true
+		elseif motion == "cock" and not item.actionOpen and revolverType == "singleAction" then
+			if not item.cocked then
+				if item.itemType.rotateForwardsWhenCocked then
+					self:rotateMagazineDataList(item, "forwards")
+				end
+				item.cocked = true
+			end
+		elseif motion == "eject" and item.actionOpen then
+			for _, chamber in ipairs(item.magazineDataList) do
+				local round = table.remove(chamber)
+				if round then
+					-- Not bothering with choosable item drop location
+					self:newItemEntity(interactor.x, interactor.y, round)
+				end
+			end
+		elseif motion == "rotateBackwards" then
+			self:rotateMagazineDataList(item, "backwards")
+		elseif motion == "rotateForwards" then
+			self:rotateMagazineDataList(item, "forwards")
+		end
+	end
 
 	self.state.interactionTypes = interactionTypes
 end
