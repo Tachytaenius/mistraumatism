@@ -162,7 +162,10 @@ function info:createLevel() -- name should be the name of the directory containi
 
 	return {
 		spawnX = spawnX,
-		spawnY = spawnY
+		spawnY = spawnY,
+		postLevelGen = function()
+			self:setReachedSafety()
+		end
 	}
 end
 

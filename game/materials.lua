@@ -107,16 +107,30 @@ function game:loadMaterials()
 	)
 
 	addMaterial("ivy", "ivy", "darkGreen", "solid")
+
 	local borage = addMaterial("borage", "borage", "blue", "solid")
 	borage.flowerTile = "*"
+	borage.effectOnFlowerEat = function(self, entity)
+		entity.borageCourage = true
+	end
+
 	local daisy = addMaterial("daisy", "daisy", "white", "solid")
 	daisy.flowerTile = "*"
+
 	local bluebell = addMaterial("bluebell", "bluebell", "blue", "solid")
 	bluebell.flowerTile = "⌠"
+
 	local foxglove = addMaterial("foxglove", "foxglove", "darkMagenta", "solid")
 	foxglove.flowerTile = "⌠"
-	local roseWithered = addMaterial("rose", "rose", "red", "solid")
-	roseWithered.flowerTile = "@"
+
+	local rose = addMaterial("rose", "rose", "red", "solid")
+	rose.flowerTile = "@"
+	rose.effectOnFlowerEat = function(self, entity)
+		if entity == self.state.player and not self.state.reachedSafety then
+			entity.roseRage = true -- This is set to false upon reaching safety
+		end
+	end
+
 	local roseWithered = addMaterial("roseWithered", "withered rose", "darkYellow", "solid")
 	roseWithered.flowerTile = "§"
 

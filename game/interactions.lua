@@ -468,6 +468,26 @@ function game:loadInteractionTypes()
 		end
 	end
 
+	interactionTypes.flower = {}
+	function interactionTypes.flower:startInfoHeld(interactor, interactionType, interactee)
+		local item = interactionType == "world" and interactee.itemData or interactee
+		local material = self.state.materials[item.material]
+		if material.effectOnFlowerEat then
+			return 2
+		end
+	end
+	function interactionTypes.flower:resultHeld(interactor, interactionType, interactee, info)
+		local item = interactionType == "world" and interactee.itemData or interactee
+		local material = self.state.materials[item.material]
+		if material.effectOnFlowerEat then
+			if interactor == self.state.player and self.state.player then
+				self:announce("You eat the " .. material.displayName .. ".", "lightGrey")
+			end
+			material.effectOnFlowerEat(self, interactor)
+			return {deleteInteractee = true}
+		end
+	end
+
 	self.state.interactionTypes = interactionTypes
 end
 

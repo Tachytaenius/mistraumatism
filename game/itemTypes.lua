@@ -767,7 +767,9 @@ function game:loadItemTypes()
 		readMaterialTileField = "flowerTile",
 		displayName = "flower",
 		stackable = true,
-		maxStackSize = 6
+		maxStackSize = 6,
+		interactable = true,
+		interactionType = state.interactionTypes.flower
 	}
 	itemTypes.sapling = {
 		tile = "τ",

@@ -203,4 +203,12 @@ function game:distance(x1, y1, x2, y2)
 	return self:length(x2 - x1, y2 - y1)
 end
 
+function game:setReachedSafety()
+	self.state.reachedSafety = true
+	local player = self.state.player
+	if player then
+		player.roseRage = false
+	end
+end
+
 return game
