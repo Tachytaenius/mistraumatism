@@ -97,7 +97,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local topLeftX = cameraX - math.floor(self.viewportWidth / 2)
 	local topLeftY = cameraY - math.floor(self.viewportHeight / 2)
 
-	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight, edgeVisibilityMap = self:computeVisibilityMap(cameraX, cameraY, cameraSightDistance, nil, nil, true)
+	local visibilityMap, visibilityMapTopLeftX, visibilityMapTopLeftY, visibilityMapWidth, visibilityMapHeight, edgeVisibilityMap = self:computeVisibilityMap(cameraX, cameraY, cameraSightDistance, nil, self.state.debugFullVision, true)
 	assert(visibilityMapTopLeftX == topLeftX)
 	assert(visibilityMapTopLeftY == topLeftY)
 	assert(visibilityMapWidth == self.viewportWidth)

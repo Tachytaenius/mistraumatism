@@ -651,8 +651,8 @@ function game:loadCreatureTypes()
 
 		moveTimerLength = 6,
 		sightDistance = 15,
-		maxHealth = 32,
-		maxBlood = 32,
+		maxHealth = 36,
+		maxBlood = 36,
 		bleedHealRate = 56,
 		meleeTimerLength = 9,
 		meleeDamage = 8,

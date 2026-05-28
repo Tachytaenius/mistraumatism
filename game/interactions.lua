@@ -415,7 +415,7 @@ function game:loadInteractionTypes()
 				motionLength = 1
 				motion = "rotateBackwards"
 			else
-				if not item.actionOpen then
+				if not item.actionOpen and revolverType == "singleAction" then
 					motionLength = 2
 					motion = "cock"
 				else
