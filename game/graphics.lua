@@ -1180,7 +1180,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local damageMultiplierS2 = damageMultiplierS:sub(3, 4)
 			drawStringFramebuffer(x + 2, y, damageMultiplierS1, "lightGrey", "black")
 			drawStringFramebuffer(x + 2, y + 1, damageMultiplierS2, "lightGrey", "black")
-			drawStringFramebuffer(x, y + 2, tostring(wear), "lightGrey", "black")
+			drawStringFramebuffer(x, y + 2, wear .. "/", "lightGrey", "black")
 			drawStringFramebuffer(x, y + 3, tostring(durability), "lightGrey", "black")
 		end
 	else
