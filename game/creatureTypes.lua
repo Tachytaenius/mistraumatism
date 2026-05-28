@@ -198,7 +198,7 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 4,
 		meleeDamage = 4,
 		meleeBleedRateAdd = 16,
-		meleeInstantBloodLoss = 1,
+		-- meleeInstantBloodLoss = 1,
 		shootAggressiveness = 0.25,
 
 		hears = true,
@@ -279,7 +279,7 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 5,
 		meleeDamage = 15,
 		meleeBleedRateAdd = 64,
-		meleeInstantBloodLoss = 5,
+		-- meleeInstantBloodLoss = 5,
 		shootAggressiveness = 0.2,
 
 		inventorySize = 1,
@@ -325,7 +325,7 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 1,
 		meleeDamage = 1000,
 		meleeBleedRateAdd = 1024,
-		meleeInstantBloodLoss = 20,
+		-- meleeInstantBloodLoss = 20,
 		immuneToOwnAttacks = true,
 		gibOnDeath = true,
 		minGibForce = 15,
@@ -398,7 +398,7 @@ function game:loadCreatureTypes()
 				projectileSubtickMoveTimerLength = 24,
 				damage = 160,
 				bleedRateAdd = 40,
-				instantBLoodLoss = 4,
+				-- instantBloodLoss = 4,
 				range = 40,
 				shotCount = 3,
 				evenSpread = true,
@@ -444,7 +444,7 @@ function game:loadCreatureTypes()
 				projectileSubtickMoveTimerLength = 1024,
 				damage = 200,
 				bleedRateAdd = 600,
-				instantBLoodLoss = 6,
+				-- instantBLoodLoss = 6,
 				range = 20,
 				shotCount = 6,
 				spread = 0.2,
@@ -532,7 +532,7 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 4,
 		meleeDamage = 24,
 		meleeBleedRateAdd = 80,
-		meleeInstantBloodLoss = 10,
+		-- meleeInstantBloodLoss = 10,
 		attackDeadTargets = true,
 
 		hears = true
@@ -589,7 +589,7 @@ function game:loadCreatureTypes()
 		maxHealth = 1,
 		meleeTimerLength = 3,
 		meleeDamage = 0,
-		meleeInstantBloodLoss = 3,
+		-- meleeInstantBloodLoss = 3,
 
 		engagesAtRange = true,
 		preferredEngagementRange = 7,
@@ -630,7 +630,7 @@ function game:loadCreatureTypes()
 		maxHealth = 2,
 		meleeTimerLength = 3,
 		meleeDamage = 2,
-		meleeInstantBloodLoss = 3,
+		-- meleeInstantBloodLoss = 3,
 
 		hears = false,
 		alertAction = "scream",
@@ -657,7 +657,7 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 9,
 		meleeDamage = 8,
 		meleeBleedRateAdd = 12,
-		meleeInstantBloodLoss = 0,
+		-- meleeInstantBloodLoss = 0,
 
 		inventorySize = 1,
 
@@ -688,7 +688,7 @@ function game:loadCreatureTypes()
 		meleeTimerLength = 4,
 		meleeDamage = 8,
 		meleeBleedRateAdd = 16,
-		meleeInstantBloodLoss = 1,
+		-- meleeInstantBloodLoss = 1,
 		shootAggressiveness = 0.25,
 
 		hears = true,
