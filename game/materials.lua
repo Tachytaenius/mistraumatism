@@ -93,6 +93,9 @@ function game:loadMaterials()
 		addMaterial("basalt", "basalt", "darkGrey", "solid")
 	)
 
+	local salt = addMaterial("salt", "salt", "white", "solid")
+	salt.spatterCharSet = "layerCovering"
+
 	addMaterial("porcelain", "porcelain", "white", "solid")
 	addMaterial("plywood", "plywood", "darkYellow", "solid")
 	addMaterial("lino", "lino", "darkGrey", "solid")

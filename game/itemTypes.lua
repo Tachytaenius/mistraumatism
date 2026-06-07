@@ -52,7 +52,7 @@ function game:loadItemTypes()
 		displayName = "small bullet",
 		spread = 0,
 		damage = 16,
-		bleedRateAdd = 10,
+		bleedRateAdd = 20,
 		-- instantBloodLoss = 2,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 18,
@@ -152,7 +152,7 @@ function game:loadItemTypes()
 		displayName = "medium bullet",
 		spread = 0,
 		damage = 24,
-		bleedRateAdd = 24,
+		bleedRateAdd = 36,
 		-- instantBloodLoss = 3,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 16,
@@ -375,16 +375,16 @@ function game:loadItemTypes()
 		inheritAmmoColour = true, -- projectileColour is a default
 		ammoClass = "rocket",
 		displayName = "rocket",
-		damage = 40,
+		damage = 20,
 		bulletCount = 1,
-		bleedRateAdd = 100,
+		bleedRateAdd = 20,
 		-- instantBloodLoss = 6,
 		projectileSubtickMoveTimerLength = 192,
 		projectileSubtickMoveTimerLengthChange = -40, -- Per tick
 		projectileSubtickMoveTimerLengthMin = 16,
 		range = 18,
 		projectileExplosionRadius = 4,
-		projectileExplosionDamage = 325,
+		projectileExplosionDamage = 350,
 		-- projectileExplosionProjectiles = {
 			-- {
 			-- 	count = 12,
@@ -1057,7 +1057,9 @@ function game:loadItemTypes()
 		healItemUseTimerOnGround = nil,
 		healItemBleedRateSubtract = 15,
 		healItemDeleteOnUse = true,
-		interactionType = state.interactionTypes.healItem
+		interactionType = state.interactionTypes.healItem,
+		healItemMessage = "You apply the bandage to your body.",
+		healItemMessageColour = "lightGrey"
 	}
 	itemTypes.smallMedkit = {
 		isHealItem = true,
@@ -1073,7 +1075,9 @@ function game:loadItemTypes()
 		healItemHealthAdd = 5,
 		healItemBloodReplenish = 3,
 		healItemDeleteOnUse = false,
-		interactionType = state.interactionTypes.healItem
+		interactionType = state.interactionTypes.healItem,
+		healItemMessage = "You use the contents of the medkit.",
+		healItemMessageColour = "lightGrey"
 	}
 	itemTypes.largeMedkit = { 
 		isHealItem = true,
@@ -1090,7 +1094,9 @@ function game:loadItemTypes()
 		healItemHealthAdd = 10,
 		healItemBloodReplenish = 8,
 		healItemDeleteOnUse = false,
-		interactionType = state.interactionTypes.healItem
+		interactionType = state.interactionTypes.healItem,
+		healItemMessage = "You use the contents of the medkit.",
+		healItemMessageColour = "lightGrey"
 	}
 	itemTypes.healingRune = {
 		isHealItem = true,
@@ -1147,7 +1153,7 @@ function game:loadItemTypes()
 		meleeDamage = 8,
 		meleeBleedRateAdd = 24
 	}
-	
+
 	itemTypes.toothOutcrop = {
 		tile = "▲",
 		displayName = "tooth outcrop",
@@ -1170,6 +1176,21 @@ function game:loadItemTypes()
 		isMeleeWeapon = true,
 		meleeDamage = 6,
 		meleeBleedRateAdd = 2
+	}
+
+	itemTypes.phallicSceptre = {
+		tile = "↓",
+		displayName = "phallic staff", -- Had to cut down on characters but phallic sceptre sounded better...
+		forceRemoveBetweenLevels = true, -- Didn't want to make it a melee weapon because the player should not wield it
+		psychicDamageIfInInventory = 7
+	}
+
+	itemTypes.cruelMitre = {
+		tile = "♀",
+		wearable = true,
+		noArmourWear = true,
+		displayName = "caustic mitre", -- Also thought of using vicious
+		psychicDamageIfInInventory = 4
 	}
 
 	itemTypes.coffin = {

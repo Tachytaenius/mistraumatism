@@ -546,6 +546,9 @@ end
 function game:shouldRemoveItemWhenGoingBetweenLevels(item)
 	local itemType = item.itemType
 	if
+		not itemType.forceKeepBetweenLevels and
+
+		itemType.forceRemoveBetweenLevels or
 		itemType.isGun or
 		itemType.isAmmo or
 		itemType.isMeleeWeapon or

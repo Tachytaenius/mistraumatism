@@ -177,6 +177,9 @@ function game:updateEntitiesAndProjectiles()
 		assert(entity.entityType == "creature", "Can't kill non-creatures")
 		entity.dead = true
 		entity.deathTick = state.tick
+		if entity.onKill then
+			entity.onKill(self, entity)
+		end
 		entity.actions = {}
 		if entity.inventory then
 			for i = 1, #entity.inventory do
@@ -537,6 +540,14 @@ function game:updateEntitiesAndProjectiles()
 		self:flushEntityRemoval()
 	end
 
+	self:tickItems(function(item, x, y, locationType, locationEntity)
+		if item.itemType.psychicDamageIfInInventory then
+			if locationType == "worn" or locationType == "inventory" then
+				self:mindAttackOtherEntity(nil, locationEntity, item.itemType.psychicDamageIfInInventory)
+			end
+		end
+	end)
+
 	-- Damage, drowning, bleeding, explosions, gibbing, falling down pits, and screaming
 	for _, entity in ipairs(state.entities) do
 		local deathEventData
@@ -669,7 +680,7 @@ function game:updateEntitiesAndProjectiles()
 					self:announce("You slip into abject depression.", "yellow")
 				end
 				if init < max * 0.9 and cur >= max * 0.9 then
-					 -- Canon fact: the player is *never* "severed from love and the divine"; they merely are made to feel so by psychic attacks
+					-- Canon fact: the player is *never* "severed from love and the divine"; they merely are made to feel so by psychic attacks
 					self:announce("You feel severed from love and the divine.\nYou surrender yourself to meaninglessness.", "red")
 				end
 
@@ -692,7 +703,7 @@ function game:updateEntitiesAndProjectiles()
 					(noPsychicDamageTimerAlreadyFinished and damageJustHitZero)
 				then
 					-- TODO: Will this always be announced?
-					self:announce("Your remember yourself.", "lightGrey")
+					self:announce("You remember yourself.", "lightGrey")
 				end
 			end
 		end
@@ -991,9 +1002,13 @@ function game:updateEntitiesAndProjectiles()
 	self:tickItems(function(item, x, y, locationType, locationEntity)
 		if item.armourWearToAdd then
 			local armourInfo = self:getTotalArmourInfo(item)
-			item.armourWear = math.min(armourInfo.durability, (item.armourWear or 0) + item.armourWearToAdd)
+			if item.itemType.noArmourWear then
+				item.armourWear = 0
+			else
+				item.armourWear = math.min(armourInfo.durability, (item.armourWear or 0) + item.armourWearToAdd)
+			end
 			item.armourWearToAdd = nil
-			if item.armourWear >= armourInfo.durability then
+			if item.armourWear >= armourInfo.durability and not item.itemType.noArmourWear then
 				self:broadcastEvent({
 					sourceEntity = locationEntity,
 					type = "armourBroke",
@@ -1549,6 +1564,7 @@ function game:isEntityBleedingOut(entity)
 end
 
 function game:mindAttackOtherEntity(source, target, amount)
+	-- Source needn't be defined. In fact, it's unused.
 	if target.creatureType.psychicDamageDeathPoint then
 		target.psychicDamage = (target.psychicDamage or 0) + amount
 		target.psychicDamageTakenThisTick = (target.psychicDamageTakenThisTick or 0) + amount

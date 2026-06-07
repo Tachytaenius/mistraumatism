@@ -16,31 +16,32 @@ function info:createLevel() -- name should be the name of the directory containi
 	local types = {
 		[0x00] = "wall",
 		[0x11] = "floor",
-		[0x22] = "pit"
+		[0x22] = "pit" -- All pits are filled up when the hell king dies-- we don't want the hell king's key to drop into one!
 	}
 	local materials = {
 		[0x00] = "basalt",
 		[0x11] = "inflictionMagic"
 	}
 	local spawnX, spawnY = math.floor(imageCentreX), math.floor(imageCentreY)
+	local pathEndX, pathEndY
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x11 then
 			self:placeDoorItem(x, y, "heavyDoor", "granite", false, "noKey")
-			self:placeDoorItem(x + 1, y, "heavyDoor", "granite", false, "noKey")
+			self:placeDoorItem(x - 1, y, "heavyDoor", "granite", false, "noKey")
 			local function onActivate(self, item, leverX, leverY)
 				self:mechanismOpenDoor(x, y)
-				self:mechanismOpenDoor(x + 1, y)
+				self:mechanismOpenDoor(x - 1, y)
 			end
 			local function onDeactivate(self, item, leverX, leverY)
 				self:mechanismShutDoor(x, y)
-				self:mechanismShutDoor(x + 1, y)
+				self:mechanismShutDoor(x - 1, y)
 			end
-			self:placeLever(x + 2, y + 2, "steel", false, onActivate, onDeactivate)
+			self:placeLever(x + 1, y + 1, "steel", false, onActivate, onDeactivate)
 		elseif value == 0x12 then
 			self:placeDoorItem(x, y, "ornateDoor", "granite", false)
 		elseif value == 0x22 then
 			self:placeItem(x, y, "rocketLauncher", "polymer")
-			for _=1, 7 do
+			for _=1, 6 do
 				self:placeItem(x, y, "rocket", "plasticBrown")
 			end
 
@@ -65,7 +66,39 @@ function info:createLevel() -- name should be the name of the directory containi
 			-- 	cell.storedEnergy = self.state.itemTypes.plasmaEnergyCell.maxEnergy
 			-- end
 		elseif value == 0x33 then
-			self:placeMonster(x, y, "hellKing")
+			local opponent = self:placeMonster(x, y, "hellKing")
+			opponent.inventory[1].item = self:newItemData({
+				itemTypeName = "ornateKey", material = "gold",
+				lockName = "leavePatriarchalCesspoolLevel", breakOnUse = true
+			})
+			opponent.inventory[2].item = self:newItemData({
+				itemTypeName = "phallicSceptre", material = "gold"
+			})
+			opponent.inventory.selectedSlot = 2
+			opponent.currentWornItem = self:newItemData({
+				itemTypeName = "cruelMitre", material = "gold"
+			})
+			opponent.onKill = function(self, entity)
+				for x = 0, self.state.map.width - 1 do
+					for y = 0, self.state.map.width - 1 do
+						local tile = self:getTile(x, y)
+						if tile.type == "pit" and not tile.fallLevelChange then
+							tile.type = "frozenFloor"
+							tile.material = "bloodRed"
+						end
+					end
+				end
+			end
+		elseif value == 0x44 then
+			pathEndX = x
+			pathEndY = y
+		elseif value == 0x55 then
+			self:placeDoorItem(x, y, "ornateDoor", "granite", false, "leavePatriarchalCesspoolLevel")
+		elseif value == 0x66 then
+			local tile = self:getTile(x, y)
+			tile.fallLevelChange = "exit"
+			tile.type = "floorPortal1"
+			tile.material = "inflictionMagic"
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end
@@ -115,6 +148,19 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:addSpatter(x, y, "snow", math.floor(snowiness * 10))
 
 			::continue::
+		end
+	end
+
+	for y = pathEndY + 1, pathEndY + 1 + 34 do
+		local w = 2
+		for xo = -w, w+1 do
+			local x = pathEndX + xo
+			if not self:tileBlocksAirMotion(x, y) then
+				local offCentre = math.min(math.abs(xo), math.abs(xo - 1)) / w
+				-- self:addSpatter(x, y, "bloodRed", math.floor((1 - offCentre + 0.5) * love.math.random(5, 16)))
+				-- self:addSpatter(x, y, "fleshRed", love.math.random(0, offCentre * 24))
+				self:addSpatter(x, y, "salt", generator:random(1, 30))
+			end
 		end
 	end
 

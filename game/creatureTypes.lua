@@ -312,23 +312,25 @@ function game:loadCreatureTypes()
 
 	creatureTypes.hellKing = {
 		displayName = "Hell king",
-		tile = "K",
+		tile = "♂",
 		colour = "red",
 		flashDarkerColour = true,
-		fleshMaterialName = "inflictionMagic",
+		fleshMaterialName = "salt",
 		size = 8192,
 
 		moveTimerLength = 5,
 		flying = true,
 		sightDistance = 20,
-		maxHealth = 3000,
+		maxHealth = 2400,
 		meleeTimerLength = 1,
 		meleeDamage = 1000,
 		meleeBleedRateAdd = 1024,
 		-- meleeInstantBloodLoss = 20,
 		immuneToOwnAttacks = true,
 		gibOnDeath = true,
-		minGibForce = 15,
+		minGibForce = 25,
+
+		inventorySize = 4,
 
 		-- engagesAtRange = true,
 		-- preferredEngagementRange = 7,
@@ -340,6 +342,8 @@ function game:loadCreatureTypes()
 		passiveMindAttackRange = 14,
 		passiveMindAttackTeamThreshold = "friendly", -- Will attack friendlies or worse
 		targetLocationSenseRange = 35,
+
+		dontInvestigateCombat = true, -- Focus on (or wait for) player
 
 		hears = true,
 		alertAction = "chant",
@@ -356,7 +360,7 @@ function game:loadCreatureTypes()
 		summonAbilities = {
 			{
 				name = "humanSummon",
-				maxAliveCreatures = 24, -- TODO
+				maxAliveCreatures = 12, -- TODO
 				creatureTypeName = "human",
 				creaturesPerSummon = 8,
 				radius = 5,
