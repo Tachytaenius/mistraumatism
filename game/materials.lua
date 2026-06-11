@@ -145,9 +145,15 @@ function game:loadMaterials()
 		addMaterial("oak", "oak", "darkYellow", "solid"),
 		addMaterial("appleWood", "apple wood", "darkYellow", "solid")
 	)
-	addMaterial("elderLeaf", "elder leaf", "darkGreen", "solid")
-	addMaterial("oakLeaf", "oak leaf", "darkGreen", "solid")
-	addMaterial("appleLeaf", "apple leaf", "darkGreen", "solid")
+	local leaves = {
+		addMaterial("elderLeaf", "elder leaf", "darkGreen", "solid"),
+		addMaterial("oakLeaf", "oak leaf", "darkGreen", "solid"),
+		addMaterial("appleLeaf", "apple leaf", "darkGreen", "solid")
+	}
+	for _, leaf in ipairs(leaves) do
+		leaf.spatterCharSet = "leafLitter"
+	end
+	applySoundCategory(addMaterialSoundCategory("leaves", "leaves"), unpack(leaves))
 
 	addMaterial("paper", "paper", "white", "solid")
 	addMaterial("cloth", "cloth", "white", "solid")

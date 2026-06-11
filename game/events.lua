@@ -69,7 +69,7 @@ function game:handleEventsQueue()
 			local visible = self:entityCanSeeTile(entity, eventData.x, eventData.y)
 			local audible = self:getSoundHeard(entity, eventData)
 			if direct or visible or audible then
-				if not (entity.creatureType.dontInvestigateCombat and self.state.eventTypes[eventData.type].isCombat) then
+				if not (entity.creatureType.dontInvestigateEvents or entity.creatureType.dontInvestigateCombat and self.state.eventTypes[eventData.type].isCombat) then
 					self:tryInvestigateEvent(entity, eventData, visible, audible)
 				end
 			end

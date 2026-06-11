@@ -16,6 +16,11 @@ local leaves = {
 	oak = "oakLeaf",
 	appleWood = "appleLeaf"
 }
+local radii = {
+	elder = 1,
+	oak = 3,
+	appleWood = 2
+}
 
 local flowers = {
 	{value = "rose", weight = 3},
@@ -46,6 +51,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0x22] = "brickWall",
 		[0x33] = "wall",
 		[0x44] = "floor",
+		[0x45] = "ornateFloor",
 		[0x55] = "glassWindow"
 	}
 	local materials = {
@@ -61,6 +67,21 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeDoorItem(x, y, "ornateDoor", "oak")
 		elseif value == 0x23 then
 			self:placeDoorItem(x, y, "fenceGate", "oak", true)
+		elseif value == 0x24 then
+			self:placeItem(x + 1, y, "ornateChair", "oak")
+			self:placeItem(x + 2, y, "ornateTable", "oak")
+			self:placeItem(x + 3, y, "ornateChair", "oak")
+		elseif value == 0x25 then
+			self:placeItem(x, y, "toilet", "porcelain")
+			self:placeItem(x + 1, y, "bathroomSink", "porcelain")
+			self:placeItem(x , y + 1, "bathtub", "porcelain")
+		elseif value == 0x26 then
+
+		elseif value == 0x27 then
+			
+		elseif value == 0x28 then
+			self:placeItem(x, y, "bedsideTable", "oak")
+			self:placeItem(x + 1, y, "bed", "oak")
 		elseif value == 0x33 then
 			self:placeCritter(x, y, "greySquirrel")
 		elseif value == 0xff then
@@ -92,26 +113,30 @@ function info:createLevel() -- name should be the name of the directory containi
 	end)
 	assert(spawnX and spawnY, "No spawn location")
 
-	local seed = 0
+	local seed = 9
 	local function noise(x, y)
 		return love.math.noise(x + totalW * seed, y + totalH * seed)
 	end
 	local generator = love.math.newRandomGenerator(seed)
+	local placedTrees = {}
 	for x = 0, totalW - 1 do
 		for y = 0, totalH - 1 do
 			local generate = self:getTile(x, y).generate or not (imageOffsetX <= x and x < imageOffsetX + imageData:getWidth() and imageOffsetY <= y and y < imageOffsetY + imageData:getHeight())
 			if not generate then
 				goto continue
 			end
-			self:getTile(x, y).generate = nil
+			self:getTile(x, y).generate = nil -- "wasGenerated" gets set
 			local type, mat
 			local autotileGroup
 			mat = "fescue"
+			local houseDist = self:distance(x, y, imageCentreX, imageCentreY)
+			local radius = math.max(imageData:getDimensions()) / 2
 			local woodiness = (1 - math.max(0, noise(x / 30, y / 30) * 0.75 + noise(x / 15, y / 15) * 0.25)) ^ 3
+			local forceSapling = houseDist <= radius * 1.4
 			local doTree = generator:random() < woodiness / 4
 			local sapling, treeMat
 			if doTree then
-				sapling = generator:random() < 0.08
+				sapling = generator:random() < 0.08 or forceSapling
 				treeMat = util.weightedRandomChoice(trees, generator)
 			end
 			if doTree and sapling then
@@ -121,6 +146,7 @@ function info:createLevel() -- name should be the name of the directory containi
 				type = "treeTrunk"
 				mat = treeMat
 				autotileGroup = self:getAutotileGroupId()
+				table.insert(placedTrees, {x = x, y = y, type = treeMat})
 			else
 				local length = (
 					noise(x / 15, y / 15) * 0.5 +
@@ -130,13 +156,7 @@ function info:createLevel() -- name should be the name of the directory containi
 				) * (1 - woodiness)
 				type = length < 1/4 and "softEarth" or length < 2/4 and "shortGrass" or length < 3/4 and "grass" or "longGrass"
 				if type == "softEarth" then
-					local leafiness = math.max(0, woodiness - 0.2) / 0.8
-					if generator:random() < leafiness then
-						type = "leafLitter"
-						mat = leaves[util.weightedRandomChoice(trees, generator)]
-					else
-						mat = "soilLoamy"
-					end
+					mat = "soilLoamy"
 				end
 
 				if not sapling then
@@ -154,9 +174,31 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:replaceTileInfo(x, y, {
 				type = type,
 				material = mat,
-				autotileGroup = autotileGroup
+				autotileGroup = autotileGroup,
+				wasGenerated = true
 			})
 			::continue::
+		end
+	end
+
+	-- Place leaf litter spatter
+	for _, tree in ipairs(placedTrees) do
+		local radius = radii[tree.type]
+		for ox = -radius, radius do
+			for oy = -radius, radius do
+				local x = tree.x + ox
+				local y = tree.y + oy
+				-- I don't know why but artistically I feel like I want to use the manhattan distance to get a diamond shape
+				local dist = math.abs(ox) + math.abs(oy)
+				local amount = math.max(0, radius - dist + 1)
+				-- local mul = generator:random() ^ 2.5 * 5
+				local mul = generator:random(0, 1)
+				amount = math.floor(amount * mul)
+				local tile = self:getTile(x, y)
+				if tile and tile.wasGenerated and not self:tileBlocksAirMotion(x, y) then
+					self:addSpatter(x, y, leaves[tree.type], amount)
+				end
+			end
 		end
 	end
 

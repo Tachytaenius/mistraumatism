@@ -431,11 +431,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				if largestSpatter and largestSpatter.amount >= consts.spatterThreshold1 then
 					local material = state.materials[largestSpatter.materialName]
 					local matterState = material.matterState
-					if tileType.liquidSpatterColourInvert and matterState == "liquid" then
-						cell.backgroundColour = material.colour
-					else
-						cell.foregroundColour = material.colour
-					end
+					local noRecolour = false
 					if tileType.solidity ~= "solid" and not (tile.liquid and matterState == "liquid") then
 						local amountRank
 						if largestSpatter.amount >= consts.spatterThreshold4 then
@@ -451,7 +447,22 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						local set = material.spatterCharSet or matterState
 						local spatterChar = consts.spatterCharacters[set][amountRank]
 						if spatterChar then
-							cell.character = spatterChar
+							if type(spatterChar) == "table" then
+								noRecolour = spatterChar.noRecolour
+
+								spatterChar = spatterChar.char
+							end
+							if spatterChar then
+								cell.character = spatterChar
+							end
+						end
+					end
+
+					if not noRecolour then
+						if tileType.liquidSpatterColourInvert and matterState == "liquid" then
+							cell.backgroundColour = material.colour
+						else
+							cell.foregroundColour = material.colour
 						end
 					end
 				end

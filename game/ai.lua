@@ -43,8 +43,9 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 end
 game.tilePathCheckFunction = tilePathCheckFunction -- Not sure why this wasn't aleady in game but I'll just tack it on
 
-local function getPathfindingResult(self, entity, startTile, endTile, keepLineOfSight)
+local function getPathfindingResult(self, entity, startTile, endTile, keepLineOfSight, maxDistanceOverride, ignoreEntityAvoidance)
 	local canSeeEnd = keepLineOfSight and self:entityCanSeeTile(entity, endTile.x, endTile.y)
+	local maxDistance = maxDistanceOverride or entity.creatureType.pathfindingDistanceLimit or consts.defaultPathfindingDistanceLimit
 
 	local function checkFunction(tileX, tileY)
 		if
@@ -58,13 +59,25 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 		then
 			return false
 		end
-		if self:distance(entity.x, entity.y, tileX, tileY) > (entity.creatureType.pathfindingDistanceLimit or consts.defaultPathfindingDistanceLimit) then
+		if self:distance(entity.x, entity.y, tileX, tileY) > maxDistance then
 			return false
 		end
 		return tilePathCheckFunction(self, tileX, tileY, entity)
 	end
 	local size = self:getEntitySize(entity)
-	local preMoveImpedingEntityLocations = self.state.preMoveImpedingEntityLocations
+	local preMoveImpedingEntityLocations = not ignoreEntityAvoidance and self.state.preMoveImpedingEntityLocations
+	local function distanceFunction(tileA, tileB)
+		local dist = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
+
+		local sizeOnTile =
+			preMoveImpedingEntityLocations and
+			preMoveImpedingEntityLocations[entity.x] and
+			preMoveImpedingEntityLocations[entity.x][entity.y] and
+			preMoveImpedingEntityLocations[entity.x][entity.y].totalSize or 0
+		local proportion = sizeOnTile > 0 and 1 - size / sizeOnTile or 0
+
+		return dist + consts.pathfindingSlowdownAvoidance * proportion
+	end
 	local result, bestTileIfNoResult = pathfind({
 		start = startTile,
 		goal = function(tile)
@@ -73,25 +86,24 @@ local function getPathfindingResult(self, entity, startTile, endTile, keepLineOf
 		neighbours = function(tile)
 			return self:getCheckedNeighbourTiles(tile.x, tile.y, checkFunction)
 		end,
-		distance = function(tileA, tileB)
-			local dist = self:distance(tileA.x, tileA.y, tileB.x, tileB.y)
-
-			local sizeOnTile =
-				preMoveImpedingEntityLocations[entity.x] and
-				preMoveImpedingEntityLocations[entity.x][entity.y] and
-				preMoveImpedingEntityLocations[entity.x][entity.y].totalSize or 0
-			local proportion = sizeOnTile > 0 and 1 - size / sizeOnTile or 0
-
-			return dist + consts.pathfindingSlowdownAvoidance * proportion
-		end,
+		distance = distanceFunction,
 		heuristic = function(tile)
 			return self:distance(tile.x, tile.y, endTile.x, endTile.y)
 		end
 	})
 	if not result and bestTileIfNoResult then
-		return false, bestTileIfNoResult
+		return false, bestTileIfNoResult, nil
 	end
-	return result
+	if not result then
+		return false, nil, nil
+	end
+	local totalDistance = 0
+	for stepFromI = 1, #result - 1 do
+		local stepFrom = result[stepFromI]
+		local stepTo = result[stepFromI + 1]
+		totalDistance = totalDistance + distanceFunction(stepFrom, stepTo)
+	end
+	return result, nil, totalDistance
 end
 
 local function getPathfindingAction(self, entity, targetLocationX, targetLocationY, dontWalkInto, investigating, keepLineOfSight, moveCloserIfNoPath)
@@ -129,20 +141,20 @@ local function getPathfindingAction(self, entity, targetLocationX, targetLocatio
 	end
 end
 
-local function getPathfindingDistance(self, entity, startX, startY, endX, endY)
-	-- TODO: MUST OPTIMISE!!
+local function getPathfindingStepsAndDistance(self, entity, startX, startY, endX, endY, cutoffTrueDistance)
 	local startTile = self:getTile(startX, startY)
 	local endTile = self:getTile(endX, endY)
 	if not (startTile and endTile) then
-		return
+		return -- Check nil
 	end
 	if startX == startY and endX == endY then
-		return 0
+		return 0, 0
 	end
-	local result = getPathfindingResult(self, entity, startTile, endTile)
+	local result, _, totalDistance = getPathfindingResult(self, entity, startTile, endTile, false, cutoffTrueDistance or math.huge)
 	if result then
-		return #result - 1
+		return #result - 1, totalDistance
 	end
+	-- Check nil
 end
 
 local function chase(self, entity, sameTileMelee, keepLineOfSight)
@@ -393,7 +405,7 @@ local function pathfindToClosestTileWithSightToTilePrioritisingPreferredRange(se
 			local isWalkable = tilePathCheckFunction(self, tileToWalkToX, tileToWalkToY, entity)
 
 			if willBeVisible and isWalkable then
-				local currentToWalkDistance = getPathfindingDistance(self, entity, entity.x, entity.y, tileToWalkToX, tileToWalkToY)
+				local _, currentToWalkDistance = getPathfindingStepsAndDistance(self, entity, entity.x, entity.y, tileToWalkToX, tileToWalkToY)
 				if not currentToWalkDistance then
 					goto continue
 				end
@@ -673,6 +685,15 @@ function game:tryInvestigateEvent(entity, eventData, visible, audible)
 	then
 		trySetInvestigation()
 	end
+end
+
+function game:entityFleePathCheck(entity, fleeEntity)
+	local fleeDistance = consts.defaultFleePathfindMaxDistance
+	local _, pathDistance = getPathfindingStepsAndDistance(self, entity, entity.x, entity.y, fleeEntity.x, fleeEntity.y, fleeDistance)
+	if not pathDistance then
+		return false -- Don't flee
+	end
+	return pathDistance <= fleeDistance
 end
 
 return game

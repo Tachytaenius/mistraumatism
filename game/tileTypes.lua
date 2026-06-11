@@ -53,8 +53,9 @@ function game:loadTileTypes()
 		longGrass = {
 			displayName = "long grass",
 			solidity = "passable",
-			secondaryColour = "darkGreen", -- Make a system to take the colour from the material (and invert its brightness) if non-green grasses are needed
-			character = "▓"
+			secondaryColour = "darkGreen",
+			character = "░",
+			swapColours = true
 		},
 		flowerbed = {
 			displayName = "flowerbed",
@@ -65,13 +66,8 @@ function game:loadTileTypes()
 			displayName = "soft earth",
 			solidity = "passable",
 			character = "▒",
-			secondaryColour = "darkGrey"
-		},
-		leafLitter = {
-			displayName = "leaf litter",
-			solidity = "passable",
-			character = "▒",
-			secondaryColour = "darkYellow"
+			secondaryColour = "darkGrey",
+			swapColours = true
 		},
 		treeTrunk = {
 			displayName = "tree trunk",

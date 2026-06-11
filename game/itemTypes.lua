@@ -809,6 +809,11 @@ function game:loadItemTypes()
 		tile = "╥",
 		displayName = "bedside table"
 	}
+	itemTypes.ornateTable = {
+		noPickUp = true,
+		tile = "╥",
+		displayName = "ornate table"
+	}
 	itemTypes.bed = {
 		noPickUp = true,
 		tile = "Θ",
@@ -819,6 +824,23 @@ function game:loadItemTypes()
 		-- tile = "Ω",
 		tile = "º",
 		displayName = "toilet"
+	}
+	itemTypes.bathroomSink = {
+		noPickUp = true,
+		tile = "Ω",
+		displayName = "bathroom sink"
+	}
+	itemTypes.kitchenSink = {
+		noPickUp = true,
+		tile = "Ω",
+		displayName = "kitchen sink"
+	}
+	itemTypes.bathtub = {
+		noPickUp = true,
+		-- tile = "■",
+		-- swapColours = true,
+		tile = "u",
+		displayName = "bathtub"
 	}
 	itemTypes.computer = {
 		noPickUp = true,

@@ -379,8 +379,10 @@ function game:updateEntitiesAndProjectiles()
 				goto continue
 			end
 			if self:entityCanSeeEntity(entity, fleeEntity) then
-				entity.fleeFromEntities = entity.fleeFromEntities or {}
-				entity.fleeFromEntities[#entity.fleeFromEntities+1] = {lastKnownX = fleeEntity.x, lastKnownY = fleeEntity.y, entity = fleeEntity}
+				if self:entityFleePathCheck(entity, fleeEntity) then
+					entity.fleeFromEntities = entity.fleeFromEntities or {}
+					entity.fleeFromEntities[#entity.fleeFromEntities+1] = {lastKnownX = fleeEntity.x, lastKnownY = fleeEntity.y, entity = fleeEntity}
+				end
 			end
 		    ::continue::
 		end

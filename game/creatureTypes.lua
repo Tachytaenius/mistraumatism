@@ -541,44 +541,6 @@ function game:loadCreatureTypes()
 
 		hears = true
 	}
-	creatureTypes.smallFish1 = {
-		displayName = "small fish",
-		tile = ",",
-		colour = "darkGreen",
-		bloodMaterialName = "bloodRed",
-		size = 8,
-
-		aquatic = true,
-		cantMoveOnLand = true,
-		moveTimerLength = nil,
-		swimMoveTimerLength = 2,
-		breathingTimerLength = 100,
-		sightDistance = 9,
-		maxHealth = 1,
-		maxBlood = 1,
-		bleedHealRate = 12,
-		
-		hears = true
-	}
-	creatureTypes.smallFish2 = {
-		displayName = "small fish",
-		tile = "α",
-		colour = "darkCyan",
-		bloodMaterialName = "bloodRed",
-		size = 16,
-
-		aquatic = true,
-		cantMoveOnLand = true,
-		moveTimerLength = nil,
-		swimMoveTimerLength = 4,
-		breathingTimerLength = 120,
-		sightDistance = 9,
-		maxHealth = 2,
-		maxBlood = 2,
-		bleedHealRate = 12,
-
-		hears = true
-	}
 
 	creatureTypes.griefPhantom = {
 		displayName = "rue phantom",
@@ -721,6 +683,48 @@ function game:loadCreatureTypes()
 		}
 	}
 
+	creatureTypes.smallFish1 = {
+		displayName = "small fish",
+		tile = ",",
+		colour = "darkGreen",
+		bloodMaterialName = "bloodRed",
+		size = 8,
+
+		aquatic = true,
+		cantMoveOnLand = true,
+		moveTimerLength = nil,
+		swimMoveTimerLength = 2,
+		breathingTimerLength = 100,
+		sightDistance = 9,
+		maxHealth = 1,
+		maxBlood = 1,
+		bleedHealRate = 12,
+
+		hears = true,
+		dontInvestigateEvents = true
+	}
+
+	creatureTypes.smallFish2 = {
+		displayName = "small fish",
+		tile = "α",
+		colour = "darkCyan",
+		bloodMaterialName = "bloodRed",
+		size = 16,
+
+		aquatic = true,
+		cantMoveOnLand = true,
+		moveTimerLength = nil,
+		swimMoveTimerLength = 4,
+		breathingTimerLength = 120,
+		sightDistance = 9,
+		maxHealth = 2,
+		maxBlood = 2,
+		bleedHealRate = 12,
+
+		hears = true,
+		dontInvestigateEvents = true
+	}
+
 	creatureTypes.greySquirrel = {
 		displayName = "grey squirrel",
 		tile = ",",
@@ -734,7 +738,8 @@ function game:loadCreatureTypes()
 		maxBlood = 2,
 		bleedHealRate = 12,
 
-		hears = true
+		hears = true,
+		dontInvestigateEvents = true
 	}
 
 	creatureTypes.redFox = {
@@ -750,7 +755,8 @@ function game:loadCreatureTypes()
 		maxBlood = 5,
 		bleedHealRate = 20,
 
-		hears = true
+		hears = true,
+		dontInvestigateEvents = true
 	}
 
 	creatureTypes.blackbird = {
@@ -767,7 +773,8 @@ function game:loadCreatureTypes()
 		bleedHealRate = 8,
 		flying = true,
 
-		hears = true
+		hears = true,
+		dontInvestigateEvents = true
 	}
 end
 
