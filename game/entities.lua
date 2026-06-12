@@ -1641,16 +1641,24 @@ function game:doSummonAbility(entity, ability)
 	if #choices == 0 then
 		return
 	end
+	local abilityList
+	for _, list in ipairs(entity.summonedEntities) do
+		if list.ability == ability then
+			abilityList = list
+			break
+		end
+	end
 	local creaturesToSummon = self:getSummonableCreatureCount(entity, ability)
 	for _=1, creaturesToSummon do
 		local choice = choices[love.math.random(#choices)]
-		self:newCreatureEntity({
+		local new = self:newCreatureEntity({
 			x = choice.x, y = choice.y,
 			team = entity.team,
 			creatureTypeName = ability.creatureTypeName,
 			targetEntity = entity.targetEntity,
 			lastKnownTargetLocation = lastKnownTargetLocation
 		})
+		table.insert(abilityList, new)
 	end
 end
 

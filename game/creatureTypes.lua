@@ -361,7 +361,7 @@ function game:loadCreatureTypes()
 		summonAbilities = {
 			{
 				name = "humanSummon",
-				maxAliveCreatures = 12, -- TODO
+				maxAliveCreatures = 12,
 				creatureTypeName = "human",
 				creaturesPerSummon = 6,
 				radius = 2,
