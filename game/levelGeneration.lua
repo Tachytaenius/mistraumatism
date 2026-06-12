@@ -135,7 +135,7 @@ function game:placeCritter(x, y, creatureTypeName, ...)
 	return self:placeCreatureTeam(x, y, creatureTypeName, "critter", ...)
 end
 
-function game:placeDoorItem(x, y, itemTypeName, material, open, lockName)
+function game:placeDoorItem(x, y, itemTypeName, material, open, lockName, forceHinge)
 	-- Proper locking/unlocking is TODO
 	local tile = self:getTile(x, y)
 	if not tile then
@@ -149,7 +149,7 @@ function game:placeDoorItem(x, y, itemTypeName, material, open, lockName)
 		material = material
 	})
 	local doorEntity = self:newItemEntity(x, y, doorItem, {doorTile = tile})
-	tile.doorData = {entity = doorEntity, open = open, lockName = lockName}
+	tile.doorData = {entity = doorEntity, open = open, lockName = lockName, hinge = forceHinge}
 	return doorEntity
 end
 
@@ -261,8 +261,8 @@ function game:makeAirlock(params)
 	local info = {}
 	-- TODO: Initial state from parameters
 	info.airDoorOpen = false
-	info.airDoor = self:placeDoorItem(params.airDoorX, params.airDoorY, "airlockDoor", params.airDoorMaterial, false)
-	info.otherDoor = self:placeDoorItem(params.otherDoorX, params.otherDoorY, "airlockDoor", params.otherDoorMaterial, true)
+	info.airDoor = self:placeDoorItem(params.airDoorX, params.airDoorY, "airlockDoor", params.airDoorMaterial, false, nil, "down")
+	info.otherDoor = self:placeDoorItem(params.otherDoorX, params.otherDoorY, "airlockDoor", params.otherDoorMaterial, true, nil, "up")
 	info.liquidMaterial = params.liquidMaterial
 	info.liquidTiles = {}
 	for i, coord in ipairs(params.liquidTileCoords) do
@@ -380,7 +380,7 @@ function game:setDoorHinges()
 			end
 
 			local doorData = entity.doorTile and entity.doorTile.doorData
-			if doorData then
+			if doorData and not doorData.hinge then
 				doorData.hinge = hinge
 			end
 		end

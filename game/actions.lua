@@ -38,10 +38,10 @@ function game:loadActionTypes()
 			return nil
 		end
 		return
-			specialType == "jump" and (
-				action.jumpAirborne and "jump" or
-				"jump"
-			) or
+			-- specialType == "jump" and (
+			-- 	action.jumpAirborne and "jump" or
+			-- 	"jump"
+			-- ) or
 			specialType == "dodge" and "dodge" or
 			specialType == "stopCharge" and "stop charge"
 	end
@@ -56,19 +56,20 @@ function game:loadActionTypes()
 		local multiplier = self:isDirectionDiagonal(direction) and consts.inverseDiagonal or 1
 		new.timer = math.floor(moveTimerLength * multiplier)
 		new.specialType = specialType
-		if specialType == "dodge" or specialType == "jump" then
+		if specialType == "dodge" then -- or specialType == "jump" then
 			if self:isEntitySwimming(entity) then
 				return nil
 			end
-			if specialType == "jump" then
-				if not (
-					entity.creatureType.jumpTimerLength and
-					entity.creatureType.jumpAirborneTimerLength and
-					entity.creatureType.jumpSteadyTimerLength
-				) then
-					return nil
-				end
-			else
+			-- if specialType == "jump" then
+			-- 	if not (
+			-- 		entity.creatureType.jumpTimerLength and
+			-- 		entity.creatureType.jumpAirborneTimerLength and
+			-- 		entity.creatureType.jumpSteadyTimerLength
+			-- 	) then
+			-- 		return nil
+			-- 	end
+			-- else
+			if specialType == "dodge" then
 				if not (
 					entity.creatureType.dodgeTimerLength and
 					entity.creatureType.dodgeSteadyTimerLength
@@ -120,21 +121,22 @@ function game:loadActionTypes()
 			action.timer = action.timer - 1
 			local dontComplete = false
 			if action.timer <= 0 then
-				if action.specialType == "jump" then
-					if action.jumpAirborne then
-						if entity.creatureType.jumpSteadyTimerLength then
-							action.replaceAction = steady.construct(self, entity, entity.creatureType.jumpSteadyTimerLength)
-						end
-					else
-						action.jumpAirborne = true
-						if not self:isEntitySwimming(entity) and entity.creatureType.jumpAirborneTimerLength then
-							local multiplier = self:isDirectionDiagonal(action.direction) and consts.inverseDiagonal or 1
-							action.timer = math.floor(entity.creatureType.jumpAirborneTimerLength * multiplier)
-							action.displayNameOverride = getMoveSpecialTypeDisplayNameOverride(action)
-							dontComplete = true
-						end
-					end
-				elseif action.specialType == "dodge" then
+				-- if action.specialType == "jump" then
+				-- 	if action.jumpAirborne then
+				-- 		if entity.creatureType.jumpSteadyTimerLength then
+				-- 			action.replaceAction = steady.construct(self, entity, entity.creatureType.jumpSteadyTimerLength)
+				-- 		end
+				-- 	else
+				-- 		action.jumpAirborne = true
+				-- 		if not self:isEntitySwimming(entity) and entity.creatureType.jumpAirborneTimerLength then
+				-- 			local multiplier = self:isDirectionDiagonal(action.direction) and consts.inverseDiagonal or 1
+				-- 			action.timer = math.floor(entity.creatureType.jumpAirborneTimerLength * multiplier)
+				-- 			action.displayNameOverride = getMoveSpecialTypeDisplayNameOverride(action)
+				-- 			dontComplete = true
+				-- 		end
+				-- 	end
+				-- elseif
+				if action.specialType == "dodge" then
 					if entity.creatureType.dodgeSteadyTimerLength then
 						action.replaceAction = steady.construct(self, entity, entity.creatureType.dodgeSteadyTimerLength)
 					end
@@ -146,11 +148,11 @@ function game:loadActionTypes()
 				return
 			end
 		else
-			if action.specialType == "jump" and action.jumpAirborne then
-				if entity.creatureType.jumpSteadyTimerLength then
-					action.replaceAction = steady.construct(self, entity, entity.creatureType.jumpSteadyTimerLength)
-				end
-			end
+			-- if action.specialType == "jump" and action.jumpAirborne then
+			-- 	if entity.creatureType.jumpSteadyTimerLength then
+			-- 		action.replaceAction = steady.construct(self, entity, entity.creatureType.jumpSteadyTimerLength)
+			-- 	end
+			-- end
 			action.doneType = "cancelled"
 		end
 	end
@@ -184,25 +186,26 @@ function game:loadActionTypes()
 					if self:isEntitySwimming(player) then
 						return nil
 					end
-					if commands.checkCommand("jumpDodgeMode") then
-						if
-							player.creatureType.jumpTimerLength and
-							player.creatureType.jumpAirborneTimerLength and
-							player.creatureType.jumpSteadyTimerLength
-						then
-							specialType = "jump"
-						end
-					else
+					-- if commands.checkCommand("jumpDodgeMode") then
+						-- if
+						-- 	player.creatureType.jumpTimerLength and
+						-- 	player.creatureType.jumpAirborneTimerLength and
+						-- 	player.creatureType.jumpSteadyTimerLength
+						-- then
+						-- 	specialType = "jump"
+						-- end
+					-- else
 						if
 							player.creatureType.dodgeTimerLength and
 							player.creatureType.dodgeSteadyTimerLength
 						then
 							specialType = "dodge"
 						end
-					end
+					-- end
 				end
 				local ignoreGaps = player.creatureType.flying
-				if specialType == "jump" or specialType == "dodge" then
+				-- if specialType == "jump" or specialType == "dodge" then
+				if specialType == "dodge" then
 					ignoreGaps = true
 				end
 				if self:getWalkable(player.x + offsetX, player.y + offsetY, false, ignoreGaps) then
@@ -1426,6 +1429,54 @@ function game:loadActionTypes()
 				action.doneType = "cancelled"
 			end
 		end
+	end
+
+	local jump = newActionType("jump", "jump")
+	function jump.validate(self, entity, action)
+		if self:isEntitySwimming(entity) then
+			return false
+		end
+		if not entity.creatureType.canJump then
+			return false
+		end
+		return true
+	end
+	function jump.construct(self, entity, toX, toY)
+		local new = {type = "jump"}
+		new.relativeX = toX - entity.x
+		new.relativeY = toY - entity.y
+		new.timer = entity.creatureType.jumpTimerLength
+		new.subtickMoveTimerLength = entity.creatureType.jumpSubtickMoveTimerLength
+		if jump.validate(self, entity, new) then
+			return new
+		end
+	end
+	function jump.process(self, entity, action)
+		action.timer = action.timer - 1
+		if action.timer <= 0 then
+			if jump.validate(self, entity, action) then
+				local steadyTime = entity.creatureType.jumpSteadyTimerLength
+				local function doneFunction(self, entity)
+					entity.actions[#entity.actions+1] = steady.construct(self, entity, steadyTime)
+				end
+				local toX = entity.x + action.relativeX
+				local toY = entity.y + action.relativeY
+				self:flingEntity(entity, toX, toY, action.subtickMoveTimerLength, entity.creatureType.maxJumpDistance, doneFunction)
+				action.doneType = "completed"
+			else
+				action.doneType = "cancelled"
+			end
+		end
+	end
+	function jump.fromInput(self, player)
+		if not commands.checkCommand("jump") then
+			return
+		end
+		if not self.state.cursor then
+			return
+		end
+		local x, y = self.state.cursor.x, self.state.cursor.y
+		return jump.construct(self, player, x, y)
 	end
 end
 

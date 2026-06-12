@@ -499,13 +499,10 @@ function game:updateEntitiesAndProjectiles()
 		if entity.entityType ~= "creature" then
 			goto continue
 		end
-		if #entity.actions > 0 or entity == state.player or entity.noAI then
+		if entity == state.player or entity.noAI then
 			goto continue
 		end
-		if entity.dead then
-			goto continue
-		end
-		if self:checkWillFall(entity) then
+		if not self:canAct(entity) then
 			goto continue
 		end
 		self:getAIActions(entity, globalAIInfo)
@@ -519,10 +516,36 @@ function game:updateEntitiesAndProjectiles()
 	processActions("melee")
 	processActions("summon")
 	self:updateProjectiles()
+	local function moveFlyingEntities()
+		local flyingInfosToStop = {}
+		for _, entity in ipairs(state.entities) do
+			if not entity.flyingInfo then
+				goto continue
+			end
+			self:moveObjectAsProjectile(entity.flyingInfo, nil, nil, flyingInfosToStop) -- No checkForEntityHit
+		    ::continue::
+		end
+		for _, entity in ipairs(state.entities) do
+			if not entity.flyingInfo then
+				goto continue
+			end
+			entity.x = entity.flyingInfo.currentX
+			entity.y = entity.flyingInfo.currentY
+			if flyingInfosToStop[entity.flyingInfo] then
+				if entity.flyingInfo.doneFunction then
+					entity.flyingInfo.doneFunction(self, entity)
+				end
+				entity.flyingInfo = nil
+			end
+		    ::continue::
+		end
+	end
 	local function actionsProcessSecondPart()
 		-- Moved to this function (called after death checks) to change some things
 		processActions("steady")
 		processActions("move")
+		processActions("jump")
+		moveFlyingEntities()
 		state.preMoveImpedingEntityLocations = nil
 		processActions("swapInventorySlot")
 		processActions("reload")
@@ -603,11 +626,10 @@ function game:updateEntitiesAndProjectiles()
 				local newFluidMaterial = self:getCurrentLiquid(entity)
 				local oldFluidMaterial = entity.initialSubmergedFluid
 
-				-- TODO: FIXME: exiting/entering water no longer announces
 				-- Entering/exiting fluid
-				if self:isDrowning(entity) and not entity.initialDrowningThisTick then
+				if self:isDrowning(entity) and not entity.initialDrowning then
 					self:announce("You breathe in before the " .. newFluidMaterial .. " fully consumes you.", "darkBlue")
-				elseif not self:isDrowning(entity) and entity.initialDrowningThisTick then
+				elseif not self:isDrowning(entity) and entity.initialDrowning then
 					-- TODO: Announce based on how much time you had left
 					-- self:announce("The " .. oldFluidMaterial .. " drains around you.", "blue")
 					self:announce("You emerge from the " .. oldFluidMaterial .. ".", "blue")
@@ -970,6 +992,10 @@ function game:updateEntitiesAndProjectiles()
 	state.damagesQueue = {} -- Accumulate anything for next tick
 	self:flushEntityRemoval()
 
+	for _, entity in ipairs(state.entities.creatures) do
+		-- self:unsetCurrentSwimInfo(entity)
+		self:setCurrentSwimInfo(entity)
+	end
 	actionsProcessSecondPart()
 
 	self:entitiesDeselectEmptyInventorySlots()
@@ -1363,7 +1389,7 @@ function game:getMoveTimerLength(entity, specialType)
 			entity.creatureType.moveTimerLength and entity.creatureType.moveTimerLength * 2
 		) or (
 			(
-				specialType == "jump" and entity.creatureType.jumpTimerLength or
+				-- specialType == "jump" and entity.creatureType.jumpTimerLength or
 				specialType == "dodge" and entity.creatureType.dodgeTimerLength or
 				specialType == "stopCharge" and entity.creatureType.stopChargeTimerLength
 			) or
@@ -1422,7 +1448,8 @@ function game:checkWillFall(entity)
 			entity.actions[1] and entity.actions[1].jumpAirborne
 		)) and
 		not entity.hangingFrom and
-		not anchored
+		not anchored and
+		not entity.flyingInfo
 end
 
 -- I didn't want to bother with ticking entities outside of the level so I'm only letting the player move through
@@ -1660,6 +1687,26 @@ function game:doSummonAbility(entity, ability)
 		})
 		table.insert(abilityList, new)
 	end
+end
+
+function game:canAct(entity)
+	return not (#entity.actions > 0 or entity.dead or self:checkWillFall(entity) or entity.flyingInfo)
+end
+
+function game:flingEntity(entity, toX, toY, subtickMoveTimerLength, range, doneFunction)
+	entity.flyingInfo = nil
+
+	entity.flyingInfo = {
+		startX = entity.x,
+		startY = entity.y,
+		targetX = toX,
+		targetY = toY,
+		subtickMoveTimerLength = subtickMoveTimerLength,
+		doneFunction = doneFunction,
+		range = math.min(range, self:distance(entity.x, entity.y, toX, toY))
+	}
+	local info = entity.flyingInfo
+	self:initProjectileTrajectory(info, entity.x, entity.y, toX, toY)
 end
 
 return game

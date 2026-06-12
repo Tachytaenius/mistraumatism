@@ -9,10 +9,10 @@ function game:isPlayerInControl()
 		return false
 	end
 	local player = state.player
-	if not player or state.waiting or player.dead or self:checkWillFall(state.player) then
+	if not player or state.waiting then
 		return false
 	end
-	return #player.actions == 0
+	return self:canAct(player)
 end
 
 function game:realtimeUpdate(dt)

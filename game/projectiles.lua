@@ -155,8 +155,8 @@ function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, 
 									self:newParticle(trailParticle, {
 										startX = projectile.currentX, -- The tile we just left (we haven't set projectile.currentX to the new tile yet)
 										startY = projectile.currentY,
-										targetX = projectile.currentX,
-										targetY = projectile.currentY
+										targetX = projectile.currentX + (trailParticle.randomTarget and love.math.random(-trailParticle.randomTarget, trailParticle.randomTarget) or 0),
+										targetY = projectile.currentY + (trailParticle.randomTarget and love.math.random(-trailParticle.randomTarget, trailParticle.randomTarget) or 0)
 									})
 								end
 							end
@@ -360,6 +360,10 @@ function game:initProjectileTrajectory(newProjectile, startX, startY, targetX, t
 	newProjectile.subtickAge = 0
 	newProjectile.moved = false
 	newProjectile.moveTimer = 0
+
+	if not newProjectile.range then
+		newProjectile.range = self:distance(startX, startY, targetX, targetY)
+	end
 
 	if newProjectile.startX == newProjectile.targetX and newProjectile.startY == newProjectile.targetY then
 		-- No trajectory

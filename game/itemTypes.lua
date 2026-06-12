@@ -430,11 +430,15 @@ function game:loadItemTypes()
 		},
 		trailParticleInfo = {
 			{
+				-- count = 10,
 				count = 1,
 				tile = "▒",
 				foregroundColour = "darkGrey",
 				backgroundColour = "black",
 				lifetime = 1
+				-- lifetime = 8,
+				-- subtickMoveTimerLength = 1024,
+				-- randomTarget = 2
 			}
 		}
 	}
@@ -928,7 +932,7 @@ function game:loadItemTypes()
 		displayName = "fence gate",
 		isGate = true,
 		stateChangeSoundRange = 5,
-		dynamicDoorTileInfo = {closedLineNumber = 2, openLineNumber = 2, perpendicularLineNumberOpen = 2} -- Only calculated on level generation finish
+		dynamicDoorTileInfo = {closedLineNumber = 2, openLineNumber = 2, perpendicularLineNumberOpen = 2}
 	}
 	itemTypes.heavyDoor = {
 		isDoor = true,
@@ -978,7 +982,12 @@ function game:loadItemTypes()
 		tile = "╪",
 		openTile = "╡",
 		displayName = "airlock door",
-		stateChangeSoundRange = 14
+		stateChangeSoundRange = 14,
+		dynamicDoorTileInfo = {
+			mirrorPerpendicular = true, mirrorPerpendicularOpenOnly = true, dontOpenRotate = false, alwaysRotation = 1,
+			openLineNumber = 1, perpendicularLineNumberOpen = 2,
+			closedLineNumber = 2, perpendicularLineNumberClosed = 1
+		}
 	}
 	itemTypes.castleDoorLeft = {
 		isDoor = true,
