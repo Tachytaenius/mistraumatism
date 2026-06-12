@@ -168,6 +168,12 @@ function game:tickItems(tickFunction) -- NOTE: Good to flush entity removal if r
 	end
 end
 
+function game:playerDied()
+	if not self.state.reachedSafety then
+		self:playSound("playerDeath")
+	end
+end
+
 function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
@@ -177,6 +183,9 @@ function game:updateEntitiesAndProjectiles()
 		assert(entity.entityType == "creature", "Can't kill non-creatures")
 		entity.dead = true
 		entity.deathTick = state.tick
+		if entity == self.state.player then
+			self:playerDied()
+		end
 		if entity.onKill then
 			entity.onKill(self, entity)
 		end
@@ -1573,6 +1582,23 @@ function game:mindAttackOtherEntity(source, target, amount)
 	end
 end
 
+function game:getSummonableCreatureCount(entity, ability)
+	local abilityList
+	for _, list in ipairs(entity.summonedEntities) do
+		if list.ability == ability then
+			abilityList = list
+			break
+		end
+	end
+	local count = 0
+	for _, summoned in ipairs(abilityList) do
+		if not summoned.dead and not summoned.removed then
+			count = count + 1
+		end
+	end
+	return math.min(ability.creaturesPerSummon, math.max(0, ability.maxAliveCreatures - count))
+end
+
 function game:doSummonAbility(entity, ability)
 	local lastKnownTargetLocation
 	if entity.lastKnownTargetLocation then
@@ -1615,7 +1641,8 @@ function game:doSummonAbility(entity, ability)
 	if #choices == 0 then
 		return
 	end
-	for _=1, ability.creaturesPerSummon do
+	local creaturesToSummon = self:getSummonableCreatureCount(entity, ability)
+	for _=1, creaturesToSummon do
 		local choice = choices[love.math.random(#choices)]
 		self:newCreatureEntity({
 			x = choice.x, y = choice.y,

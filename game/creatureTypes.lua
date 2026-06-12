@@ -323,12 +323,13 @@ function game:loadCreatureTypes()
 		sightDistance = 20,
 		maxHealth = 2400,
 		meleeTimerLength = 1,
-		meleeDamage = 1000,
-		meleeBleedRateAdd = 1024,
+		meleeDamage = 250,
+		meleeBleedRateAdd = 500,
 		-- meleeInstantBloodLoss = 20,
 		immuneToOwnAttacks = true,
 		gibOnDeath = true,
 		minGibForce = 25,
+		gibText = "presence crumbles",
 
 		inventorySize = 4,
 
@@ -338,7 +339,7 @@ function game:loadCreatureTypes()
 		wrongRangeShootAggressiveness = 0.25,
 		-- telepathicMindAttackDamageRate = 80,
 		-- mindAttackActionTimerLength = 2,
-		passiveMindAttackDamageRate = 12,
+		passiveMindAttackDamageRate = 10,
 		passiveMindAttackRange = 14,
 		passiveMindAttackTeamThreshold = "friendly", -- Will attack friendlies or worse
 		targetLocationSenseRange = 35,
@@ -362,8 +363,8 @@ function game:loadCreatureTypes()
 				name = "humanSummon",
 				maxAliveCreatures = 12, -- TODO
 				creatureTypeName = "human",
-				creaturesPerSummon = 8,
-				radius = 5,
+				creaturesPerSummon = 6,
+				radius = 2,
 				actionTime = 8
 			},
 		},
@@ -461,7 +462,7 @@ function game:loadCreatureTypes()
 						damage = 1,
 						-- instantBloodLoss = 2,
 						bleedRateAdd = 10,
-						range = 5,
+						range = 3,
 						trailParticleInfo = {
 							{
 								count = 1,

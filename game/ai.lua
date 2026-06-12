@@ -1,6 +1,7 @@
 local pathfind = require("lib.batteries.pathfindModified")
 
 local consts = require("consts")
+local util = require("util")
 
 local game = {}
 
@@ -461,7 +462,14 @@ function game:getAIActions(entity, globalAIInfo)
 				entity.creatureType.summonAggressiveness and
 				love.math.random() < (entity.creatureType.summonAggressiveness or 1)
 			then
-				local ability = entity.creatureType.summonAbilities[love.math.random(#entity.creatureType.summonAbilities)]
+				local usableAbilities = {}
+				for _, ability in ipairs(entity.creatureType.summonAbilities) do
+					local count = self:getSummonableCreatureCount(entity, ability)
+					if count > 0 then
+						table.insert(usableAbilities, {value = ability, weight = count})
+					end
+				end
+				local ability = util.weightedRandomChoice(usableAbilities)
 				if ability then
 					summoning = true
 					fightAction = self.state.actionTypes.summon.construct(self, entity, ability.name)

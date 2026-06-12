@@ -18,7 +18,9 @@ function love.keypressed(key)
 	commands.keyPressed(key)
 end
 
-local function handleSettingsCommands()
+local function handleSettings()
+	love.audio.setVolume(settings.sound.volume)
+
 	-- Window should've been made already
 	local shouldRemakeWindow
 	if commands.checkCommand("decreaseCanvasScale") then
@@ -56,7 +58,7 @@ end
 function love.update(dt)
 	commands.tickStarted(dt)
 
-	handleSettingsCommands()
+	handleSettings()
 
 	local repeatUpdate -- For changing state and not immediately drawing before updating it
 	repeat

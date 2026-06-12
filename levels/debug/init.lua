@@ -27,6 +27,14 @@ function info:createLevel()
 		end
 	end
 
+	local doorX = 10
+	-- self:placeDoorItem(doorX, 1, "door", "steel")
+	self:placeDoorItem(doorX, 2, "door", "steel")
+	self:getTile(doorX, 3).type = "wall"
+	self:placeDoorItem(doorX + 1, 3, "door", "steel")
+	self:placeDoorItem(doorX - 1, 3, "door", "steel")
+	self:placeDoorItem(doorX, 4, "door", "steel")
+
 	for x = 0, 5 do
 		for y = 6, 10 do
 			self:replaceTileInfo(x, y, {type = "wall", material = "granite"})

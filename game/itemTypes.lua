@@ -46,7 +46,7 @@ function game:loadItemTypes()
 	itemTypes.smallBullet = {
 		isAmmo = true,
 		stackable = true,
-		maxStackSize = 7,
+		maxStackSize = 8,
 		tile = "i",
 		ammoClass = "bulletSmall",
 		displayName = "small bullet",
@@ -1201,7 +1201,7 @@ function game:loadItemTypes()
 	}
 
 	itemTypes.phallicSceptre = {
-		tile = "↓",
+		tile = "↑",
 		displayName = "phallic staff", -- Had to cut down on characters but phallic sceptre sounded better...
 		forceRemoveBetweenLevels = true, -- Didn't want to make it a melee weapon because the player should not wield it
 		psychicDamageIfInInventory = 7

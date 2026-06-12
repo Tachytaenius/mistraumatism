@@ -132,6 +132,8 @@ function game:init(args)
 	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
 
+	self:loadSounds()
+
 	-- TEMP, change as needed
 	local skipIntro, flickerIntro, startLevelName, noPlayer, skipTitle
 	for _, arg in ipairs(args) do
@@ -167,6 +169,7 @@ function game:init(args)
 			exitIntro()
 			return true
 		else
+			self:setMusic("eyes-in-the-darkness-of-your-mind")
 			self.mode = "text"
 			self.textInfo = {
 				path = "text/and-in-mistraumatism.txt",
@@ -175,6 +178,7 @@ function game:init(args)
 				releaseTime = 5,
 				updateFunction = function(self, dt)
 					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+						self:fadeMusicOut(5)
 						exitIntro()
 						return true -- To allow initial realtimeUpdate to fully set up new state
 					end

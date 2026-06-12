@@ -487,6 +487,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		local openNum = dynamicDoorTileInfo.openLineNumber or 0
 		local closedOtherNum = dynamicDoorTileInfo.perpendicularLineNumberClosed or 0
 		local openOtherNum = dynamicDoorTileInfo.perpendicularLineNumberOpen or 0
+		local dontOpenRotate = dynamicDoorTileInfo.dontOpenRotate
 
 		local open = doorData.open
 
@@ -496,6 +497,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		local perpendicular2 = 0
 
 		local function cycle(n, a, b, c, d)
+			n = n % 4
 			for _=1, n do
 				a, b, c, d = d, a, b, c
 			end
@@ -505,13 +507,16 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		local hingeSide = doorData.hinge
 
 		-- For the sake of double doors opening the same way. NOTE: Could make doors open in the direction opposite to the interactor.
-		if hingeSide == "up" then
-			hingeSide = "down"
-		elseif hingeSide == "left" then
-			hingeSide = "right"
-		end
+		-- if hingeSide == "up" then
+		-- 	hingeSide = "down"
+		-- elseif hingeSide == "left" then
+		-- 	hingeSide = "right"
+		-- end
 
 		local cycleCount = hingeSide == "right" and 0 or hingeSide == "up" and 1 or hingeSide == "left" and 2 or hingeSide == "down" and 3 or 0
+		if open and not dontOpenRotate then
+			cycleCount = cycleCount - 1
+		end
 
 		local char = util.getBoxDrawingCharacter(cycle(cycleCount, hinge, perpendicular1, opposite, perpendicular2))
 		return char

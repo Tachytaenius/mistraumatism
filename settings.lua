@@ -1,6 +1,9 @@
 -- TODO
 
 return {
+	sound = {
+		volume = 0.75
+	},
 	graphics = {
 		-- canvasScale = 1, -- Automatically filled with largest allowable size
 		fullscreen = false

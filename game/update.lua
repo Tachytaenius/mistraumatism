@@ -16,6 +16,7 @@ function game:isPlayerInControl()
 end
 
 function game:realtimeUpdate(dt)
+	self:handleMusicFadeout(dt)
 	if self.mode == "gameplay" then
 		local hadTickBecauseOfWaiting = false
 		local function inner()
