@@ -25,12 +25,28 @@ Thanks to Azoth!
 
 ---
 
+THE FRAMEWORK
+
+LÖVE can be found here (it's not just for 2D!):
+https://love2d.org/
+Thanks to the LÖVE team!
+
+---
+
+LIBRARIES
+
+Batteries (only pathfinding and its dependency were included (modified)) can be found here:
+https://github.com/1bardesign/batteries
+Thanks to Max Cahill!
+
+---
+
 UTILITIES
 
 LSDJ, which was used to make sounds and music, can be found here:
 https://www.littlesounddj.com/lsd/index.php
 Thanks to Johan Kotlinski!
 
-gb-presenter-rs, which was used to export LSDJ songs, can be found here:
+gb-presenter-rs, which was used to render LSDJ songs, can be found here:
 https://github.com/nununoisy/gb-presenter-rs
 Thanks to nununoisy!
