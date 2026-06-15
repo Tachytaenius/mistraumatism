@@ -908,7 +908,15 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				local actionInfo
 				local actionColour = "lightGrey"
 				local action = entity.actions[1]
-				if not action then
+				if entity.flyingInfo then
+					actionColour = "darkCyan"
+					actionInfo = "Airborne"
+					local direction = self:getNextProjectileStepDirection(entity.flyingInfo)
+					local symbol = getOffsetSymbol(self:getDirectionOffset(direction))
+					if symbol then
+						actionInfo = actionInfo .. "∙" .. symbol
+					end
+				elseif not action then
 					actionInfo = "No action"
 				else
 					if action.type == "shoot" or action.type == "melee" or action.type == "mindAttack" then
@@ -917,7 +925,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						actionColour = "darkCyan"
 					end
 					local actionDisplayName = action.displayNameOverride or state.actionTypes[action.type].displayName
-					actionInfo = util.capitalise(actionDisplayName) .. "∙" .. action.timer .. "T"
+					actionInfo = util.capitalise(actionDisplayName)
 					if action.type == "move" or action.type == "melee" then
 						local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
 						if action.type == "melee" and action.charge then
@@ -926,7 +934,25 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						if symbol then
 							actionInfo = actionInfo .. "∙" .. symbol
 						end
+					elseif action.type == "jump" then
+						local targetX, targetY = action.relativeX + entity.x, action.relativeY + entity.y
+						local flyingInfo = {
+							startX = entity.x,
+							startY = entity.y,
+							targetX = targetX,
+							targetY = targetY,
+							range = math.min(entity.creatureType.maxJumpDistance, self:distance(entity.x, entity.y, targetX, targetY)),
+							blockFunction = self.canEntitiesBeFlungThroughTile
+						}
+						self:initProjectileTrajectory(flyingInfo, entity.x, entity.y, targetX, targetY)
+
+						local direction = self:getNextProjectileStepDirection(flyingInfo)
+						local symbol = getOffsetSymbol(self:getDirectionOffset(direction))
+						if symbol then
+							actionInfo = actionInfo .. "∙" .. symbol
+						end
 					end
+					actionInfo = actionInfo .. "∙" .. action.timer .. "T"
 				end
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
 				if self:getHeldItem(entity) then
@@ -939,7 +965,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				local item = entity.itemData
 				local itemType = item.itemType
 				if itemType.isDoor then
-					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, entity.doorTile.doorData.open and "Open" or "Closed" .. (entity.doorTile.doorData.lockName and "∙Locked" or ""), "lightGrey", "black")
+					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, (entity.doorTile.doorData.open and "Open" or "Closed") .. (entity.doorTile.doorData.lockName and "∙Locked" or ""), "lightGrey", "black")
 				elseif itemType.isLever and not (not item.active and itemType.inactiveHidden) then
 					drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, item.active and "Active" or "Inactive", "lightGrey", "black")
 				elseif itemType.isButton then

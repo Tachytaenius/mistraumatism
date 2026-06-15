@@ -100,9 +100,9 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeDoorItem(x, y, "ornateDoor", "granite", false, "leavePatriarchalCesspoolLevel")
 		elseif value == 0x66 then
 			local tile = self:getTile(x, y)
-			tile.fallLevelChange = "exit"
+			tile.fallLevelChange = "underwaterMaze"
 			tile.type = "floorPortal1"
-			tile.material = "inflictionMagic"
+			tile.material = "water"
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end

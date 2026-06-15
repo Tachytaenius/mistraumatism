@@ -537,7 +537,7 @@ function game:loadCreatureTypes()
 		maxHealth = 50,
 		maxBlood = 50,
 		bleedHealRate = 12,
-		meleeTimerLength = 4,
+		meleeTimerLength = 7,
 		meleeDamage = 24,
 		meleeBleedRateAdd = 80,
 		-- meleeInstantBloodLoss = 10,
@@ -581,7 +581,7 @@ function game:loadCreatureTypes()
 				projectileColour = "lightGrey",
 				projectileSubtickMoveTimerLength = 256,
 				damage = 0,
-				bleedRateAdd = 10,
+				bleedRateAdd = 6,
 				range = 12
 			}
 		}

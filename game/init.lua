@@ -61,6 +61,9 @@ function game:newState(params)
 	self:newTeam("critter")
 	self:setTeamRelation("person", "monster", "enemy")
 
+	state.announcements = {}
+	state.splitAnnouncements = {}
+
 	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
 
 	self:prepareForLevel()
@@ -78,9 +81,6 @@ function game:newState(params)
 		levelGenerationResult.postLevelGen()
 	end
 	self:resetTileEntityLists()
-
-	state.announcements = {}
-	state.splitAnnouncements = {}
 
 	state.incrementEntityDisplaysTimerLength = 1
 	state.incrementEntityDisplaysSwitchIndicatorTime = 0.08
@@ -178,7 +178,7 @@ function game:init(args)
 				releaseTime = 5,
 				updateFunction = function(self, dt)
 					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
-						self:fadeMusicOut(5)
+						self:fadeMusicOut(8)
 						exitIntro()
 						return true -- To allow initial realtimeUpdate to fully set up new state
 					end

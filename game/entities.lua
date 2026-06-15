@@ -623,8 +623,8 @@ function game:updateEntitiesAndProjectiles()
 			if entity == state.player then
 				-- NOTE: For announcement purposes, we assume the player is a human either drowning in a liquid or breathing in air, because that's the intended use of this code. Drowning still works if the player controls a fish, but the announcements will be wrong. We also assume that entering/exiting fluid is the player in an airlock.
 
-				local newFluidMaterial = self:getCurrentLiquid(entity)
-				local oldFluidMaterial = entity.initialSubmergedFluid
+				local newFluidMaterial = self:getCurrentLiquid(entity) and state.materials[self:getCurrentLiquid(entity)].displayName
+				local oldFluidMaterial = entity.initialSubmergedFluid and state.materials[entity.initialSubmergedFluid].displayName
 
 				-- Entering/exiting fluid
 				if self:isDrowning(entity) and not entity.initialDrowning then
@@ -836,7 +836,7 @@ function game:updateEntitiesAndProjectiles()
 			elseif entity.blood and entity.blood <= 0 then
 				cause = "bledOut"
 			elseif entity.drownTimer and entity.creatureType.breathingTimerLength and entity.drownTimer >= entity.creatureType.breathingTimerLength then
-				cause = "drowned"
+				cause = entity.creatureType.aquatic and "airDrowned" or "drowned"
 			elseif entity.psychicDamage and entity.creatureType.psychicDamageDeathPoint and entity.psychicDamage >= entity.creatureType.psychicDamageDeathPoint then
 				cause = "psychicDamage"
 			end
@@ -1693,6 +1693,10 @@ function game:canAct(entity)
 	return not (#entity.actions > 0 or entity.dead or self:checkWillFall(entity) or entity.flyingInfo)
 end
 
+function game:canEntitiesBeFlungThroughTile(x, y)
+	return not self:getWalkable(x, y, false, true)
+end
+
 function game:flingEntity(entity, toX, toY, subtickMoveTimerLength, range, doneFunction)
 	entity.flyingInfo = nil
 
@@ -1703,7 +1707,8 @@ function game:flingEntity(entity, toX, toY, subtickMoveTimerLength, range, doneF
 		targetY = toY,
 		subtickMoveTimerLength = subtickMoveTimerLength,
 		doneFunction = doneFunction,
-		range = math.min(range, self:distance(entity.x, entity.y, toX, toY))
+		range = math.min(range, self:distance(entity.x, entity.y, toX, toY)),
+		blockFunction = self.canEntitiesBeFlungThroughTile
 	}
 	local info = entity.flyingInfo
 	self:initProjectileTrajectory(info, entity.x, entity.y, toX, toY)

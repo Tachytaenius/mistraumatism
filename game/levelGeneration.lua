@@ -1,3 +1,5 @@
+local util = require("util")
+
 local game = {}
 
 function game:replaceTileInfo(x, y, info)
@@ -261,8 +263,9 @@ function game:makeAirlock(params)
 	local info = {}
 	-- TODO: Initial state from parameters
 	info.airDoorOpen = false
-	info.airDoor = self:placeDoorItem(params.airDoorX, params.airDoorY, "airlockDoor", params.airDoorMaterial, false, nil, "down")
-	info.otherDoor = self:placeDoorItem(params.otherDoorX, params.otherDoorY, "airlockDoor", params.otherDoorMaterial, true, nil, "up")
+	local airHinge, otherHinge = util.conditionalSwap("down", "up", params.swapHinges)
+	info.airDoor = self:placeDoorItem(params.airDoorX, params.airDoorY, "airlockDoor", params.airDoorMaterial, false, nil, airHinge)
+	info.otherDoor = self:placeDoorItem(params.otherDoorX, params.otherDoorY, "airlockDoor", params.otherDoorMaterial, true, nil, otherHinge)
 	info.liquidMaterial = params.liquidMaterial
 	info.liquidTiles = {}
 	for i, coord in ipairs(params.liquidTileCoords) do

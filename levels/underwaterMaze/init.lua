@@ -9,6 +9,7 @@ function info:createLevel()
 	local function airlock(x, y, flipX)
 		local xMul = flipX and -1 or 1
 		self:makeAirlock({
+			swapHinges = flipX,
 			airDoorX = x - xMul * 1,
 			airDoorY = y,
 			otherDoorX = x + xMul * 1,
@@ -31,31 +32,52 @@ function info:createLevel()
 	local types = {
 		[0x00] = "floor",
 		[0x55] = "wall",
-		[0xaa] = "drain"
+		[0xaa] = "airlockDrain"
 	}
 	local materials = {
 		[0x00] = "steel"
 	}
 	local spawnX, spawnY
+	local function water(x, y)
+		self:getTile(x, y).liquid = {material = "water"}
+	end
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x22 then
-			self:placeItem(x, y, "pistol", "steel")
-			for _=1, 2 do
-				self:placeMagazineWithAmmo(x, y, "pistolMagazine", "steel", "smallBullet", "brass")
+			self:placeItem(x, y, "pumpShotgun", "steel")
+			for _=1, 7 do
+				self:placeItem(x - 1, y, "buckshotShell", "plasticRed")
+			end
+			for _=1, 5 do
+				self:placeItem(x - 1, y + 1, "slugShell", "plasticGreen")
 			end
 		elseif value == 0x33 then
-			self:getTile(x, y).liquid = {material = "water"}
+			water(x, y)
 			self:placeMonster(x, y, "angler")
+		elseif value == 0x34 then
+			water(x, y)
+			self:placeCorpseTeam(x, y, "zombie", "monster")
+		elseif value == 0x35 then
+			water(x, y)
+			self:placeCorpseTeam(x, y, "human", "person")
+			self:placeKey(x, y, "keycard", "plasticGreen", "waterExit")
 		elseif value == 0x44 then
 			airlock(x, y, false)
 		elseif value == 0x45 then
 			airlock(x, y, true)
+		elseif value == 0x46 then
+			self:placeDoorItem(x, y, "door", "steel", false, "waterExit")
 		elseif value == 0x55 then
-			self:getTile(x, y).liquid = {material = "water"}
+			water(x, y)
 		elseif value == 0xaa then
-			self:getTile(x, y).liquid = {material = "water"}
+			water(x, y)
 			self:placeCritter(x, y, love.math.random() < 0.75 and "smallFish1" or "smallFish2")
+		elseif value == 0xfe then
+			local tile = self:getTile(x, y)
+			tile.fallLevelChange = "exit"
+			tile.type = "floorPortal1"
+			tile.material = "inflictionMagic"
 		elseif value == 0xff then
+			water(x, y)
 			spawnX, spawnY = x, y
 		end
 	end
@@ -82,7 +104,14 @@ function info:createLevel()
 
 	return {
 		spawnX = spawnX,
-		spawnY = spawnY
+		spawnY = spawnY,
+		postLevelGen = function()
+			if not self.state.player then
+				return
+			end
+			self:announce("You fall into the water.", "darkBlue")
+			self:setCurrentSwimInfo(self.state.player)
+		end
 	}
 end
 

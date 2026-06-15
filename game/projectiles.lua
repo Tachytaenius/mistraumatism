@@ -66,6 +66,151 @@ function game:onProjectileExplode(projectile)
 	end
 end
 
+function game:getNextProjectileTile(projectile)
+	if projectile.stopped or not projectile.trajectoryOctant then
+		return false
+	end
+
+	local startX, startY = projectile.startX, projectile.startY
+	local endX, endY = projectile.targetX, projectile.targetY
+	local rangeLimit = projectile.range + 4 -- Add a buffer just to be sure, since we use actual float distance checks
+	-- Recalculate endX and endY to be pushed as far as needed because going beyond them will cause issues (like the sector for the singleLine computeVisibilityMapOctant starting to spread out)
+	-- Single line checks that have their delta to their target multiplied by an integer >= 2 actually seem to have lower collidedX values, this is probably because the sector is narrower. That said, we still reach our destinations if they are visible. This has been exhaustively tested
+	-- All of this is probably horrible and horribly done
+	local startToTargetX = projectile.targetX - startX
+	local startToTargetY = projectile.targetY - startY
+	while
+		math.max(
+			math.abs(endX - startX),
+			math.abs(endY - startY)
+		) <= rangeLimit
+	do
+		endX = endX + startToTargetX
+		endY = endY + startToTargetY
+	end
+
+	local deltaX, deltaY = endX - startX, endY - startY
+	local magX, magY = math.abs(deltaX), math.abs(deltaY)
+	local disableDistanceCheck = false
+
+	local octant = projectile.trajectoryOctant
+	local localX, localY
+	local quadrant = math.floor(octant / 2)
+	if (octant + quadrant) % 2 == 0 then
+		localX, localY = magX, magY
+	else
+		localX, localY = magY, magX
+	end
+
+	local currentOctantX = projectile.currentOctantX or 0
+	local currentOctantY = projectile.currentOctantY or 0
+
+	local blockFunction = projectile.blockFunction or self.tileBlocksAirMotion
+
+	local singleLineVisibilityMapInfo = {
+		singleLine = true,
+		wholeMap = false,
+		blockFunction = blockFunction,
+		hitTiles = {},
+		distanceCheckRangeLimit = projectile.range
+	}
+	self:computeVisibilityMapOctant(
+		octant,
+		startX, startY,
+		rangeLimit, currentOctantX + 1,
+		localX * 4 - 1, localY * 4 + 1,
+		localX * 4 + 1, localY * 4 - 1,
+		disableDistanceCheck,
+		singleLineVisibilityMapInfo
+	)
+
+	if singleLineVisibilityMapInfo.collidedX == currentOctantX + 1 then
+		return false
+	end
+
+	local visibilityMapInfo = {
+		wholeMap = false,
+		blockFunction = blockFunction,
+		hitTiles = {},
+		distanceCheckRangeLimit = projectile.range,
+		sectorsNextStep = {}
+	}
+	if not projectile.previousSectors then
+		self:computeVisibilityMapOctant(
+			octant,
+			startX, startY,
+			rangeLimit, currentOctantX + 1,
+			1, 1,
+			1, 0,
+			disableDistanceCheck,
+			visibilityMapInfo,
+			true
+		)
+	else
+		for _, sector in ipairs(projectile.previousSectors) do
+			self:computeVisibilityMapOctant(
+				octant,
+				startX, startY,
+				rangeLimit, currentOctantX + 1,
+				sector.slopeTopX, sector.slopeTopY,
+				sector.slopeBottomX, sector.slopeBottomY,
+				disableDistanceCheck,
+				visibilityMapInfo,
+				true
+			)
+		end
+	end
+	local hitTiles = visibilityMapInfo.hitTiles
+
+	local potentialNextTiles = {}
+	local minimumX = math.huge
+	for _, hitTile in ipairs(hitTiles) do
+		if
+			hitTile.fullHit and -- Visible
+			singleLineVisibilityMapInfo.hitTiles[hitTile.tile] and -- On the actual single line path
+			not blockFunction(self, hitTile.globalX, hitTile.globalY) -- Available tile to path on
+		then
+			minimumX = math.min(minimumX, hitTile.localX)
+			potentialNextTiles[#potentialNextTiles+1] = hitTile
+		end
+	end
+	local newTile
+	local realLineAngle = math.atan2(localY, localX)
+	local function realLineCloseness(tile)
+		local realTileAngle = math.atan2(tile.localY, tile.localX)
+		local angleDifference = util.getShortestAngleDifference(realLineAngle, realTileAngle)
+		return angleDifference
+	end
+	for _, hitTile in ipairs(potentialNextTiles) do
+		if hitTile.localX == minimumX then
+			-- Ensure we always go through the target location (if it is available to be pathed on)
+			local previousNewTileIsOriginalTargetTile = newTile and newTile.globalX == projectile.targetX and newTile.globalY == projectile.targetY
+			local isOriginalTargetTile = hitTile.globalX == projectile.targetX and hitTile.globalY == projectile.targetY
+
+			if not previousNewTileIsOriginalTargetTile and (not newTile or (isOriginalTargetTile or math.abs(realLineCloseness(hitTile)) < math.abs(realLineCloseness(newTile)))) then
+				newTile = hitTile
+			end
+		end
+	end
+
+	return true, newTile, visibilityMapInfo
+end
+
+function game:getNextProjectileStepDirection(projectile)
+	local valid, newTile, _ = self:getNextProjectileTile(projectile)
+	if not valid then
+		return "zero"
+	end
+	if not newTile then
+		return "zero"
+	end
+	local x1 = projectile.currentX
+	local y1 = projectile.currentY
+	local x2 = newTile.globalX
+	local y2 = newTile.globalY
+	return self:getDirection(x2 - x1, y2 - y1)
+end
+
 function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, projectilesToStop)
 	checkForEntityHit = checkForEntityHit or function() end
 	tryExplode = tryExplode or function()
@@ -95,59 +240,6 @@ function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, 
 			else
 				currentTime, projectile.moveTimer, projectile.subtickAge = util.progressSubtickTimeAndTimer(currentTime, projectile.moveTimer, projectile.subtickAge, consts.projectileSubticks)
 				if projectile.moveTimer <= 0 then
-					local startX, startY = projectile.startX, projectile.startY
-					local endX, endY = projectile.targetX, projectile.targetY
-					local rangeLimit = projectile.range + 4 -- Add a buffer just to be sure, since we use actual float distance checks
-					-- Recalculate endX and endY to be pushed as far as needed because going beyond them will cause issues (like the sector for the singleLine computeVisibilityMapOctant starting to spread out)
-					-- Single line checks that have their delta to their target multiplied by an integer >= 2 actually seem to have lower collidedX values, this is probably because the sector is narrower. That said, we still reach our destinations if they are visible. This has been exhaustively tested
-					-- All of this is probably horrible and horribly done
-					local startToTargetX = projectile.targetX - startX
-					local startToTargetY = projectile.targetY - startY
-					while
-						math.max(
-							math.abs(endX - startX),
-							math.abs(endY - startY)
-						) <= rangeLimit
-					do
-						endX = endX + startToTargetX
-						endY = endY + startToTargetY
-					end
-
-					local deltaX, deltaY = endX - startX, endY - startY
-					local magX, magY = math.abs(deltaX), math.abs(deltaY)
-					local disableDistanceCheck = false
-
-					local octant = projectile.trajectoryOctant
-					local localX, localY
-					local quadrant = math.floor(octant / 2)
-					if (octant + quadrant) % 2 == 0 then
-						localX, localY = magX, magY
-					else
-						localX, localY = magY, magX
-					end
-
-					local currentOctantX = projectile.currentOctantX or 0
-					local currentOctantY = projectile.currentOctantY or 0
-
-					local blockFunction = self.tileBlocksAirMotion
-
-					local singleLineVisibilityMapInfo = {
-						singleLine = true,
-						wholeMap = false,
-						blockFunction = blockFunction,
-						hitTiles = {},
-						distanceCheckRangeLimit = projectile.range
-					}
-					self:computeVisibilityMapOctant(
-						octant,
-						startX, startY,
-						rangeLimit, currentOctantX + 1,
-						localX * 4 - 1, localY * 4 + 1,
-						localX * 4 + 1, localY * 4 - 1,
-						disableDistanceCheck,
-						singleLineVisibilityMapInfo
-					)
-
 					if projectile.trailParticleInfo then
 						for _, trailParticle in ipairs(projectile.trailParticleInfo) do
 							if projectile.moved or trailParticle.allowOnFirstMove then
@@ -163,77 +255,14 @@ function game:moveObjectAsProjectile(projectile, checkForEntityHit, tryExplode, 
 						end
 					end
 
-					if singleLineVisibilityMapInfo.collidedX == currentOctantX + 1 then
+					local valid, newTile, visibilityMapInfo = self:getNextProjectileTile(projectile)
+					if not valid then
 						projectilesToStop[projectile] = true
 						checkForEntityHit()
 						tryExplode()
 						break
 					end
 
-					local visibilityMapInfo = {
-						wholeMap = false,
-						blockFunction = blockFunction,
-						hitTiles = {},
-						distanceCheckRangeLimit = projectile.range,
-						sectorsNextStep = {}
-					}
-					if not projectile.previousSectors then
-						self:computeVisibilityMapOctant(
-							octant,
-							startX, startY,
-							rangeLimit, currentOctantX + 1,
-							1, 1,
-							1, 0,
-							disableDistanceCheck,
-							visibilityMapInfo,
-							true
-						)
-					else
-						for _, sector in ipairs(projectile.previousSectors) do
-							self:computeVisibilityMapOctant(
-								octant,
-								startX, startY,
-								rangeLimit, currentOctantX + 1,
-								sector.slopeTopX, sector.slopeTopY,
-								sector.slopeBottomX, sector.slopeBottomY,
-								disableDistanceCheck,
-								visibilityMapInfo,
-								true
-							)
-						end
-					end
-					local hitTiles = visibilityMapInfo.hitTiles
-
-					local potentialNextTiles = {}
-					local minimumX = math.huge
-					for _, hitTile in ipairs(hitTiles) do
-						if
-							hitTile.fullHit and -- Visible
-							singleLineVisibilityMapInfo.hitTiles[hitTile.tile] and -- On the actual single line path
-							not blockFunction(self, hitTile.globalX, hitTile.globalY) -- Available tile to path on
-						then
-							minimumX = math.min(minimumX, hitTile.localX)
-							potentialNextTiles[#potentialNextTiles+1] = hitTile
-						end
-					end
-					local newTile
-					local realLineAngle = math.atan2(localY, localX)
-					local function realLineCloseness(tile)
-						local realTileAngle = math.atan2(tile.localY, tile.localX)
-						local angleDifference = util.getShortestAngleDifference(realLineAngle, realTileAngle)
-						return angleDifference
-					end
-					for _, hitTile in ipairs(potentialNextTiles) do
-						if hitTile.localX == minimumX then
-							-- Ensure we always go through the target location (if it is available to be pathed on)
-							local previousNewTileIsOriginalTargetTile = newTile and newTile.globalX == projectile.targetX and newTile.globalY == projectile.targetY
-							local isOriginalTargetTile = hitTile.globalX == projectile.targetX and hitTile.globalY == projectile.targetY
-
-							if not previousNewTileIsOriginalTargetTile and (not newTile or (isOriginalTargetTile or math.abs(realLineCloseness(hitTile)) < math.abs(realLineCloseness(newTile)))) then
-								newTile = hitTile
-							end
-						end
-					end
 					if not newTile then
 						projectilesToStop[projectile] = true
 						checkForEntityHit()
@@ -368,7 +397,7 @@ function game:initProjectileTrajectory(newProjectile, startX, startY, targetX, t
 	if newProjectile.startX == newProjectile.targetX and newProjectile.startY == newProjectile.targetY then
 		-- No trajectory
 	else
-		local blockFunction = self.tileBlocksAirMotion
+		local blockFunction = newProjectile.blockFunction or self.tileBlocksAirMotion
 		local hitscanResult, info = self:hitscan(newProjectile.startX, newProjectile.startY, newProjectile.targetX, newProjectile.targetY, blockFunction)
 		local trajectoryOctant
 		if hitscanResult then

@@ -235,6 +235,9 @@ function game:loadEventTypes()
 			elseif eventData.alertType == "hiss" then
 				a = "hisses savagely"
 				b = "hiss savagely"
+			elseif eventData.alertType == "grin" then
+				a = "grins maliciously"
+				b = "grin maliciously"
 			elseif eventData.alertType == "point" then
 				a = "points at an enemy"
 				b = "point at an enemy"

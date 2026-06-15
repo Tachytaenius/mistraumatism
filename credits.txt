@@ -1,18 +1,36 @@
+THE GAME
+
 Mistraumatism was made by Tachytaenius (AKA wolfboyft).
 
 Thanks to all the people who helped me learn to program.
 And thank you, to you, for playing my game.
 
-Very special thanks to all my loved ones. Across all time.
+Very special thanks to all my loved ones, across all time.
+Nothing is ever erased.
 
 ---
+
+FONTS
 
 Source of the original version of modifiedKelora.png, which was modified by me:
 https://dwarffortresswiki.org/index.php/File:Kelora_16x16_diagonal-clouds.png
 Thanks to Kelora!
 
-retro.png was sourced from Dwarf Fortress.
+retro.png was sourced from Dwarf Fortress, which is by Tarn and Zach Adams.
+Its wiki says that the exact origin of the font is unknown.
 
 Source of azoth_acorn_8x8.png:
 https://gitlab.com/zeddy1267/azoth-acorn-collection
 Thanks to Azoth!
+
+---
+
+UTILITIES
+
+LSDJ, which was used to make sounds and music, can be found here:
+https://www.littlesounddj.com/lsd/index.php
+Thanks to Johan Kotlinski!
+
+gb-presenter-rs, which was used to export LSDJ songs, can be found here:
+https://github.com/nununoisy/gb-presenter-rs
+Thanks to nununoisy!

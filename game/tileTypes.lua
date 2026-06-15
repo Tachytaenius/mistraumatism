@@ -39,6 +39,13 @@ function game:loadTileTypes()
 			deleteSpatter = "liquid",
 			character = "#"
 		},
+		airlockDrain = {
+			displayName = "airlock drain",
+			solidity = "solid",
+			character = "◙",
+			blocksLight = true,
+			pretendConnectionTypeName = "wall"
+		},
 		shortGrass = {
 			displayName = "short grass",
 			solidity = "passable",
