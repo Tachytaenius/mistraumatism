@@ -27,6 +27,7 @@ return {
 	wait = "hold",
 	waitPrecise = "pressed",
 
+	meleeChargeMode = "hold",
 	shoot = "pressed",
 	melee = "pressed",
 	useHeldItem = "pressed",

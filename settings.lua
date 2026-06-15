@@ -38,6 +38,7 @@ return {
 		scrollListBackwards = "[",
 		scrollListForwards = "]",
 
+		meleeChargeMode = "lshift",
 		shoot = "f",
 		melee = "v",
 		useHeldItem = "t",

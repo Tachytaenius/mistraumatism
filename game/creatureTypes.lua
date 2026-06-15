@@ -47,6 +47,48 @@ function game:loadCreatureTypes()
 		psychicDamageDeathPoint = 1200,
 	}
 
+	creatureTypes.werewolf = {
+		displayName = "werewolf",
+		tile = "W",
+		colour = "lightGrey",
+		bloodMaterialName = "bloodRed",
+		size = 192,
+
+		moveTimerLength = 5,
+		dodgeTimerLength = 3,
+		dodgeSteadyTimerLength = 3,
+		canJump = true,
+		maxJumpDistance = 3.5,
+		jumpTimerLength = 5,
+		jumpSubtickMoveTimerLength = 448, -- 256 * 1.75
+		jumpSteadyTimerLength = 5,
+		swimMoveTimerLength = 14,
+		breathingTimerLength = 1400,
+		sightDistance = 17,
+		maxHealth = 22,
+		maxBlood = 22,
+		bleedHealRate = 24,
+		chargeMelee = true,
+		chargeFlingDistance = 1,
+		chargeFlingSteadyTimerLength = 3,
+		chargeFlingSubtickMoveTimerLength = 384,
+		meleeTimerLength = 3,
+		meleeDamage = 7,
+		meleeBleedRateAdd = 18,
+
+		roseRageDamageMultiplier = 2.25,
+		hears = true,
+		alertAction = "snarl",
+		alertActionUsesVocalisation = true,
+		vocalisationRange = 17,
+		painDamageThreshold = 5,
+
+		canOpenDoors = true,
+		inventorySize = 9,
+
+		psychicDamageDeathPoint = 1200,
+	}
+
 	creatureTypes.zombie = {
 		displayName = "zombie",
 		tile = "z",
@@ -259,7 +301,7 @@ function game:loadCreatureTypes()
 		flying = true,
 		attackDeadTargets = true,
 		canOpenDoors = true,
-		inventorySize = 1,
+		inventorySize = 6,
 
 		shootAggressiveness = 1,
 		wrongRangeShootAggressiveness = 0.2,
@@ -272,7 +314,7 @@ function game:loadCreatureTypes()
 		tile = "N",
 		colour = "darkRed",
 		bloodMaterialName = "bloodGreen",
-		size = 256,
+		size = 320,
 
 		moveTimerLength = 5,
 		sightDistance = 18,
@@ -285,7 +327,7 @@ function game:loadCreatureTypes()
 		-- meleeInstantBloodLoss = 5,
 		shootAggressiveness = 0.2,
 
-		inventorySize = 1,
+		inventorySize = 2,
 
 		hears = true,
 		alertAction = "warcry",
@@ -294,6 +336,9 @@ function game:loadCreatureTypes()
 		painDamageThreshold = 16,
 
 		chargeMelee = true,
+		chargeFlingDistance = 2,
+		chargeFlingSteadyTimerLength = 7,
+		chargeFlingSubtickMoveTimerLength = 768,
 		attackDeadTargets = true,
 		canOpenDoors = true,
 
@@ -532,7 +577,7 @@ function game:loadCreatureTypes()
 		cantMoveOnLand = true,
 		moveTimerLength = nil,
 		swimMoveTimerLength = 15,
-		breathingTimerLength = 300,
+		breathingTimerLength = 150,
 		sightDistance = 14,
 		maxHealth = 50,
 		maxBlood = 50,

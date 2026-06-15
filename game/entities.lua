@@ -1368,10 +1368,17 @@ end
 
 function game:getAttackStrengths(entity)
 	local heldItem = self:getHeldItem(entity)
+	local mul = entity.roseRage and entity.creatureType.roseRageDamageMultiplier or 1
+	local dam, rate, instant
 	if heldItem and heldItem.itemType.isMeleeWeapon then
-		return heldItem.itemType.meleeDamage, heldItem.itemType.meleeBleedRateAdd, heldItem.itemType.meleeInstantBloodLoss
+		dam, rate, instant = heldItem.itemType.meleeDamage, heldItem.itemType.meleeBleedRateAdd, heldItem.itemType.meleeInstantBloodLoss
+	else
+		dam, rate, instant = entity.creatureType.meleeDamage, entity.creatureType.meleeBleedRateAdd, entity.creatureType.meleeInstantBloodLoss
 	end
-	return entity.creatureType.meleeDamage, entity.creatureType.meleeBleedRateAdd, entity.creatureType.meleeInstantBloodLoss
+	return
+		dam and math.floor(dam * mul),
+		rate and math.floor(rate * mul),
+		instant and math.floor(instant * mul)
 end
 
 function game:isEntitySwimming(entity)
@@ -1695,6 +1702,14 @@ end
 
 function game:canEntitiesBeFlungThroughTile(x, y)
 	return not self:getWalkable(x, y, false, true)
+end
+
+function game:getFlingSteadyDoneFunction(entity, steadyTime)
+	return function(self, entity)
+		if #entity.actions == 0 then
+			entity.actions[#entity.actions+1] = self.state.actionTypes.steady.construct(self, entity, steadyTime)
+		end
+	end
 end
 
 function game:flingEntity(entity, toX, toY, subtickMoveTimerLength, range, doneFunction)

@@ -72,7 +72,7 @@ function game:newState(params)
 		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = levelGenerationResult.spawnX, levelGenerationResult.spawnY, 10
 	else
 		state.player = self:newCreatureEntity({
-			creatureTypeName = "human",
+			creatureTypeName = params.playerCreatureType or "human",
 			team = "person",
 			x = levelGenerationResult.spawnX, y = levelGenerationResult.spawnY
 		})
@@ -135,7 +135,7 @@ function game:init(args)
 	self:loadSounds()
 
 	-- TEMP, change as needed
-	local skipIntro, flickerIntro, startLevelName, noPlayer, skipTitle
+	local skipIntro, flickerIntro, startLevelName, noPlayer, skipTitle, playerCreatureType
 	for _, arg in ipairs(args) do
 		if arg == "--skipIntro" then
 			skipIntro = true
@@ -153,12 +153,17 @@ function game:init(args)
 		if arg == "--skipTitle" then
 			skipTitle = true
 		end
+		local playerCreatureTypeArg = "^--playerCreatureType="
+		if arg:match(playerCreatureTypeArg) then
+			playerCreatureType = arg:gsub(playerCreatureTypeArg, "")
+		end
 	end
 
 	local function exitIntro()
 		self:newState({
 			startLevelName = startLevelName,
-			noPlayer = noPlayer
+			noPlayer = noPlayer,
+			playerCreatureType = playerCreatureType
 		})
 		self:debugOnNewState()
 		self.mode = "gameplay"

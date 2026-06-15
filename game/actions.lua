@@ -351,17 +351,26 @@ function game:loadActionTypes()
 		if not commands.checkCommand("shoot") then
 			return
 		end
+		local cursor = self.state.cursor
+		if not cursor then
+			return
+		end
 		local heldItem = self:getHeldItem(player)
 		local gun = heldItem and heldItem.itemType.isGun
 		local thrown = heldItem and heldItem.itemType.isThrownProjectile
 		if not (gun or thrown) then
-			return
+			if not player.creatureType.projectileAbilities then
+				return
+			end
+			local choice = love.math.random(#player.creatureType.projectileAbilities)
+			local ability = player.creatureType.projectileAbilities[choice]
+			local abilityName = ability and ability.name
+			if not abilityName then
+				return
+			end
+			return shoot.construct(self, player, cursor.x, cursor.y, self:getCursorEntity(), "ability", abilityName)
 		end
 		if gun and self:getHeldItem(player).itemType.breakAction and self:getHeldItem(player).actionOpen then
-			return
-		end
-		local cursor = self.state.cursor
-		if not cursor then
 			return
 		end
 		if thrown then
@@ -421,13 +430,48 @@ function game:loadActionTypes()
 	function melee.process(self, entity, action)
 		action.timer = action.timer - 1
 		if action.timer <= 0 then
+			if not action.targetEntity or action.targetEntity.removed then
+				action.doneType = "cancelled"
+				return
+			end
+
 			local ox, oy = self:getDirectionOffset(action.direction)
 			local targetX, targetY = entity.x + ox, entity.y + oy
 			if action.charge then
-				local hitFirstTime
-				if self:getAttackStrengths(entity) and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
+				local function chargeHit()
 					local meleeDamage, meleeBleedRateAdd, meleeInstantBloodLoss = self:getAttackStrengths(entity)
 					self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
+
+					local flingDistance = entity.creatureType.chargeFlingDistance
+					if not flingDistance then
+						return
+					end
+					local flingSubtickMoveTimerLength = entity.creatureType.chargeFlingSubtickMoveTimerLength
+					local steadyTime = entity.creatureType.chargeFlingSteadyTimerLength
+					local doneFunction
+					if steadyTime then
+						doneFunction = self:getFlingSteadyDoneFunction(entity, steadyTime)
+					end
+					local relX = action.targetEntity.x - entity.x
+					local relY = action.targetEntity.y - entity.y
+					local relDist = self:length(relX, relY)
+					if relDist == 0 then
+						return
+					end
+					local toRelX = math.floor(relX / relDist * flingDistance + 0.5) -- Round
+					local toRelY = math.floor(relY / relDist * flingDistance + 0.5)
+					local toX = action.targetEntity.x + toRelX
+					local toY = action.targetEntity.y + toRelY
+					-- NOTE: Could do some similar maths to impedence stuff to get a modified fling distance?
+					local allowChargeFling = action.targetEntity.creatureType.size <= entity.creatureType.size
+					if not allowChargeFling then
+						return
+					end
+					self:flingEntity(action.targetEntity, toX, toY, flingSubtickMoveTimerLength, flingDistance, doneFunction)
+				end
+				local hitFirstTime
+				if self:getAttackStrengths(entity) and action.targetEntity.x == targetX and action.targetEntity.y == targetY then
+					chargeHit()
 					hitFirstTime = true
 				end
 				if canWalkTo(entity, targetX, targetY, true) then
@@ -435,8 +479,7 @@ function game:loadActionTypes()
 				end
 				local hitSecondTime
 				if not hitFirstTime and self:getAttackStrengths(entity) and action.targetEntity.x == targetX + ox and action.targetEntity.y == targetY + oy then
-					local meleeDamage, meleeBleedRateAdd, meleeInstantBloodLoss = self:getAttackStrengths(entity)
-					self:damageEntity(action.targetEntity, meleeDamage, entity, meleeBleedRateAdd, meleeInstantBloodLoss)
+					chargeHit()
 					hitSecondTime = true
 				end
 				if hitFirstTime or hitSecondTime then
@@ -460,6 +503,7 @@ function game:loadActionTypes()
 		if not commands.checkCommand("melee") then
 			return
 		end
+		local chargeMode = commands.checkCommand("meleeChargeMode")
 		if not player.creatureType.meleeTimerLength then
 			return
 		end
@@ -475,7 +519,8 @@ function game:loadActionTypes()
 		if not direction then
 			return
 		end
-		return melee.construct(self, player, targetEntity, direction)
+		local charge = chargeMode and direction ~= "zero" and player.creatureType.chargeMelee
+		return melee.construct(self, player, targetEntity, direction, charge)
 	end
 
 	local pickUp = newActionType("pickUp", "pick up")
@@ -1456,9 +1501,7 @@ function game:loadActionTypes()
 		if action.timer <= 0 then
 			if jump.validate(self, entity, action) then
 				local steadyTime = entity.creatureType.jumpSteadyTimerLength
-				local function doneFunction(self, entity)
-					entity.actions[#entity.actions+1] = steady.construct(self, entity, steadyTime)
-				end
+				local doneFunction = self:getFlingSteadyDoneFunction(entity, steadyTime)
 				local toX = entity.x + action.relativeX
 				local toY = entity.y + action.relativeY
 				self:flingEntity(entity, toX, toY, action.subtickMoveTimerLength, entity.creatureType.maxJumpDistance, doneFunction)

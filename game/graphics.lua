@@ -929,7 +929,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					if action.type == "move" or action.type == "melee" then
 						local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
 						if action.type == "melee" and action.charge then
-							symbol = "Charge" .. symbol
+							symbol = "Push" .. "∙" .. symbol
 						end
 						if symbol then
 							actionInfo = actionInfo .. "∙" .. symbol
