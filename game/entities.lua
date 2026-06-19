@@ -111,8 +111,8 @@ function game:flushEntityRemoval()
 				if entity2.targetEntity == entity then
 					entity2.targetEntity = nil
 				end
-				if entity2.hangingFrom == entity then
-					entity2.hangingFrom = nil
+				if entity2.attachedTo == entity then
+					entity2.attachedTo = nil
 				end
 			end
 			if entity == state.player then
@@ -586,9 +586,9 @@ function game:updateEntitiesAndProjectiles()
 	for _, entity in ipairs(state.entities) do
 		local deathEventData
 
-		if entity.hangingFrom then
-			if not (entity.hangingFrom.x == entity.x and entity.hangingFrom.y == entity.y) then
-				entity.hangingFrom = nil
+		if entity.attachedTo then
+			if not (entity.attachedTo.x == entity.x and entity.attachedTo.y == entity.y) then
+				entity.attachedTo = nil
 			end
 		end
 		if self:checkWillFall(entity) then
@@ -1091,7 +1091,7 @@ function game:getEntityDisplayName(entity)
 	if entity.entityType == "creature" then
 		return entity.creatureType.displayName
 	else
-		return "TODO: Display name"
+		return "???"
 	end
 end
 
@@ -1436,12 +1436,12 @@ function game:shouldEntityFlee(entity, potentialFleeFromEntity)
 	return false
 end
 
-function game:checkWillFall(entity)
+function game:checkWouldFall(entity, x, y)
 	local state = self.state
-	local tile = self:getTile(entity.x, entity.y)
+	local tile = self:getTile(x, y)
 	local anchored
 	if entity.entityType == "item" and entity.itemData.itemType.anchorsOverPits then
-		local anchorableNeighbours = self:getCheckedNeighbourTiles(entity.x, entity.y, function(x, y)
+		local anchorableNeighbours = self:getCheckedNeighbourTiles(x, y, function(x, y)
 			local tile = self:getTile(x, y)
 			return not tile or state.tileTypes[tile.type].solidity ~= "fall"
 		end)
@@ -1454,9 +1454,13 @@ function game:checkWillFall(entity)
 			entity.creatureType.flying and not entity.dead or
 			entity.actions[1] and entity.actions[1].jumpAirborne
 		)) and
-		not entity.hangingFrom and
+		not entity.attachedTo and
 		not anchored and
 		not entity.flyingInfo
+end
+
+function game:checkWillFall(entity)
+	return self:checkWouldFall(entity, entity.x, entity.y)
 end
 
 -- I didn't want to bother with ticking entities outside of the level so I'm only letting the player move through
@@ -1712,8 +1716,14 @@ function game:getFlingSteadyDoneFunction(entity, steadyTime)
 	end
 end
 
-function game:flingEntity(entity, toX, toY, subtickMoveTimerLength, range, doneFunction)
+function game:flingEntity(entity, toX, toY, subtickMoveTimerLength, range, doneFunction, dontClearActions)
 	entity.flyingInfo = nil
+
+	if not dontClearActions then
+		while #entity.actions > 0 do
+			table.remove(entity.actions)
+		end
+	end
 
 	entity.flyingInfo = {
 		startX = entity.x,
@@ -1727,6 +1737,14 @@ function game:flingEntity(entity, toX, toY, subtickMoveTimerLength, range, doneF
 	}
 	local info = entity.flyingInfo
 	self:initProjectileTrajectory(info, entity.x, entity.y, toX, toY)
+end
+
+function game:entityCanJumpToTile(entity, x, y)
+	return
+		entity and entity.creatureType.maxJumpDistance and
+		self:distance(entity.x, entity.y, x, y) <= entity.creatureType.maxJumpDistance and
+		self:hitscan(entity.x, entity.y, x, y, self.canEntitiesBeFlungThroughTile) and
+		not self:canEntitiesBeFlungThroughTile(x, y)
 end
 
 return game

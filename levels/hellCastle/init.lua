@@ -9,7 +9,7 @@ function info:createLevel()
 
 	local function attachCorpseToItem(itemEntity)
 		local corpse = self:placeCorpseTeam(itemEntity.x, itemEntity.y, "human", "person")
-		corpse.hangingFrom = itemEntity
+		corpse.attachedTo = itemEntity
 		corpse.blood = 0
 		corpse.bleedingAmount = 8
 		corpse.health = 4 -- Dead, so this just represents mangling level. They were killed by hanging, not before it, so this can't be <= 0
@@ -124,6 +124,10 @@ function info:createLevel()
 			self:placeMonster(x, y, "hellNoble")
 		elseif value == 0xac then
 			self:placeItem(x, y, "throne", "gold")
+		elseif value == 0xba then
+			local armourStand = self:placeItem(x, y, "armourStand", "mahogany")
+			self:placeItem(x, y, "knightlyArmour", "steel").attachedTo = armourStand
+			self:placeItem(x, y, "halberd", "steel").attachedTo = armourStand
 		elseif value == 0xbb then
 			self:placeMonster(x, y, "skeleton", "scythe", "iron")
 		elseif value == 0xbc then

@@ -151,7 +151,7 @@ function game:loadItemTypes()
 		ammoClass = "bulletMedium",
 		displayName = "medium bullet",
 		spread = 0,
-		damage = 24,
+		damage = 21,
 		bleedRateAdd = 36,
 		-- instantBloodLoss = 3,
 		bulletCount = 1,
@@ -194,7 +194,7 @@ function game:loadItemTypes()
 		ammoClass = "bulletLarge",
 		displayName = "large bullet",
 		spread = 0,
-		damage = 32,
+		damage = 26,
 		bleedRateAdd = 96,
 		-- instantBloodLoss = 5,
 		bulletCount = 1,
@@ -228,8 +228,8 @@ function game:loadItemTypes()
 		ammoClass = "bulletLarge",
 		displayName = "research round",
 		spread = 0,
-		damage = 20,
-		bleedRateAdd = 120,
+		damage = 28,
+		bleedRateAdd = 80,
 		-- instantBloodLoss = 6,
 		bulletCount = 1,
 		projectileSubtickMoveTimerLength = 512,
@@ -239,7 +239,7 @@ function game:loadItemTypes()
 		projectileTile = "∙",
 		projectileColour = "yellow",
 		projectileExplosionRadius = 1,
-		projectileExplosionDamage = 50
+		projectileExplosionDamage = 10
 	}
 
 	itemTypes.pumpShotgun = {
@@ -322,7 +322,7 @@ function game:loadItemTypes()
 		displayName = "buckshot shell",
 		spread = 0.1,
 		damage = 4,
-		bulletCount = 9,
+		bulletCount = 10,
 		bleedRateAdd = 4,
 		-- instantBloodLoss = 1,
 		projectileSubtickMoveTimerLength = 20,
@@ -338,7 +338,7 @@ function game:loadItemTypes()
 		tile = "▬",
 		ammoClass = "shellMedium",
 		displayName = "slug shell",
-		damage = 40,
+		damage = 33,
 		bulletCount = 1,
 		bleedRateAdd = 80,
 		-- instantBloodLoss = 7,
@@ -606,7 +606,7 @@ function game:loadItemTypes()
 			damage = 5,
 			bleedRateAdd = 20,
 			-- instantBloodLoss = 1,
-			bulletCount = 12,
+			bulletCount = 15,
 			projectileSubtickMoveTimerLength = 64,
 			range = 14,
 			maxPierces = 2,
@@ -644,7 +644,7 @@ function game:loadItemTypes()
 			projectileTile = "☼",
 			projectileColour = "lightGrey",
 			spread = 0,
-			damage = 16,
+			damage = 24,
 			bleedRateAdd = 100,
 			-- instantBloodLoss = 3,
 			bulletCount = 1,
@@ -745,9 +745,9 @@ function game:loadItemTypes()
 		tile = "ƒ",
 		displayName = "scythe",
 		isMeleeWeapon = true,
-		meleeDamage = 7,
+		meleeDamage = 9,
 		meleeBleedRateAdd = 32,
-		meleeTimerAdd = 5
+		meleeTimerAdd = 3
 	}
 
 	itemTypes.crowbar = {
@@ -1183,6 +1183,18 @@ function game:loadItemTypes()
 		isMeleeWeapon = true,
 		meleeDamage = 8,
 		meleeBleedRateAdd = 24
+	}
+	itemTypes.halberd = {
+		tile = "/",
+		displayName = "halberd",
+		isMeleeWeapon = true,
+		meleeDamage = 8,
+		meleeBleedRateAdd = 24
+	}
+	itemTypes.armourStand = {
+		tile = "┼",
+		displayName = "armour stand",
+		noPickUp = true
 	}
 
 	itemTypes.toothOutcrop = {

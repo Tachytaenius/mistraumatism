@@ -1,8 +1,16 @@
--- TODO: Test all
-
 -- Ordered in trinary with places 0 to 3 being right, up, left, then down,
 -- and the values in each place being the number of lines on that side.
-local chars = {nil, nil, nil, nil, "└", "╘", nil, "╙", "╚", nil, "─", nil, "┘", "┴", nil, "╜", "╨", nil, nil, nil, "═", "╛", nil, "╧", "╝", nil, "╩", nil, "┌", "╒", "│", "├", "╞", nil, nil, nil, "┐", "┬", nil, "┤", "┼", nil, nil, nil, nil, "╕", nil, "╤", "╡", nil, "╪", nil, nil, nil, nil, "╓", "╔", nil, nil, nil, "║", "╟", "╠", "╖", "╥", nil, nil, nil, nil, "╢", "╫", nil, "╗", nil, "╦", nil, nil, nil, "╣", nil, "╬"}
+local chars = {
+	nil, nil, nil,  nil, "└", "╘",  nil, "╙", "╚",
+	nil, "─", nil,  "┘", "┴", nil,  "╜", "╨", nil,
+	nil, nil, "═",  "╛", nil, "╧",  "╝", nil, "╩",
+	nil, "┌", "╒",  "│", "├", "╞",  nil, nil, nil,
+	"┐", "┬", nil,  "┤", "┼", nil,  nil, nil, nil,
+	"╕", nil, "╤",  "╡", nil, "╪",  nil, nil, nil,
+	nil, "╓", "╔",  nil, nil, nil,  "║", "╟", "╠", -- Note how here the right side's line count goes 0, 1, then 2
+	"╖", "╥", nil,  nil, nil, nil,  "╢", "╫", nil,
+	"╗", nil, "╦",  nil, nil, nil,  "╣", nil, "╬"
+}
 
 -- Check that all box drawing characters appear once. Doesn't check for correct positioning, though.
 -- May as well leave this here

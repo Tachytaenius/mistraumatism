@@ -529,6 +529,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local indicatorTiles = {} -- To stop indicators from clashing
 	local drawActionIndicators = self.realTime % 1.5 < 0.5
 	local drawCursor = self.realTime % 0.5 < (commands.checkCommand("moveCursor") and not commands.checkCommand("dodgeMode") and 0.4 or 0.25)
+	local drawJumpableTiles = self.realTime % 0.5 < 0.25 and commands.checkCommand("viewJumpReach") -- commands.checkCommand("moveAlternativeMode")
 	local drawEnemyAim = self.realTime % 0.75 < 0.375
 	local drawEntityWarnings = (self.realTime + 0.1875) % 0.75 < 0.375
 	local drawActionTime = false
@@ -730,9 +731,40 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		drawIndicator(action.relativeX + cursorEntity.x, action.relativeY + cursorEntity.y, "X", "red", "black")
 	end
 
+	if drawJumpableTiles then
+		for viewportSpaceX = 0, self.viewportWidth - 1 do
+			local visibilityColumn = visibilityMap[viewportSpaceX]
+			local framebufferX = viewportSpaceX + viewportScreenX
+			local column = framebuffer[framebufferX]
+			for viewportSpaceY = 0, self.viewportHeight - 1 do
+				if not visibilityColumn[viewportSpaceY] then
+					goto continue
+				end
+				local framebufferY = viewportSpaceY + viewportScreenY
+				local cell = column[framebufferY]
+
+				local tileX, tileY = viewportSpaceX + topLeftX, viewportSpaceY + topLeftY
+
+				if self:entityCanJumpToTile(state.player, tileX, tileY) then
+					drawCharacterWorldToViewport(tileX, tileY, "J", "darkGreen", "black")
+				end
+
+				::continue::
+			end
+		end
+	end
+
 	if state.cursor then
 		if drawCursor then
-			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, "X", (self:getCursorEntity() and state.cursor.lockedOn) and "cyan" or "yellow", "black")
+			-- Bad UX, too easy to move while trying to move cursor to see where you can jump to
+			-- local jumpInfo = commands.checkCommand("moveAlternativeMode") and isTileVisible(state.cursor.x, state.cursor.y)
+			-- local canReach =
+			-- 	state.player and state.player.creatureType.maxJumpDistance and
+			-- 	self:distance(state.player.x, state.player.y, state.cursor.x, state.cursor.y) <= state.player.creatureType.maxJumpDistance and
+			-- 	self:hitscan(state.player.x, state.player.y, state.cursor.x, state.cursor.y, self.canEntitiesBeFlungThroughTile)
+			-- local char = jumpInfo and (canReach and "J" or "N") or "X"
+			local char = "X"
+			drawCharacterWorldToViewport(state.cursor.x, state.cursor.y, char, (self:getCursorEntity() and state.cursor.lockedOn) and "cyan" or "yellow", "black")
 		end
 	end
 
@@ -929,7 +961,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 					if action.type == "move" or action.type == "melee" then
 						local symbol = getOffsetSymbol(self:getDirectionOffset(action.direction))
 						if action.type == "melee" and action.charge then
-							symbol = "Push" .. "∙" .. symbol
+							symbol = "Lunge" .. "∙" .. symbol
 						end
 						if symbol then
 							actionInfo = actionInfo .. "∙" .. symbol

@@ -69,7 +69,7 @@ function game:loadCreatureTypes()
 		maxBlood = 22,
 		bleedHealRate = 24,
 		chargeMelee = true,
-		chargeFlingDistance = 1,
+		chargeFlingDistance = 1.5,
 		chargeFlingSteadyTimerLength = 3,
 		chargeFlingSubtickMoveTimerLength = 384,
 		meleeTimerLength = 3,

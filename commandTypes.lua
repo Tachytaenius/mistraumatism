@@ -2,6 +2,8 @@ return {
 	dodgeMode = "hold",
 	-- jumpDodgeMode = "hold",
 	jump = "pressed",
+	moveAlternativeMode = "hold",
+	viewJumpReach = "hold",
 	moveRight = "hold",
 	moveUpRight = "hold",
 	moveUp = "hold",

@@ -350,6 +350,11 @@ local function tryMeleeTargetEntity(self, entity)
 		return
 	end
 	local charge = direction ~= "zero" and entity.creatureType.chargeMelee and not entity.targetEntity.dead
+	if self:checkWouldFall(entity, entity.targetEntity.x, entity.targetEntity.y) then
+		-- Don't push an entity off a cliff and then go with it.
+		charge = false
+		-- But you can still dodge and cause an entity to fall into a pit behind you due to the stopping distance!
+	end
 	return self.state.actionTypes.melee.construct(self, entity, targetEntity, direction, charge)
 end
 

@@ -43,7 +43,7 @@ function game:loadActionTypes()
 			-- 	"jump"
 			-- ) or
 			specialType == "dodge" and "dodge" or
-			specialType == "stopCharge" and "stop charge"
+			specialType == "stopCharge" and "stop lunge"
 	end
 	function move.construct(self, entity, direction, specialType)
 		local moveTimerLength = self:getMoveTimerLength(entity, specialType)
@@ -180,6 +180,7 @@ function game:loadActionTypes()
 				end
 			end
 			if direction then
+				local ignoreGaps = commands.checkCommand("moveAlternativeMode") or player.creatureType.flying
 				local offsetX, offsetY = self:getDirectionOffset(direction)
 				local specialType = nil
 				if commands.checkCommand("dodgeMode") then
@@ -203,11 +204,10 @@ function game:loadActionTypes()
 						end
 					-- end
 				end
-				local ignoreGaps = player.creatureType.flying
 				-- if specialType == "jump" or specialType == "dodge" then
-				if specialType == "dodge" then
-					ignoreGaps = true
-				end
+				-- if specialType == "dodge" then
+				-- 	ignoreGaps = true
+				-- end
 				if self:getWalkable(player.x + offsetX, player.y + offsetY, false, ignoreGaps) then
 					return move.construct(self, player, direction, specialType)
 				end
@@ -955,8 +955,15 @@ function game:loadActionTypes()
 					elseif commands.checkCommand("operateGunSide2") then
 						selection = 2
 					else
-						-- TODO: Slightly more advanced automatic assumptions
 						selection = heldItem.selectedMagazine
+						if #heldItem.magazineDataList[selection] >= heldItem.itemType.magazineCapacity then
+							for potentialSelection, mag in ipairs(heldItem.magazineDataList) do
+								if #mag < heldItem.itemType.magazineCapacity then
+									selection = potentialSelection
+									break
+								end
+							end
+						end
 					end
 				end
 				if not selection then
@@ -1169,8 +1176,15 @@ function game:loadActionTypes()
 				elseif commands.checkCommand("operateGunSide2") then
 					selection = 2
 				else
-					-- TODO: Slightly more advanced automatic assumptions
 					selection = heldItem.selectedMagazine
+					if #heldItem.magazineDataList[selection] == 0 then
+						for potentialSelection, mag in ipairs(heldItem.magazineDataList) do
+							if #mag > 0 then
+								selection = potentialSelection
+								break
+							end
+						end
+					end
 				end
 			end
 			if not selection then

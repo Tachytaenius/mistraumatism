@@ -75,10 +75,10 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeItem(x, y, "autoShotgun", "steel")
 		elseif value == 0xe7 then
 			for _=1, 16 do
-				self:placeItem(x, y - 1, "buckshotShell", "plasticRed")
+				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
 			for _=1, 16 do
-				self:placeItem(x - 1, y, "slugShell", "plasticGreen")
+				self:placeItem(x, y - 1, "slugShell", "plasticGreen")
 			end
 		elseif value == 0xff then
 			spawnX, spawnY = x, y

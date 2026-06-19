@@ -9,6 +9,8 @@ return {
 		fullscreen = false
 	},
 	controls = {
+		moveAlternativeMode = "lalt",
+		viewJumpReach = "m",
 		dodgeMode = "lctrl",
 		jumpDodgeMode = "lshift",
 		moveRight = "d",
