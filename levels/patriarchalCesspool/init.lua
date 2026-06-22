@@ -93,6 +93,9 @@ function info:createLevel() -- name should be the name of the directory containi
 					end
 				end
 			end
+			opponent.seePlayerMusic = "primordial-sickness"
+			opponent.seePlayerMusicForceFadeStop = true
+			opponent.seePlayerMusicFadeOutLength = 6
 		elseif value == 0x44 then
 			pathEndX = x
 			pathEndY = y

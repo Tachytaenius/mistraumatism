@@ -753,7 +753,7 @@ function game:loadActionTypes()
 		if entity.inventory and (not slot or (#entity.inventory >= slot and entity.inventory[slot].item)) and slot ~= entity.inventory.selectedSlot then
 			local new = {type = "swapInventorySlot"}
 			new.slot = slot
-			new.timer = 8
+			new.timer = 12
 			return new
 		end
 	end
@@ -1050,7 +1050,7 @@ function game:loadActionTypes()
 		if selectionKey then
 			new[selectionKey] = selectionIndex
 		end
-		new.timer = 9
+		new.timer = 7
 		if unload.validate(self, entity, new) then
 			return new
 		end

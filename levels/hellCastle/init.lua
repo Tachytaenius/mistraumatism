@@ -299,7 +299,8 @@ function info:createLevel()
 
 	return {
 		spawnX = spawnX,
-		spawnY = spawnY
+		spawnY = spawnY,
+		-- levelAnnouncement = "You arrive at the grounds of the Hell castle."
 	}
 end
 

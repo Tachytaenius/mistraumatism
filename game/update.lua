@@ -16,7 +16,7 @@ function game:isPlayerInControl()
 end
 
 function game:realtimeUpdate(dt)
-	self:handleMusicFadeout(dt)
+	self:handleMusicFade(dt)
 	if self.mode == "gameplay" then
 		local hadTickBecauseOfWaiting = false
 		local function inner()
@@ -111,6 +111,17 @@ function game:getPlayerInput()
 	end
 end
 
+function game:announceLevelArrival()
+	local announcement = self.state.levelAnnouncement
+	local colour = self.state.levelAnnouncementColour or "lightGrey"
+	self.state.levelAnnouncement = nil
+	self.state.levelAnnouncementColour = nil
+	if not announcement then
+		return
+	end
+	self:announce(announcement, colour)
+end
+
 function game:update()
 	local state = self.state
 	state.waiting = false -- No longer needed
@@ -129,6 +140,7 @@ function game:update()
 		state.startLevelTimer = state.startLevelTimer - 1
 		if state.startLevelTimer <= 0 then
 			state.startLevelTimer = nil
+			self:announceLevelArrival()
 		end
 		return
 	end
@@ -148,8 +160,9 @@ function game:update()
 	self:tickGibs()
 	self:tickParticles()
 	self:updateEntitiesAndProjectiles() -- Resets damages queue
+	self:checkHorrifiedMusic()
 	self:diminishExplosions()
-	self:dropSpatters()
+	self:dropSpatters() -- Should happen after any addSpatter calls
 	self:handleEventsQueue() -- Resets events queue
 	self:checkTileMessages()
 	self:handlePlayerMessages()

@@ -292,7 +292,8 @@ function info:createLevel() -- name should be the name of the directory containi
 
 	return {
 		spawnX = spawnX,
-		spawnY = spawnY
+		spawnY = spawnY,
+		-- levelAnnouncement = "You jolt awake." -- Fine to not be announced
 	}
 end
 

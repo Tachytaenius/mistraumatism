@@ -168,7 +168,50 @@ function game:tickItems(tickFunction) -- NOTE: Good to flush entity removal if r
 	end
 end
 
+function game:checkHorrifiedMusic()
+	if self.state.reachedSafety then
+		return
+	end
+	if self.state.horrified then
+		return
+	end
+	if not self.state.player then
+		return
+	end
+	local horrified = false
+	for _, entity in ipairs(self.state.entities.creatures) do
+		if entity.seePlayerMusic then
+			goto continue
+		end
+		if not self:entityCanSeeEntity(self.state.player, entity) then
+			goto continue
+		end
+		local relation = self:getTeamRelation(self.state.player.team, entity.team)
+		if entity.dead and relation == "friendly" then
+			horrified = true
+			break
+		elseif not entity.dead and relation == "enemy" then
+			horrified = true
+			break
+		end
+	    ::continue::
+	end
+	if not horrified then
+		return
+	end
+	self.state.horrified = true
+	if self.state.seePlayerMusicEntity then
+		return
+	end
+	self.horrorMusicName = "splintered-murk"
+	self:setMusic(self.horrorMusicName)
+	self.music:setVolume(0)
+	self.horrorMusicFadeInTimer = 0
+	self.horrorMusicFadeInTimerLength = 5
+end
+
 function game:playerDied()
+	self:stopMusic()
 	if not self.state.reachedSafety then
 		self:playSound("playerDeath")
 	end
@@ -185,6 +228,10 @@ function game:updateEntitiesAndProjectiles()
 		entity.deathTick = state.tick
 		if entity == self.state.player then
 			self:playerDied()
+		end
+		if entity == state.seePlayerMusicEntity then
+			self:fadeMusicOut(state.seePlayerMusicEntity.seePlayerMusicFadeOutLength or 0)
+			state.seePlayerMusicEntity = nil
 		end
 		if entity.onKill then
 			entity.onKill(self, entity)
@@ -456,6 +503,10 @@ function game:updateEntitiesAndProjectiles()
 				})
 			end
 			entity.targetEntity = potentialTarget
+			if state.player and potentialTarget == state.player and entity.seePlayerMusic and not state.seePlayerMusicEntity then
+				state.seePlayerMusicEntity = entity
+				self:setMusic(entity.seePlayerMusic, entity.seePlayerMusicForceFadeStop)
+			end
 			entity.lastKnownTargetLocation = {
 				x = entity.targetEntity.x,
 				y = entity.targetEntity.y
@@ -799,7 +850,7 @@ function game:updateEntitiesAndProjectiles()
 						x = love.math.random(minX, maxX)
 						y = love.math.random(minY, maxY)
 					end
-					self:addSpatter(x, y, entity.creatureType.bloodMaterialName, lossThisSpatter)
+					self:addSpatterWithSpread(x, y, entity.creatureType.bloodMaterialName, lossThisSpatter, consts.bleedSpreadThreshold)
 				end
 			end
 		end
@@ -847,7 +898,8 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		local gibbed = false
-		local gibThreshold = -entity.creatureType.maxHealth * 2.2
+		local gibThreshold = -entity.creatureType.maxHealth * 2.8
+		local gibForceMeasure = -entity.creatureType.maxHealth * 2
 		if entity.health <= gibThreshold or entity.creatureType.gibOnDeath and killedThisTick then
 			gibbed = true
 			state.entitiesToRemove[entity] = true
@@ -864,24 +916,38 @@ function game:updateEntitiesAndProjectiles()
 					soundRange = 10
 				})
 
-				local gibForce = (gibThreshold - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
+				local gibForce = (gibForceMeasure - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
 				if entity.creatureType.minGibForce then
 					gibForce = math.max(gibForce, entity.creatureType.minGibForce)
 				end
-				local fleshAmount = math.floor(entity.creatureType.maxHealth ^ 0.85 * 3.2)
-				local extraBlood = entity.creatureType.gibBloodRelease or entity.creatureType.maxBlood and math.floor(entity.creatureType.maxBlood * 1.1) or 0
+				-- local sum = 0
+				-- local count = 0
+				-- for k, v in pairs(state.creatureTypes) do
+				-- 	if v.size > 0 then
+				-- 		local val = v.size / v.maxHealth
+				-- 		sum = sum + val
+				-- 		count = count + 1
+				-- 	end
+				-- end
+				-- print(sum / count)
+				local fleshAmount = math.floor((entity.creatureType.size / 4.84) ^ 0.85 * 3.2) -- 4.84 is (was) around the average of size/maxHealth for all creature types with positive size. Flesh amount should be based on size but I didn't want to retune it, so I did this!
+				local extraBlood = entity.creatureType.gibBloodRelease or entity.creatureType.maxBlood and math.floor(entity.creatureType.maxBlood * 0.5) or 0
 				local bloodAmount = (entity.blood or 0) + extraBlood
 				local bloodSaveAmount = math.ceil(bloodAmount * 0.6)
 				bloodAmount = bloodAmount - bloodSaveAmount -- For more blood-only gibs
 				local gibs = {}
 				local gibCount = math.min(fleshAmount, math.floor(gibForce * 1/3) + 2)
-				local function newGib()
+				local function newGib(forceMovement)
 					local gibForceHalfPoint = 24
 					local rangeNotForceFactor = 2
 
 					local gibForce = gibForce / rangeNotForceFactor
 					local speed = (love.math.random() * 0.25 + 1) * (gibForce < gibForceHalfPoint and gibForce or (gibForceHalfPoint + (gibForce - gibForceHalfPoint) * 0.5))
 					local range = math.min(6, math.ceil(speed / 16)) * rangeNotForceFactor
+					if forceMovement then
+						speed = math.max(3, speed)
+						range = math.min(1, range)
+					end
 					local angle = love.math.random() * consts.tau
 					local subtickMoveTimerLength = math.ceil(25 * consts.projectileSubticks / speed)
 					local r = consts.spreadRetargetDistance
@@ -889,7 +955,7 @@ function game:updateEntitiesAndProjectiles()
 					local endX = math.floor(math.cos(angle) * r + 0.5) + startX -- Round
 					local endY = math.floor(math.sin(angle) * r + 0.5) + startY
 					local new = {
-						startDropped = speed < 4,
+						startDropped = not forceMovement and speed < 4,
 						x = startX,
 						y = startY,
 						startX = startX,
@@ -915,7 +981,7 @@ function game:updateEntitiesAndProjectiles()
 					return new
 				end
 				for i = 1, gibCount do
-					gibs[i] = newGib()
+					gibs[i] = newGib(i == 1)
 				end
 				local fleshDistributionChunkSize = 2
 				while fleshAmount > 0 do
@@ -930,13 +996,19 @@ function game:updateEntitiesAndProjectiles()
 						local gib = gibs[love.math.random(#gibs)]
 						local bloodAmountMoved = math.min(bloodAmount, bloodDistributionChunkSize)
 						bloodAmount = bloodAmount - bloodAmountMoved
-						gib.bloodAmount = gib.bloodAmount + bloodAmountMoved
+						if gib then
+							gib.bloodAmount = gib.bloodAmount + bloodAmountMoved
+						else
+							newGib().bloodAmount = bloodAmountMoved
+						end
 					end
 				end
+				local placedFirst = false
 				while bloodSaveAmount > 0 do
 					local bloodTaken = math.min(bloodSaveAmount, love.math.random(1, 3))
 					bloodSaveAmount = bloodSaveAmount - bloodTaken
-					local newBloodOnlyGib = newGib()
+					local newBloodOnlyGib = newGib(not placedFirst)
+					placedFirst = true
 					newBloodOnlyGib.bloodAmount = bloodTaken
 					gibs[#gibs+1] = newBloodOnlyGib
 				end
@@ -951,7 +1023,7 @@ function game:updateEntitiesAndProjectiles()
 				end
 				gibs = util.shuffle(gibs)
 				for _, gib in ipairs(gibs) do
-					if not gib.startDropped then
+					if not gib.startDropped then -- or gib.startX == gib.aimX and gib.startY == gib.aimY then
 						self:initProjectileTrajectory(gib, gib.startX, gib.startY, gib.aimX, gib.aimY)
 						state.gibs[#state.gibs+1] = gib
 					else
@@ -1190,7 +1262,7 @@ function game:getImpedingEntityLocations()
 		::continue::
 	end
 
-	util.shuffle(relevantEntities) -- For making entity separation fairer
+	relevantEntities = util.shuffle(relevantEntities) -- For making entity separation fairer
 
 	local movingLocations = {}
 	local locations = {

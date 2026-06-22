@@ -394,6 +394,8 @@ function game:generateLevel(parameters)
 	local info = require("levels." .. parameters.levelName)
 	local result = info.createLevel(self)
 	self:setDoorHinges()
+	self.state.levelAnnouncement = result.levelAnnouncement
+	self.state.levelAnnouncementColour = result.levelAnnouncementColour
 	return result
 end
 

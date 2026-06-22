@@ -4,7 +4,10 @@ local consts = {}
 
 consts.loveIdentity = "mistraumatism"
 consts.loveVersion = "11.5"
+
 consts.windowTitle = "Mistraumatism"
+consts.iconPath = "icon.png"
+consts.iconScale = 16
 
 local null = utf8.char(0)
 local nonBreakingSpace = utf8.char(160)
@@ -144,5 +147,7 @@ consts.spatterCharacters.leafLitter = {
 	"▓",
 	"▓",
 }
+
+consts.bleedSpreadThreshold = 10
 
 return consts

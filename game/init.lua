@@ -29,7 +29,6 @@ function game:prepareForLevel()
 	state.entities = {}
 	state.entities.creatures = {}
 	state.airlockData = {}
-	state.entitiesToSendToLevels = {}
 end
 
 function game:resetTileEntityLists()

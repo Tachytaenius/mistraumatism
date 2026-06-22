@@ -1,3 +1,5 @@
+local util = require("util")
+
 local game = {}
 
 function game:getTile(x, y)
@@ -119,6 +121,63 @@ function game:addSpatter(x, y, materialName, amount)
 		}
 	else
 		spatter.amount = spatter.amount + amount
+	end
+end
+
+function game:getSpatterAmount(x, y, materialName)
+	local tile = self:getTile(x, y)
+
+	if not tile.spatter then
+		return 0
+	end
+	for _, tileSpatter in ipairs(tile.spatter) do
+		if tileSpatter.materialName == materialName then
+			return tileSpatter.amount
+		end
+	end
+	return 0
+end
+
+function game:addSpatterWithSpread(x, y, materialName, amount, floorSpreadThreshold)
+	local tile = self:getTile(x, y)
+	if not tile then
+		return
+	end
+
+	local function checkFunction(tileX, tileY)
+		local tile = self:getTile(tileX, tileY)
+		if not tile then
+			return false
+		end
+		local type = self.state.tileTypes[tile.type]
+		return type.solidity == "fall" or type.solidity == "passable" -- Don't include projectilePassable
+	end
+
+	while amount > 0 do
+		local options = self:getCheckedNeighbourTiles(x, y, checkFunction, true)
+		local here = self:getSpatterAmount(x, y, materialName)
+		local lowest = math.huge
+		local lowests = {}
+		for _, option in ipairs(options) do
+			local there = self:getSpatterAmount(option.x, option.y, materialName)
+			if there < lowest then
+				lowest = there
+				lowests = {}
+			end
+			if there == lowest then
+				table.insert(lowests, option)
+			end
+		end
+		lowests = util.shuffle(lowests)
+		local chosen = lowests[1]
+		if chosen and here > floorSpreadThreshold and here > lowest then
+			local delta = here - lowest
+			self:addSpatter(chosen.x, chosen.y, materialName, 1)
+			amount = amount - 1
+		else
+			self:addSpatter(x, y, materialName, amount)
+			return
+		end
 	end
 end
 

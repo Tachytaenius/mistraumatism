@@ -46,8 +46,10 @@ function info:createLevel()
 	-- 	monster.noAI = true
 	-- end
 
-	for _=1, 20 do
-		-- self:placeMonster(20, 20, "zombie")
+	-- self:placeCorpseTeam(10, 10, "human", "monster").bleedingAmount = 512
+
+	for x=1, 1 do
+		-- self:placeMonster(10 + 3 * x, 10, "imp").noAI = true
 	end
 
 	-- for x = 9, 15 do
@@ -218,27 +220,27 @@ function info:createLevel()
 			-- player.inventory[1].item = shotgun
 			-- player.inventory.selectedSlot = 1
 
-			-- local shotgun = self:newItemData({itemTypeName = "autoShotgun", material = "polymer"})
-			-- player.inventory[1].item = shotgun
-			-- player.inventory.selectedSlot = 1
-			-- player.inventory[2].item = self:newItemData({itemTypeName = "pumpShotgun", material = "polymer"})
-			-- player.inventory[3].item = self:newItemData({itemTypeName = "sawnShotgun", material = "steel"})
-			-- for _, params in ipairs({
-			-- 	{
-			-- 		itemTypeName = "buckshotShell",
-			-- 		material = "plasticRed"
-			-- 	},
-			-- 	{
-			-- 		itemTypeName = "slugShell",
-			-- 		material = "plasticGreen"
-			-- 	}
-			-- }) do
-			-- 	for _= 1, 8 do
-			-- 		local item = self:newItemData(params)
-			-- 		local slot = self:getBestFreeInventorySlotForItem(player, item)
-			-- 		assert(slot and self:addItemToSlot(player, slot, item), "Item was not added to inventory")
-			-- 	end
-			-- end
+			local shotgun = self:newItemData({itemTypeName = "autoShotgun", material = "polymer"})
+			player.inventory[1].item = shotgun
+			player.inventory.selectedSlot = 1
+			player.inventory[2].item = self:newItemData({itemTypeName = "pumpShotgun", material = "polymer"})
+			player.inventory[3].item = self:newItemData({itemTypeName = "sawnShotgun", material = "steel"})
+			for _, params in ipairs({
+				{
+					itemTypeName = "buckshotShell",
+					material = "plasticRed"
+				},
+				{
+					itemTypeName = "slugShell",
+					material = "plasticGreen"
+				}
+			}) do
+				for _= 1, 8 do
+					local item = self:newItemData(params)
+					local slot = self:getBestFreeInventorySlotForItem(player, item)
+					assert(slot and self:addItemToSlot(player, slot, item), "Item was not added to inventory")
+				end
+			end
 
 			self:placeItem(player.x, player.y, "rocketLauncher", "polymer")
 			self:placeItem(player.x, player.y, "rocket", "plasticBrown")

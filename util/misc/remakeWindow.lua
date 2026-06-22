@@ -1,5 +1,6 @@
 local consts = require("consts")
 local settings = require("settings")
+local util = require("util")
 
 return function(canvasWidth, canvasHeight)
 	local _, _, flags = love.window.getMode()
@@ -14,6 +15,6 @@ return function(canvasWidth, canvasHeight)
 			display = currentDisplay
 		}
 	)
-	love.window.setIcon(love.image.newImageData("icon.png"))
+	love.window.setIcon(util.getScaledImageData(consts.iconPath, consts.iconScale))
 	love.window.setTitle(consts.windowTitle)
 end

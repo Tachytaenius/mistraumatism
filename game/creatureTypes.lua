@@ -100,6 +100,7 @@ function game:loadCreatureTypes()
 		sightDistance = 16,
 		maxHealth = 10,
 		maxBlood = 12,
+		gibBloodRelease = 0,
 		meleeTimerLength = 8,
 		meleeDamage = 2,
 		meleeBleedRateAdd = 3,

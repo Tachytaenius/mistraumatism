@@ -1,3 +1,5 @@
+local consts = require("consts")
+
 local game = {}
 
 function game:tickGibs()
@@ -9,6 +11,7 @@ function game:tickGibs()
 			local bloodRemoved = math.min(1, gib.bloodAmount)
 			gib.bloodAmount = gib.bloodAmount - bloodRemoved
 			self:addSpatter(gib.currentX, gib.currentY, gib.bloodMaterial, bloodRemoved)
+			-- self:addSpatterWithSpread(gib.currentX, gib.currentY, gib.bloodMaterial, bloodRemoved, consts.bleedSpreadThreshold)
 			if gib.bloodAmount <= 0 and gib.fleshAmount <= 0 then
 				gibsToRemove[gib] = true
 			end
@@ -29,6 +32,7 @@ function game:dropGib(gib)
 	local state = self.state
 	if gib.bloodMaterial and gib.bloodAmount > 0 then
 		self:addSpatter(gib.currentX, gib.currentY, gib.bloodMaterial, gib.bloodAmount)
+		-- self:addSpatterWithSpread(gib.currentX, gib.currentY, gib.bloodMaterial, gib.bloodAmount, consts.bleedSpreadThreshold)
 		gib.bloodAmount = 0
 	end
 	if gib.fleshMaterial and gib.fleshAmount > 0 then

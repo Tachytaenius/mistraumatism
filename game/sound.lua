@@ -44,12 +44,23 @@ function game:setMusic(name, forceFadeoutEnd)
 end
 
 function game:fadeMusicOut(time)
-	assert(self.music, "Can't fade out music without any playing")
+	-- No idea how the assert got triggered... but it did, so I'm getting rid of it.
+	-- assert(self.music, "Can't fade out music without any playing")
+	if not self.music then
+		self:stopMusic() -- ...i dont know!!!!!!
+	end
 	self.musicFadeoutEnd = time
 	self.musicFadeoutTimer = 0
 end
 
-function game:handleMusicFadeout(dt)
+function game:handleMusicFade(dt)
+	if self.music and self.musicName == self.horrorMusicName then
+		self.horrorMusicFadeInTimer = math.min(self.horrorMusicFadeInTimerLength, self.horrorMusicFadeInTimer + dt)
+		local vol = self.horrorMusicFadeInTimer / self.horrorMusicFadeInTimerLength
+		self.music:setVolume(vol)
+		return
+	end
+
 	if not (self.music and self.musicFadeoutTimer) then
 		return
 	end
