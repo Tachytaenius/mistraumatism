@@ -3,7 +3,7 @@ local game = {}
 function game:loadSounds()
 	local soundSources = {}
 	local function loadSound(name)
-		soundSources[name] = love.audio.newSource("sounds/" .. name .. ".wav", "static")
+		soundSources[name] = love.audio.newSource("sounds/" .. name .. ".mp3", "static")
 	end
 
 	loadSound("playerDeath")
@@ -37,7 +37,7 @@ function game:setMusic(name, forceFadeoutEnd)
 		self:stopMusic()
 	end
 
-	self.music = love.audio.newSource("music/" .. name .. ".wav", "stream")
+	self.music = love.audio.newSource("music/" .. name .. ".mp3", "stream")
 	self.musicName = name
 	self.music:setLooping(true)
 	self.music:play()
