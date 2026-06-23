@@ -25,7 +25,7 @@ function game:stopMusic()
 	self.musicFadeoutTimer = nil
 end
 
-function game:setMusic(name, forceFadeoutEnd)
+function game:setMusic(name, forceFadeoutEnd, noLoop)
 	if name == self.musicName then
 		return
 	end
@@ -39,7 +39,7 @@ function game:setMusic(name, forceFadeoutEnd)
 
 	self.music = love.audio.newSource("music/" .. name .. ".mp3", "stream")
 	self.musicName = name
-	self.music:setLooping(true)
+	self.music:setLooping(not noLoop)
 	self.music:play()
 end
 
@@ -56,9 +56,8 @@ end
 function game:handleMusicFade(dt)
 	if self.music and self.musicName == self.horrorMusicName then
 		self.horrorMusicFadeInTimer = math.min(self.horrorMusicFadeInTimerLength, self.horrorMusicFadeInTimer + dt)
-		local vol = self.horrorMusicFadeInTimer / self.horrorMusicFadeInTimerLength
+		local vol = self.horrorMusicFadeInTimerLength > 0 and self.horrorMusicFadeInTimer / self.horrorMusicFadeInTimerLength or 1
 		self.music:setVolume(vol)
-		return
 	end
 
 	if not (self.music and self.musicFadeoutTimer) then

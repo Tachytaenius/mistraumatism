@@ -216,8 +216,7 @@ function game:setReachedSafety()
 		player.roseRage = false
 	end
 
-	self:fadeMusicOut(5)
-	-- self:setMusic(...) -- TODO: Secret sanctuary's own music?
+	self:setMusic("sacrosanct", nil, true)
 end
 
 return game

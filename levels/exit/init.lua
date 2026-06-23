@@ -107,7 +107,17 @@ function info:createLevel() -- name should be the name of the directory containi
 
 	return {
 		spawnX = spawnX,
-		spawnY = spawnY
+		spawnY = spawnY,
+		postLevelGen = function()
+			if self.music then
+				-- Fade out any horrified music
+				self:fadeMusicOut(2)
+			end
+			self.state.horrifiedMusicDone = false
+			self.state.horrifiedMusicName = "nail-and-claw"
+			self.horrorMusicFadeInTimerLength = 0
+			-- self:setMusic("nail-and-claw")
+		end
 	}
 end
 

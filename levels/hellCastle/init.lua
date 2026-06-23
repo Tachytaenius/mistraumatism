@@ -239,7 +239,7 @@ function info:createLevel()
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
 		elseif value == 0xee then
-			self:placeItem(x, y, "huntingShotgun", "steel")
+			self:placeItem(x, y, "pumpShotgun", "steel")
 		elseif value == 0xef then
 			self:placeItem(x, y, "bandage", "cloth")
 		elseif value == 0xf0 then

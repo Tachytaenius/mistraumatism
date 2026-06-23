@@ -172,7 +172,7 @@ function game:checkHorrifiedMusic()
 	if self.state.reachedSafety then
 		return
 	end
-	if self.state.horrified then
+	if self.state.horrifiedMusicDone then
 		return
 	end
 	if not self.state.player then
@@ -199,15 +199,18 @@ function game:checkHorrifiedMusic()
 	if not horrified then
 		return
 	end
-	self.state.horrified = true
+	self.state.horrifiedMusicDone = true
 	if self.state.seePlayerMusicEntity then
 		return
 	end
-	self.horrorMusicName = "splintered-murk"
+	if self.music and self.music:isPlaying() then
+		return
+	end
+	self.horrorMusicName = self.state.horrifiedMusicName or "splintered-murk"
 	self:setMusic(self.horrorMusicName)
 	self.music:setVolume(0)
 	self.horrorMusicFadeInTimer = 0
-	self.horrorMusicFadeInTimerLength = 5
+	self.horrorMusicFadeInTimerLength = self.horrorMusicFadeInTimerLength or 5
 end
 
 function game:playerDied()
