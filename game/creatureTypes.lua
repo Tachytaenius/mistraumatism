@@ -70,8 +70,8 @@ function game:loadCreatureTypes()
 		bleedHealRate = 24,
 		chargeMelee = true,
 		chargeFlingDistance = 1.5,
-		chargeFlingSteadyTimerLength = 3,
-		chargeFlingSubtickMoveTimerLength = 384,
+		chargeFlingSteadyTimerLength = 1,
+		chargeFlingSubtickMoveTimerLength = 256,
 		meleeTimerLength = 3,
 		meleeDamage = 7,
 		meleeBleedRateAdd = 18,
@@ -337,9 +337,9 @@ function game:loadCreatureTypes()
 		painDamageThreshold = 16,
 
 		chargeMelee = true,
-		chargeFlingDistance = 2,
-		chargeFlingSteadyTimerLength = 7,
-		chargeFlingSubtickMoveTimerLength = 768,
+		chargeFlingDistance = 3.5,
+		chargeFlingSteadyTimerLength = 3,
+		chargeFlingSubtickMoveTimerLength = 256,
 		attackDeadTargets = true,
 		canOpenDoors = true,
 

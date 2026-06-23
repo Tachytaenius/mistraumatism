@@ -515,7 +515,16 @@ function game:getAIActions(entity, globalAIInfo)
 			if state.meleeOnly or love.math.random() >= (aggressiveness or 1) then
 				shootType = nil
 			end
-			if shootType then
+			if not fightAction and entity.creatureType.meleeDamage then
+				if math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1 then -- In range
+					-- if not (entity.x == entity.targetEntity.x and entity.y == entity.targetEntity.y) then
+					-- 	waitForSameTileMelee = true
+					-- else
+						fightAction = tryMeleeTargetEntity(self, entity)
+					-- end
+				end
+			end
+			if shootType and not fightAction then
 				local range
 				local distance = self:distance(entity.x, entity.y, entity.targetEntity.x, entity.targetEntity.y)
 				if shootType == "gun" then
@@ -536,15 +545,6 @@ function game:getAIActions(entity, globalAIInfo)
 						local chosenAbility = choosableAbilities[love.math.random(#choosableAbilities)]
 						fightAction = tryShootTargetEntity(self, entity, "ability", chosenAbility.name)
 					end
-				end
-			end
-			if not fightAction and entity.creatureType.meleeDamage then
-				if math.abs(entity.targetEntity.x - entity.x) <= 1 and math.abs(entity.targetEntity.y - entity.y) <= 1 then -- In range
-					-- if not (entity.x == entity.targetEntity.x and entity.y == entity.targetEntity.y) then
-					-- 	waitForSameTileMelee = true
-					-- else
-						fightAction = tryMeleeTargetEntity(self, entity)
-					-- end
 				end
 			end
 		end
