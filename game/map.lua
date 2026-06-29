@@ -170,7 +170,7 @@ function game:addSpatterWithSpread(x, y, materialName, amount, floorSpreadThresh
 		end
 		lowests = util.shuffle(lowests)
 		local chosen = lowests[1]
-		if chosen and here > floorSpreadThreshold and here > lowest then
+		if chosen and here >= floorSpreadThreshold and here > lowest then
 			local delta = here - lowest
 			self:addSpatter(chosen.x, chosen.y, materialName, 1)
 			amount = amount - 1

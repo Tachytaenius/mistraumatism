@@ -66,7 +66,7 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeItem(x + 1, y, "smallBullet", "brass")
 			self:addSpatter(x, y, "bloodRed", 2)
 		elseif value == 0x36 then
-			self:placeItem(x, y, "huntingShotgun", "steel")
+			self:placeItem(x, y, "sawnShotgun", "steel")
 			for _=1, 5 do
 				self:placeItem(x, y - 1, "buckshotShell", "plasticRed")
 			end

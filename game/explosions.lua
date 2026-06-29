@@ -42,7 +42,7 @@ function game:explode(x, y, radius, damage, sourceEntity)
 			end
 			tile.explosionInfo.damagesThisTick[#tile.explosionInfo.damagesThisTick+1] = {
 				damage = add,
-				bleedRateAdd = add * 8,
+				bleedRateAdd = add * 4,
 				-- instantBloodLoss = math.floor(add / 80),
 				sourceEntity = sourceEntity
 			}

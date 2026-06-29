@@ -7,10 +7,11 @@ local info = {}
 -- self is game instance
 function info:createLevel() -- name should be the name of the directory containing this file. levels/levelName/init.lua
 	local totalW, totalH = 256, 256
-	local imageOffsetX, imageOffsetY = 64, 64
+	local imageCentreX = math.floor(totalW / 2)
+	local imageCentreY = math.floor(totalH / 2)
 	local imageData = love.image.newImageData("levels/" .. levelName .. "/map.png")
-	local imageCentreX = imageOffsetX + imageData:getWidth() / 2
-	local imageCentreY = imageOffsetY + imageData:getHeight() / 2
+	local imageOffsetX = imageCentreX - math.floor(imageData:getWidth() / 2)
+	local imageOffsetY = imageCentreY - math.floor(imageData:getHeight() / 2)
 	self:initialiseMap(totalW, totalH)
 
 	local types = {
@@ -148,11 +149,36 @@ function info:createLevel() -- name should be the name of the directory containi
 			local mat = "ice"
 			local type = "frozenFloor"
 
+			local dist = self:distance(x, y, imageCentreX, imageCentreY)
+			local max = math.min(totalW, totalH) / 2
+			if dist > max * 0.95 then
+				type = "roughWall"
+				mat = "basalt"
+			elseif dist > max * 0.93 then
+				type = "roughFloor"
+				mat = "basalt"
+			end
+			local blood = math.max(0, math.floor(6 * (dist / (max * 0.95)) ^ 4.5 * love.math.noise(x / 2, y / 2)))
+			local flesh = math.max(0, math.floor(3 * (dist / (max * 0.95)) ^ 9.5 * love.math.noise(x / 6, y / 6)))
+			self:addSpatter(x, y, "bloodRed", blood)
+			if type == "frozenFloor" or type == "roughFloor" then
+				self:addSpatter(x, y, "fleshRed", flesh)
+				local corpseChance = (dist / (max * 0.95)) ^ 12 / 8
+				if generator:random() < corpseChance then
+					-- Fell off the basalt wall into the frozen centre circle of Hell
+					local corpse = self:placeCorpseTeam(x, y, "human", "person")
+					corpse.health = -math.floor(generator:random() * 1.8 * self.state.creatureTypes.human.maxHealth + 0.5)
+					corpse.blood = 0
+				end
+			end
+
 			tile.material = mat
 			tile.type = type
 
-			local snowiness = love.math.noise(x / 10, y / 10) ^ 2
-			self:addSpatter(x, y, "snow", math.floor(snowiness * 10))
+			if type == "frozenFloor" or type == "roughFloor" then
+				local snowiness = love.math.noise(x / 10, y / 10) ^ 2
+				self:addSpatter(x, y, "snow", math.floor(snowiness * 10))
+			end
 
 			::continue::
 		end
@@ -166,7 +192,9 @@ function info:createLevel() -- name should be the name of the directory containi
 				local offCentre = math.min(math.abs(xo), math.abs(xo - 1)) / w
 				-- self:addSpatter(x, y, "bloodRed", math.floor((1 - offCentre + 0.5) * love.math.random(5, 16)))
 				-- self:addSpatter(x, y, "fleshRed", love.math.random(0, offCentre * 24))
-				self:addSpatter(x, y, "salt", generator:random(1, 30))
+				local amount = generator:random(1, 30)
+				self:addSpatter(x, y, "salt", amount)
+				self:removeSpatter(x, y, "snow", amount* 3)
 			end
 		end
 	end

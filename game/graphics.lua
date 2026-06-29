@@ -985,6 +985,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						end
 					end
 					actionInfo = actionInfo .. "∙" .. action.timer .. "T"
+					if action.impedeLevel and action.impedeLevel > 0 then
+						actionInfo = actionInfo .. "∙" .. action.impedeLevel .. "I"
+					end
 				end
 				drawStringFramebuffer(statusX + 1, statusY + 3 + yShift, actionInfo, actionColour, "black")
 				if self:getHeldItem(entity) then

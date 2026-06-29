@@ -567,7 +567,12 @@ function game:updateEntitiesAndProjectiles()
 	processActions("useHeldItem")
 	processActions("shoot")
 	processActions("mindAttack")
+	state.chargeMoveDestinations = {}
 	processActions("melee")
+	for entity, newPos in pairs(state.chargeMoveDestinations) do
+		entity.x, entity.y = newPos.x, newPos.y
+	end
+	state.chargeMoveDestinations = nil
 	processActions("summon")
 	self:updateProjectiles()
 	local function moveFlyingEntities()
@@ -901,8 +906,8 @@ function game:updateEntitiesAndProjectiles()
 		end
 
 		local gibbed = false
-		local gibThreshold = -entity.creatureType.maxHealth * 2.8
-		local gibForceMeasure = -entity.creatureType.maxHealth * 2
+		local gibThreshold = -entity.creatureType.maxHealth * 3.2
+		local gibForceMeasure = -entity.creatureType.maxHealth * 3
 		if entity.health <= gibThreshold or entity.creatureType.gibOnDeath and killedThisTick then
 			gibbed = true
 			state.entitiesToRemove[entity] = true
@@ -916,7 +921,7 @@ function game:updateEntitiesAndProjectiles()
 					y = entity.y,
 					type = "gibbing",
 					gibMaterial = entityFleshMaterial,
-					soundRange = 10
+					soundRange = 2
 				})
 
 				local gibForce = (gibForceMeasure - entity.health) / entity.creatureType.maxHealth ^ 0.7 -- Non-integer
@@ -939,7 +944,7 @@ function game:updateEntitiesAndProjectiles()
 				local bloodSaveAmount = math.ceil(bloodAmount * 0.6)
 				bloodAmount = bloodAmount - bloodSaveAmount -- For more blood-only gibs
 				local gibs = {}
-				local gibCount = math.min(fleshAmount, math.floor(gibForce * 1/3) + 2)
+				local gibCount = math.max(1, math.min(fleshAmount, math.floor(gibForce * 1/3) + 2))
 				local function newGib(forceMovement)
 					local gibForceHalfPoint = 24
 					local rangeNotForceFactor = 2

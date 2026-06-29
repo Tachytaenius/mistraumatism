@@ -475,7 +475,7 @@ function game:loadActionTypes()
 					hitFirstTime = true
 				end
 				if canWalkTo(entity, targetX, targetY, true) then
-					moveTo(entity, targetX, targetY)
+					self.state.chargeMoveDestinations[entity] = {x = targetX, y = targetY}
 				end
 				local hitSecondTime
 				if not hitFirstTime and self:getAttackStrengths(entity) and action.targetEntity.x == targetX + ox and action.targetEntity.y == targetY + oy then
@@ -1394,6 +1394,9 @@ function game:loadActionTypes()
 		end
 
 		local number
+		if not player.inventory then
+			return
+		end
 		for i = 1, 9 do
 			if i > #player.inventory then
 				break

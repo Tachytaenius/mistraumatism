@@ -148,6 +148,6 @@ consts.spatterCharacters.leafLitter = {
 	"▓",
 }
 
-consts.bleedSpreadThreshold = 10
+consts.bleedSpreadThreshold = 14
 
 return consts
