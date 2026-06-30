@@ -37,7 +37,7 @@ function game:setMusic(name, forceFadeoutEnd, noLoop)
 		self:stopMusic()
 	end
 
-	self.music = love.audio.newSource("music/" .. name .. ".mp3", "stream")
+	self.music = love.audio.newSource("music/" .. name .. ".mp3", "static") -- Static seems to make the sound loop much more cleanly
 	self.musicName = name
 	self.music:setLooping(not noLoop)
 	self.music:play()
