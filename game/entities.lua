@@ -169,6 +169,9 @@ function game:tickItems(tickFunction) -- NOTE: Good to flush entity removal if r
 end
 
 function game:checkHorrifiedMusic()
+	if not self.state.player or self.state.player.dead then
+		return
+	end
 	if self.state.reachedSafety then
 		return
 	end
@@ -180,6 +183,9 @@ function game:checkHorrifiedMusic()
 	end
 	local horrified = false
 	for _, entity in ipairs(self.state.entities.creatures) do
+		if entity == self.state.player then
+			goto continue
+		end
 		if entity.seePlayerMusic then
 			goto continue
 		end
@@ -214,9 +220,12 @@ function game:checkHorrifiedMusic()
 end
 
 function game:playerDied()
-	self:stopMusic()
-	if not self.state.reachedSafety then
+	if self.state.reachedSafety then
+		self:fadeMusicOut(consts.gameOverScreenTimerLength * 0.75)
+	else
+		self:stopMusic()
 		self:playSound("playerDeath")
+		self.preGameOverScreenTimer = 0
 	end
 end
 

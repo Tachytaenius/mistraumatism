@@ -18,6 +18,52 @@ end
 function game:realtimeUpdate(dt)
 	self:handleMusicFade(dt)
 	if self.mode == "gameplay" then
+		if self.preGameOverScreenTimer then
+			self.preGameOverScreenTimer = self.preGameOverScreenTimer + dt
+			if self.preGameOverScreenTimer >= consts.preGameOverScreenTimerLength then
+				self.preGameOverScreenTimer = nil
+				self.gameOverScreenTimer = 0
+			end
+		end
+		if self.gameOverScreenTimer then
+			self.gameOverScreenTimer = self.gameOverScreenTimer + dt
+			if self.gameOverScreenTimer >= consts.gameOverScreenTimerLength + consts.gameOverScreenTimerPauseLength then
+				self.gameOverScreenTimer = nil
+				self:stopMusic() -- Should've already stopped
+				self.mode = "text"
+				self.textInfo = {
+				path = "text/a-sweet-weakness.txt",
+				timer = 0,
+				fullRedTime = 5,
+				changeToWhiteStartTime = 6.5,
+				changeToWhiteTime = 1.5,
+				xContribution = 0.2, -- Gradient of the red-to-white change
+				releaseTime = 8,
+				updateFunction = function(self, dt)
+					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+						love.event.quit() -- TEMP! TODO: return to title
+						-- return true
+					end
+					self.textInfo.timer = self.textInfo.timer + dt
+
+					local stages = {"black", "darkRed", "red"}
+
+					function self.textInfo.getColour(x, y)
+						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullRedTime)
+						if self.textInfo.timer >= self.textInfo.changeToWhiteStartTime then
+							local proportion = (self.textInfo.timer - self.textInfo.changeToWhiteStartTime) / self.textInfo.changeToWhiteTime
+							if (y + x * self.textInfo.xContribution) / self.framebufferHeight <= proportion then
+								return "white", "black"
+							end
+						end
+						return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
+					end
+				end
+			}
+				return true
+			end
+		end
+
 		local hadTickBecauseOfWaiting = false
 		local function inner()
 			if not self.state.player or self.state.player.dead then

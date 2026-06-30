@@ -85,12 +85,19 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	else
 		cameraX, cameraY, cameraSightDistance = state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance
 	end
+	local removePlayerTileFromVisibilityMap = false
 	if state.changeToLevelTimer then
 		local proportion = math.max(0, state.changeToLevelTimer / consts.changeToLevelTimerLength) ^ 2
 		cameraSightDistance = math.floor(proportion * cameraSightDistance)
 	elseif state.startLevelTimer then
 		local proportion = math.max(0, 1 - state.startLevelTimer / consts.startLevelTimerLength) ^ 0.8
 		cameraSightDistance = math.floor(proportion * cameraSightDistance)
+	elseif self.gameOverScreenTimer then
+		local proportion = math.max(0, 1 - self.gameOverScreenTimer / consts.gameOverScreenTimerLength) ^ 1.25
+		cameraSightDistance = math.floor(proportion * cameraSightDistance)
+		if proportion == 0 then
+			removePlayerTileFromVisibilityMap = true
+		end
 	end
 
 	local viewportScreenX, viewportScreenY = 1, 1
@@ -102,6 +109,19 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	assert(visibilityMapTopLeftY == topLeftY)
 	assert(visibilityMapWidth == self.viewportWidth)
 	assert(visibilityMapHeight == self.viewportHeight)
+	if removePlayerTileFromVisibilityMap then
+		local viewportX = cameraX - topLeftX
+		local viewportY = cameraY - topLeftY
+		if
+			0 <= viewportX and viewportX < self.viewportWidth and
+			0 <= viewportY and viewportY < self.viewportHeight
+		then
+			local visibilityColumn = visibilityMap[viewportX]
+			if visibilityColumn then
+				visibilityColumn[viewportY] = false
+			end
+		end
+	end
 
 	local function getCreatureColour(entity)
 		local colour = entity.creatureType.colour

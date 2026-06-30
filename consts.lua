@@ -150,4 +150,8 @@ consts.spatterCharacters.leafLitter = {
 
 consts.bleedSpreadThreshold = 14
 
+consts.preGameOverScreenTimerLength = 7
+consts.gameOverScreenTimerPauseLength = 2
+consts.gameOverScreenTimerLength = 4
+
 return consts
