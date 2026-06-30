@@ -19,7 +19,7 @@ Thanks to Kelora!
 retro.png was sourced from Dwarf Fortress, which is by Tarn and Zach Adams.
 Its wiki says that the exact origin of the font is unknown.
 
-Source of azoth_acorn_8x8.png:
+Source of azoth_acorn_8x8.png (modified):
 https://gitlab.com/zeddy1267/azoth-acorn-collection
 Thanks to Azoth!
 
