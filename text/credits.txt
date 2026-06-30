@@ -47,6 +47,7 @@ LSDJ, which was used to make sounds and music, can be found here:
 https://www.littlesounddj.com/lsd/index.php
 Thanks to Johan Kotlinski!
 
-gb-presenter-rs, which was used to render LSDJ songs, can be found here:
+gb-presenter-rs, which was used to render LSDJ songs (and modified to cleanly trim pre/post-song silence for better looping), can be found here:
 https://github.com/nununoisy/gb-presenter-rs
 Thanks to nununoisy!
+(The modified version is here: https://github.com/Tachytaenius/gb-presenter-rs/tree/clean-trim)
