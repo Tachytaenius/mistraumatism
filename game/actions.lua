@@ -43,7 +43,7 @@ function game:loadActionTypes()
 			-- 	"jump"
 			-- ) or
 			specialType == "dodge" and "dodge" or
-			specialType == "stopCharge" and "stop lunge"
+			specialType == "stopCharge" and "halt"
 	end
 	function move.construct(self, entity, direction, specialType)
 		local moveTimerLength = self:getMoveTimerLength(entity, specialType)
