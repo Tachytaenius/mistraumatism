@@ -36,9 +36,9 @@ function game:realtimeUpdate(dt)
 				timer = 0,
 				fullRedTime = 5,
 				changeToWhiteStartTime = 6.5,
-				changeToWhiteTime = 1.5,
-				xContribution = 0.2, -- Gradient of the red-to-white change
-				releaseTime = 8,
+				changeToWhiteTime = 2.5,
+				xContribution = 0.1, -- Gradient of the red-to-white change
+				releaseTime = 9.5,
 				updateFunction = function(self, dt)
 					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
 						love.event.quit() -- TEMP! TODO: return to title
