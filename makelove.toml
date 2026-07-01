@@ -1,0 +1,28 @@
+name = "mistraumatism"
+default_targets = ["appimage", "win64", "win32", "macos"]
+build_directory = "makelove-build"
+love_version = "11.5"
+icon_file = "icon.png"
+
+love_files = [
+    "::git-ls-tree::",
+    "./version.txt",
+    "-*/.*",
+    "-./readme.txt",
+    "-./love_license.txt",
+    "-./makelove.toml",
+    "-./get-version"
+]
+
+[archive_files]
+"license.txt" = "license.txt"
+"love_license.txt" = "love_license.txt"
+
+[hooks]
+prebuild = [
+    "rm -f version.txt",
+    "./get-version > version.txt"
+]
+postbuild = [
+    "rm version.txt"
+]

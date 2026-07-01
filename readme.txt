@@ -9,4 +9,10 @@ If you die trying, then you are reminded that you were only attempting to comple
 
 It is not a power fantasy. It is a survival fantasy.
 
+
 It is written (with love) for the LÖVE framework, version 11.5.
+
+The soundtrack source can be found at https://github.com/Tachytaenius/mistraumatism-soundtrack
+
+Releasing information (for maintainer, i.e. me):
+Use `makelove` with version parameter set to next version (increment major or minor number as appropriate), and release the files.

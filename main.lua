@@ -1,15 +1,25 @@
 -- love entrypoint
 
+local version = love.filesystem.read("version.txt") -- This file is provided on build
+
 local util = require("util")
 util.load()
 
 local game = require("game")
 
-local util = require("util")
 local commands = require("commands")
 local settings = require("settings")
 
 function love.load(args)
+	for _, arg in ipairs(args) do
+		if arg == "--help" then
+			print("Yes, you are loved :)")
+		elseif arg == "--version" then
+			print(version or "No version found...")
+			love.event.quit()
+			return
+		end
+	end
 	love.graphics.setDefaultFilter("nearest")
 	game:init(args)
 end

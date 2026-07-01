@@ -1,0 +1,3 @@
+makelove-build
+# (version.txt should not actually be left in the files after building)
+version.txt

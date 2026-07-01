@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ -n "$MAKELOVE_VERSION" ]; then
+	echo -n "$MAKELOVE_VERSION"
+else
+	version=git-$(git rev-parse --short HEAD)-$(git rev-parse --abbrev-ref HEAD)
+	! git diff-index --quiet HEAD && version="modified-$version"
+	echo -n "$version"
+fi
