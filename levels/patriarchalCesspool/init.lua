@@ -192,9 +192,9 @@ function info:createLevel() -- name should be the name of the directory containi
 				local offCentre = math.min(math.abs(xo), math.abs(xo - 1)) / w
 				-- self:addSpatter(x, y, "bloodRed", math.floor((1 - offCentre + 0.5) * love.math.random(5, 16)))
 				-- self:addSpatter(x, y, "fleshRed", love.math.random(0, offCentre * 24))
-				local amount = generator:random(1, 30)
+				local amount = math.floor((1 - offCentre + 0.5) * generator:random(1, 24))
 				self:addSpatter(x, y, "salt", amount)
-				self:removeSpatter(x, y, "snow", amount* 3)
+				self:removeSpatter(x, y, "snow", amount * 3)
 			end
 		end
 	end

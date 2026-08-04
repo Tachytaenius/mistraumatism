@@ -114,7 +114,7 @@ consts.defenceMax = 26
 consts.changeToLevelTimerLength = 50
 consts.startLevelTimerLength = 50
 
-consts.defaultPathfindingDistanceLimit = 36
+consts.defaultPathfindingDistanceLimit = 30
 consts.defaultFleePathfindMaxDistance = 12
 consts.defaultCreatureSize = 64
 consts.maxImpedeLevel = 4

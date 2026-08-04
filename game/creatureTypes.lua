@@ -504,13 +504,13 @@ function game:loadCreatureTypes()
 				spread = 0.2,
 				projectileExplosionProjectiles = {
 					{ -- Shrapnel
-						count = 10,
+						count = 20,
 						tile = "`",
 						colour = "darkGrey",
 						subtickMoveTimerLength = 64,
 						damage = 1,
 						-- instantBloodLoss = 2,
-						bleedRateAdd = 10,
+						bleedRateAdd = 2,
 						range = 3,
 						trailParticleInfo = {
 							{
