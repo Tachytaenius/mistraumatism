@@ -104,8 +104,6 @@ consts.explosionVisualAlteredDiminishThreshold = 85
 
 consts.itemDefaultMaxStackSize = 9
 
-consts.startLevelName = "facility"
-
 consts.investigationTimeoutThreshold = 400
 
 consts.armourDefenceAtBreakPoint = 0.1

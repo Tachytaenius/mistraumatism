@@ -390,8 +390,22 @@ function game:setDoorHinges()
 	end
 end
 
+function game:allowLevelAccess(levelName)
+	local str = love.filesystem.read("progress.txt") or ""
+	if not str:match(levelName) then
+		if str:sub(-1) ~= "\n" and #str ~= 0 then
+			str = str .. "\n"
+		end
+		str = str .. levelName .. "\n"
+		love.filesystem.write("progress.txt", str)
+	end
+end
+
 function game:generateLevel(parameters)
 	local info = require("levels." .. parameters.levelName)
+
+	self:allowLevelAccess(parameters.levelName)
+
 	local result = info.createLevel(self)
 	self:setDoorHinges()
 	self.state.levelAnnouncement = result.levelAnnouncement

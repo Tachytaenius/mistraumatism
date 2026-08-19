@@ -36,6 +36,8 @@ function game:draw()
 		self:drawFramebufferText(framebuffer)
 	elseif self.mode == "title" then
 		self:drawFramebufferTitle(framebuffer)
+	elseif self.mode == "levelSelect" then
+		self:drawFramebufferLevelSelect(framebuffer)
 	end
 
 	local fontImage = self.fontImage
@@ -1490,6 +1492,25 @@ function game:drawFramebufferText(framebuffer)
 	drawStringFramebufferColourMapFunction(0, 0, self.textInfo.text)
 end
 
+local function getMenuNoise(x, y, time, brightness)
+	local dampen = love.math.noise(x / 6, time * 1) * 0.3 + 0.6
+	local noise
+	do
+		local time = time / 3
+		noise =
+			love.math.noise(x / 10, time + y / 10 / 2, time * 0.5, 0) * 0.75 +
+			love.math.noise(x / 5, time * 8 + y / 5, time * 4, 10) * 0.25 +
+			(love.math.noise(x / 4, time * 5 + y / 4, time * 5, 20) * 2 - 1) * 0.4
+	end
+	noise = math.max(0, math.min(1, noise)) * dampen
+	if brightness <= 0.5 then
+		noise = noise * brightness * 2
+	else
+		noise = 1 - (1 - noise) * (1 - brightness) * 2
+	end
+	return noise
+end
+
 function game:drawFramebufferTitle(framebuffer)
 	-- Copied...
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
@@ -1532,21 +1553,8 @@ function game:drawFramebufferTitle(framebuffer)
 	local gradient = {"black", "darkRed", "red", "darkGrey", "lightGrey", "white"}
 	for x = 0, self.framebufferWidth - 1 do
 		for y = 0, self.framebufferHeight - 1 do
-			local dampen = love.math.noise(x / 6, time * 1) * 0.3 + 0.6
-			local noise
-			do
-				local time = time / 3
-				noise =
-					love.math.noise(x / 10, time + y / 10 / 2, time * 0.5, 0) * 0.75 +
-					love.math.noise(x / 5, time * 8 + y / 5, time * 4, 10) * 0.25 +
-					(love.math.noise(x / 4, time * 5 + y / 4, time * 5, 20) * 2 - 1) * 0.4
-			end
-			noise = math.max(0, math.min(1, noise)) * dampen
-			if brightness <= 0.5 then
-				noise = noise * brightness * 2
-			else
-				noise = 1 - (1 - noise) * (1 - brightness) * 2
-			end
+			local noise = getMenuNoise(x, y, time, brightness)
+
 			local gradientSelector = 1 - y / self.framebufferHeight / math.max(0.01, noise * 1.5)
 			gradientSelector = gradientSelector * #gradient
 			gradientSelector = math.floor(gradientSelector)
@@ -1572,6 +1580,182 @@ function game:drawFramebufferTitle(framebuffer)
 		local x = (self.framebufferWidth - len) / 2
 		x = math.floor(x)
 		drawStringFramebuffer(x, titleY, str, "white", "black")
+	end
+end
+
+local generator = love.math.newRandomGenerator()
+function game:drawFramebufferLevelSelect(framebuffer)
+	-- Copied...
+	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
+		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
+		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		if
+			0 <= framebufferX and framebufferX < self.framebufferWidth and
+			0 <= framebufferY and framebufferY < self.framebufferHeight
+		then
+			local cell = framebuffer[framebufferX][framebufferY]
+			cell.character = character
+			cell.foregroundColour = foregroundColour
+			cell.backgroundColour = backgroundColour
+		end
+	end
+	local function drawStringFramebuffer(framebufferX, framebufferY, str, foregroundColour, backgroundColour)
+		local x = 0
+		local y = 0
+		for _, code in utf8.codes(str) do
+			local char = utf8.char(code)
+			if char == "\n" then
+				x = 0
+				y = y + 1
+				goto continue
+			end
+			drawCharacterFramebuffer(framebufferX + x, framebufferY + y, char, foregroundColour, backgroundColour)
+			x = x + 1
+		    ::continue::
+		end
+	end
+	local time = self.levelSelectInfo.time
+	-- local temporalBlockiness = 1
+	-- local seed = math.floor(time / temporalBlockiness)
+	local seed = love.math.random(0, 2 ^ 32 - 1)
+	generator:setSeed(seed)
+	for x = 0, self.framebufferWidth - 1 do
+		for y = 0, self.framebufferHeight - 1 do
+			local a = (x + y) % 4 == 0
+			local b = (-x + y) % 4 == 1
+			local noise = getMenuNoise(x, y, time, 0.5)
+			noise = noise * 1.5
+			local threshold = 0.25
+			local lower = 0.05
+			local rand = generator:random()
+			local col = noise > 0.9 and "white" or noise > 0.8 and "lightGrey" or noise > threshold and "darkGrey" or (
+				not self.levelSelectInfo.flickerIntroEnabled and "black" or (
+					rand * (threshold - lower) + lower < noise and
+					"darkGrey" or
+					"black"
+				)
+			)
+			if a == b then
+				drawCharacterFramebuffer(x, y, "░", col, "black")
+			else
+				drawCharacterFramebuffer(x, y, "▓", "black", col)
+			end
+		end
+	end
+
+	local map = self.levelSelectInfo.tendrils
+	local tendrilMapOffsetX = math.floor((self.framebufferWidth - map.width) / 2)
+	local tendrilMapOffsetY = 0
+	for x = 0, map.width - 1 do
+		for y = 0, map.height - 1 do
+			if map[x][y].walkedBy then
+				local step = map[x][y].step
+				local lit = step == self.levelSelectInfo.currentTendrilStep -- or step == 2 * self.levelSelectInfo.currentTendrilStep
+				local colour = lit and "cyan" or "darkCyan"
+				local a,b,c,d = unpack(map[x][y].edges)
+				local tile = util.getBoxDrawingCharacter(a,b,c,d)
+				if (a == 2 or b == 2 or c == 2 or d == 2) and not tile then
+					a = a == 2 and 1 or a
+					b = b == 2 and 1 or b
+					c = c == 2 and 1 or c
+					d = d == 2 and 1 or d
+					tile = util.getBoxDrawingCharacter(a,b,c,d)
+					tile = tile or "∙"
+				elseif not tile then
+					tile = tile or "·"
+				end
+				drawCharacterFramebuffer(x + tendrilMapOffsetX, y + tendrilMapOffsetY, tile, colour, "black")
+			end
+		end
+	end
+
+	local title = "MISTRAUMATISM"
+	local line1 = "This game is not an act of nihilism."
+	local line2 = "It vehemently opposes nihilism in any form."
+	local colour = "darkCyan"
+	if self:doAltPlayerCreatureTypeMode() then
+		colour = "red"
+		line1 = "You will play as a noble werewolf."
+		line2 = "You are a romantic who will crush nihilism."
+	end
+
+	local len = #title
+	local xt = (self.framebufferWidth - len) / 2
+	xt = math.floor(xt)
+
+	local len = #line1
+	local x = (self.framebufferWidth - len) / 2
+	x = math.floor(x)
+
+	local len = #line2
+	local x2 = (self.framebufferWidth - len) / 2
+	x2 = math.floor(x2)
+
+	generator:setSeed(0)
+	local tlx, tly = 4, 41
+	local brx, bry = 51, 46
+	for x = 4, 51 do
+		for y = 41, 46 do
+			-- local rand = generator:random()
+			local rand = 1
+			drawCharacterFramebuffer(x, y, "▒", rand < 0.1 and "darkGrey" or "black", "black")
+		end
+	end
+	for x = tlx, brx do
+		for y = 0, 1 do
+			drawCharacterFramebuffer(x, y == 0 and tly or bry, "=", "darkGrey", "black")
+		end
+	end
+	drawStringFramebuffer(x, 43, line1, colour, "black")
+	drawStringFramebuffer(x2, 44, line2, colour, "black")
+	drawStringFramebuffer(xt, 9, title, "cyan", "black")
+
+	local x = 12
+	local y = 22
+	local w = self.framebufferWidth - 2 * x - 1
+	local h = 2 * #self.levelSelectInfo.levelNames + 2
+	local function isBorder(x_, y_)
+		if x == x_ or x+w==x_ then
+			return true
+		end
+		if y == y_ or y+h==y_ then
+			return true
+		end
+		return false
+	end
+	local borderNum = 2
+	for x = x, x + w do
+		for y = y, y + h do
+			drawCharacterFramebuffer(x, y, " ", "black", "darkGrey")
+
+			if not isBorder(x, y) then
+				goto continue
+			end
+			local character = util.getBoxDrawingCharacter(
+				isBorder(x + 1, y) and borderNum or 0,
+				isBorder(x, y - 1) and borderNum or 0,
+				isBorder(x - 1, y) and borderNum or 0,
+				isBorder(x, y + 1) and borderNum or 0
+			)
+			if character then
+				drawCharacterFramebuffer(x, y, character, "lightGrey", "black")
+			end
+		    ::continue::
+		end
+	end
+	for i, levelName in ipairs(self.levelSelectInfo.levelNames) do
+		local y = y + (i - 1) * 2 + 2
+		local selected = i == self.levelSelectInfo.selector
+		local colour = selected and "white" or "lightGrey"
+		drawStringFramebuffer(x + 4, y, levelName, colour, "darkGrey")
+		if selected then
+			drawCharacterFramebuffer(x + 2, y, "►", colour, "darkGrey")
+		end
+	end
+	drawStringFramebuffer(x + 9, y, "STAGE SELECT", "lightGrey", "darkGrey")
+	if self.levelSelectInfo.selector == 1 then
+		drawStringFramebuffer(x + 4, y + h, " Intro text flicker: " .. (self.levelSelectInfo.flickerIntroEnabled and "√" or "x") .. " ", "white", "darkGrey")
 	end
 end
 

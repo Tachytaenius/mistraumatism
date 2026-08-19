@@ -301,11 +301,11 @@ function game:loadEventTypes()
 			if playerSource then
 				return "Your " .. explodesText .. ".", "red"
 			elseif sourceKnown then
-				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. "'s " .. explodesText .. ".", "red"
+				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. "'s " .. explodesText .. ".", "cyan"
 			elseif visible then
-				return "You see an explosion of " .. shownMaterialName .. ".", "red"
+				return "You see an explosion of " .. shownMaterialName .. ".", "lightGrey"
 			elseif audible then
-				return "You hear an explosion of " .. shownMaterialName .. ".", "darkRed"
+				return "You hear an explosion of " .. shownMaterialName .. ".", "lightGrey"
 			end
 		end
 	}

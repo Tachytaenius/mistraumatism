@@ -41,7 +41,7 @@ function game:realtimeUpdate(dt)
 				releaseTime = 9.5,
 				updateFunction = function(self, dt)
 					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
-						love.event.quit() -- TEMP! TODO: return to title
+						self.state.enterTitleFunction()
 						-- return true
 					end
 					self.textInfo.timer = self.textInfo.timer + dt
@@ -127,6 +127,8 @@ function game:realtimeUpdate(dt)
 		return self.textInfo.updateFunction(self, dt)
 	elseif self.mode == "title" then
 		return self:updateTitle(dt)
+	elseif self.mode == "levelSelect" then
+		return self:updateLevelSelect(dt)
 	end
 	self.realTime = self.realTime + dt
 end
@@ -222,6 +224,7 @@ function game:update()
 end
 
 function game:startLevelChange(levelName)
+	self:allowLevelAccess(levelName)
 	local state = self.state
 	state.changeToLevel = levelName
 	state.changeToLevelTimer = consts.changeToLevelTimerLength

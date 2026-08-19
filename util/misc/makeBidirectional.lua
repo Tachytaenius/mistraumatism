@@ -1,0 +1,5 @@
+return function(t)
+	for i, v in ipairs(t) do
+		t[v] = i
+	end
+end

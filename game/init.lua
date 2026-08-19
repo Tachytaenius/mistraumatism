@@ -66,7 +66,7 @@ function game:newState(params)
 	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
 
 	self:prepareForLevel()
-	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName or consts.startLevelName})
+	local levelGenerationResult = self:generateLevel({levelName = params.startLevelName})
 	if params.noPlayer then
 		state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = levelGenerationResult.spawnX, levelGenerationResult.spawnY, 10
 	else
@@ -134,12 +134,10 @@ function game:init(args)
 	self:loadSounds()
 
 	-- TEMP, change as needed
-	local skipIntro, flickerIntro, startLevelName, noPlayer, skipTitle, playerCreatureType
+	local skipIntro, startLevelName, noPlayer, skipTitle, playerCreatureType
 	for _, arg in ipairs(args) do
 		if arg == "--skipIntro" then
 			skipIntro = true
-		elseif arg == "--enableFlickerIntro" then
-			flickerIntro = true
 		elseif arg == "--drawTickTimes" then
 			self.drawTickTimes = true
 		elseif arg == "--noPlayer" then
@@ -158,68 +156,150 @@ function game:init(args)
 		end
 	end
 
-	local function exitIntro()
+	local makeTitle
+
+	local function exitIntro(levelOverride, haveFadein)
 		self:newState({
-			startLevelName = startLevelName,
+			startLevelName = levelOverride or startLevelName,
 			noPlayer = noPlayer,
 			playerCreatureType = playerCreatureType
 		})
+		self.state.enterTitleFunction = makeTitle
+		if haveFadein then
+			self.state.startLevelTimer = consts.startLevelTimerLength
+		end
 		self:debugOnNewState()
 		self.mode = "gameplay"
 	end
 
-	local function exitTitle()
-		if skipIntro then
-			exitIntro()
-			return true
-		else
-			self:setMusic("eyes-in-the-darkness-of-your-mind")
-			self.mode = "text"
-			self.textInfo = {
-				path = "text/and-in-mistraumatism.txt",
-				timer = 0,
-				fullTime = 5,
-				releaseTime = 5,
-				updateFunction = function(self, dt)
-					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
-						self:fadeMusicOut(8)
-						exitIntro()
-						return true -- To allow initial realtimeUpdate to fully set up new state
+	local function makeIntro(level, flickerIntro)
+		self:setMusic("eyes-in-the-darkness-of-your-mind")
+		self.mode = "text"
+		self.textInfo = {
+			path = "text/and-in-mistraumatism.txt",
+			timer = 0,
+			fullTime = 5,
+			releaseTime = 5,
+			updateFunction = function(self, dt)
+				if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+					self:fadeMusicOut(8)
+					exitIntro(level)
+					return true -- To allow initial realtimeUpdate to fully set up new state
+				end
+				self.textInfo.timer = self.textInfo.timer + dt
+
+				local stages = {"black", "darkGrey", "lightGrey", "white"}
+
+				-- Too flickery for some
+				if flickerIntro then
+					function self.textInfo.getColour(x, y)
+						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+						local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.noise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
+						local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
+						local stage = proportionModified * (#stages - 1)
+						local incrementChance = stage % 1
+						local stageInt = math.floor(stage) + (love.math.random() < incrementChance and 1 or 0)
+						return stages[stageInt + 1] or "white", "black"
 					end
-					self.textInfo.timer = self.textInfo.timer + dt
-
-					local stages = {"black", "darkGrey", "lightGrey", "white"}
-
-					-- Too flickery for some
-					if flickerIntro then
-						function self.textInfo.getColour(x, y)
-							local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
-							local proportionMaxBackAmount = 2.5 * (1 - math.max(0, proportion - (1 - proportion) * 0.5 * love.math.noise(x / 10, y / 10, self.textInfo.timer * 0.25))) ^ 2
-							local proportionModified = math.max(0, proportion - love.math.random() * proportionMaxBackAmount)
-							local stage = proportionModified * (#stages - 1)
-							local incrementChance = stage % 1
-							local stageInt = math.floor(stage) + (love.math.random() < incrementChance and 1 or 0)
-							return stages[stageInt + 1] or "white", "black"
-						end
-					else
-						function self.textInfo.getColour(x, y)
-							local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
-							return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
-						end
+				else
+					function self.textInfo.getColour(x, y)
+						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullTime)
+						return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
 					end
 				end
-			}
-			return true
+			end
+		}
+	end
+
+	local function levelSelect()
+		self.mode = "levelSelect"
+		local levels = {
+			"facility",
+			"hellCastle",
+			"patriarchalCesspool",
+			"underwaterMaze",
+			"exit",
+			"secretSanctuary"
+		}
+		local accessibleLevels = {}
+		for i = 1, #levels do
+			accessibleLevels[i] = i == 1 and levels[1] or false
 		end
+		local levelNames = {
+			"The Ward and Facility",
+			"The Castle into Hell",
+			"The Patriarchal Cesspool",
+			"The Watery Grave",
+			"The Home Stretch",
+			"The Secret Sanctuary"
+		}
+		util.makeBidirectional(levels)
+		local progress = love.filesystem.read("progress.txt") or ""
+		for level in progress:gmatch("[^\n]+") do
+			for i, l in ipairs(levels) do
+				if level == l then
+					accessibleLevels[i] = l
+				end
+			end
+		end
+		for i, accessible in ipairs(accessibleLevels) do
+			if not accessible then
+				levelNames[i] = i == #levelNames and "?????" or "???"
+			end
+		end
+		local tendrils, tendrilSteps = self:initLevelSelectTendrils()
+		self.levelSelectInfo = {
+			levels = accessibleLevels,
+			levelNames = levelNames,
+			time = self.titleInfo and self.titleInfo.time or 0,
+			selector = 1,
+			flickerIntroEnabled = true,
+			tendrils = tendrils,
+			tendrilSteps = tendrilSteps,
+			currentTendrilStep = 0,
+			changeTendrilsTimer = 0,
+			tendrilStepTime = 0.05,
+			tendrilStepExtra = 5,
+			selectFunction = function()
+				local levelName = self.levelSelectInfo.levels[self.levelSelectInfo.selector]
+				if not levelName then
+					return
+				end
+				local firstLevel = self.levelSelectInfo.selector == 1
+				if self:doAltPlayerCreatureTypeMode() then
+					-- Super secret sexy mode! :D
+					playerCreatureType = "werewolf"
+				end
+				if not firstLevel or skipIntro then
+					exitIntro(levelName, not skipIntro)
+				else
+					makeIntro(levelName, self.levelSelectInfo.flickerIntroEnabled)
+				end
+				return true
+			end
+		}
+	end
+
+	local function exitTitle()
+		levelSelect()
+	end
+
+	function makeTitle()
+		self.state = nil
+		self.mode = "title"
+		self:initTitle(exitTitle)
 	end
 
 	if skipTitle then
 		exitTitle()
 		return true
 	else
-		self.mode = "title"
-		self:initTitle(exitTitle)
+		makeTitle()
 	end
+end
+
+function game:doAltPlayerCreatureTypeMode()
+	return love.keyboard.isDown("lalt") -- and love.keyboard.isDown("w")
 end
 
 return game
