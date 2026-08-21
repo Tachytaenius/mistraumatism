@@ -1799,7 +1799,7 @@ end
 
 function game:getFlingSteadyDoneFunction(entity, steadyTime)
 	return function(self, entity)
-		if #entity.actions == 0 then
+		if #entity.actions == 0 and not entity.dead then
 			entity.actions[#entity.actions+1] = self.state.actionTypes.steady.construct(self, entity, steadyTime)
 		end
 	end
