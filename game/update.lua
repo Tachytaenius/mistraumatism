@@ -214,6 +214,7 @@ function game:update()
 	self:handleEventsQueue() -- Resets events queue
 	self:checkTileMessages()
 	self:handlePlayerMessages()
+	self:checkForGameFinished()
 
 	self:clearNonPersistentVariables()
 

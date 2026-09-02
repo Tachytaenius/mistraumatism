@@ -178,6 +178,7 @@ end
 function game:placeExaminable(x, y, type, material, text)
 	local item, entity = self:placeItem(x, y, type, material)
 	item.examineDescription = text
+	return item, entity
 end
 
 function game:placeButton(x, y, material, onPress, onUnpress)

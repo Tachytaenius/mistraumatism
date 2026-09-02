@@ -1,5 +1,6 @@
 local util = require("util")
 local consts = require("consts")
+local commands = require("commands")
 
 local game = {}
 
@@ -215,8 +216,103 @@ function game:setReachedSafety()
 	if player then
 		player.roseRage = false
 	end
+end
 
-	self:setMusic("sacrosanct", nil, true)
+function game:doesPlayerHaveSecretLevelKey()
+	local player = self.state.player
+	if not player then
+		return
+	end
+	local has = false
+	self:tickItems(function(item, x, y, locationType, locationEntity)
+		if
+			locationEntity == player and
+			(locationType == "worn" or locationType == "inventory")
+		then
+			-- This is an item on the player
+			if item.isSecretLevelKey then
+				has = true
+			end
+		end
+	end)
+	return has
+end
+
+function game:toCredits()
+	self:setMusic("the-long-view")
+	self.mode = "text"
+	self.textInfo = {
+		path = "text/credits-shown.txt",
+		timer = 0,
+		releaseTime = 5,
+		getColour = function(x, y)
+			return "white", "black"
+		end,
+		updateFunction = function(self, dt)
+			if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+				love.event.quit()
+				-- TODO: Quick fadeout (visually and audially)
+				self.quitting = true
+				return true -- As in game/init.lua
+			end
+			self.textInfo.timer = self.textInfo.timer + dt
+		end
+	}
+end
+
+function game:checkForGameFinished()
+	local player = self.state.player
+	if not player or player.dead then
+		return
+	end
+	local tile = self:getTile(player.x, player.y)
+	if not tile then
+		return
+	end
+	if tile.isGameFinishTrigger then
+		self:finishGame()
+	end
+end
+
+function game:finishGame()
+	if self:doesPlayerHaveSecretLevelKey() then
+		self:allowLevelAccess(consts.secretLevelName)
+		-- TODO: Inform the player that they're getting the secret ending.
+		self.afterEndingSequence = "secret" -- In this case you view credits when going back to bed in the secret sanctuary
+	else
+		self.afterEndingSequence = "credits"
+	end
+	-- In either case, quit game when credits are done.
+
+	self:clearAnnouncements()
+	self:setReachedSafety()
+	self:setMusic("mercious", false, true)
+	-- TODO: The planned ending!
+	self.mode = "text"
+	self.textInfo = {
+		path = "text/trust-sombre.txt",
+		timer = 0,
+		releaseTime = 5,
+		getColour = function(x, y)
+			return "white", "black"
+		end,
+		updateFunction = function(self, dt)
+			if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+				self:fadeMusicOut(3)
+				if self.afterEndingSequence == "secret" then
+					self.mode = "gameplay"
+					self:changeLevel(consts.secretLevelName)
+				elseif self.afterEndingSequence == "credits" then
+					self:toCredits()
+				else
+					error("afterEndingSequence isn't set to a correct value: \"" .. tostring(self.afterEndingSequence) .. "\"")
+				end
+				return true -- As in game/init.lua
+			end
+			self.textInfo.timer = self.textInfo.timer + dt
+		end
+	}
+	self.forceRepeatUpdate = true
 end
 
 return game

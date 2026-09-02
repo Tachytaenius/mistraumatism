@@ -821,7 +821,9 @@ function game:loadItemTypes()
 	itemTypes.bed = {
 		noPickUp = true,
 		tile = "Θ",
-		displayName = "bed"
+		displayName = "bed",
+		interactable = true,
+		interactionType = state.interactionTypes.bed,
 	}
 	itemTypes.toilet = {
 		noPickUp = true,
@@ -1082,7 +1084,7 @@ function game:loadItemTypes()
 		stackable = true,
 		maxStackSize = 3,
 		interactable = true,
-		healItemHealthAdd = 1,
+		healItemHealthAdd = 0,
 		healingRequiresHolding = true,
 		healItemUseTimer = 16,
 		healItemUseTimerOnGround = nil,
@@ -1103,7 +1105,7 @@ function game:loadItemTypes()
 		healItemUseTimer = 22,
 		healItemUseTimerOnGround = 25,
 		healItemBleedRateSubtract = 60,
-		healItemHealthAdd = 5,
+		healItemHealthAdd = 8,
 		healItemBloodReplenish = 3,
 		healItemDeleteOnUse = false,
 		interactionType = state.interactionTypes.healItem,

@@ -7,6 +7,8 @@ function info:createLevel() -- name should be the name of the directory containi
 	local imageData = love.image.newImageData("levels/" .. levelName .. "/map.png")
 	self:initialiseMap(imageData:getDimensions())
 
+	local generator = love.math.newRandomGenerator(2)
+
 	local types = {
 		[0x00] = "floor",
 		[0x01] = "ornateFloor",
@@ -19,6 +21,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0x77] = "shortGrass",
 		[0xaa] = "support",
 		[0xbb] = "pit",
+		[0xcc] = "fullGlassWindow",
 		[0xff] = "archway"
 	}
 	local materials = {
@@ -26,7 +29,8 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0x11] = "obsidian",
 		[0x55] = "ornateCarpet",
 		[0xaa] = "fescue",
-		[0xbb] = "bloodRed"
+		[0xbb] = "bloodRed",
+		[0xff] = "glass"
 	}
 	local spawnX, spawnY
 	local ceilingMessage = self:newTileMessage("There is a skyward hole in the cavern ceiling above\nyou. The sunlight sifts down and glints at you\nagainst the dust.", "white")
@@ -47,6 +51,11 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeKey(x, y, "ornateKey", "bone", "exitArena1")
 		elseif value == 0x5b then
 			self:placeDoorItem(x, y, "ornateDoor", "granite", false, "exitArena1")
+		elseif value == 0x5c then
+			self:placeDoorItem(x, y, "ornateDoor", "granite", false)
+		elseif value == 0x5d then
+			-- TODO: Add a door that opens when all enemies are killed
+			self:getTile(x, y).isGameFinishTrigger = true
 		elseif value == 0xaa then
 			self:placeItem(x, y, "flower", "borage")
 		elseif value == 0xab then
@@ -74,12 +83,23 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0xe6 then
 			self:placeItem(x, y, "autoShotgun", "polymer")
 		elseif value == 0xe7 then
-			for _=1, 16 do
+			for _=1, 8 do
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
-			for _=1, 16 do
-				self:placeItem(x, y - 1, "slugShell", "plasticGreen")
+		elseif value == 0xe8 then
+			self:placeItem(x, y, "smallMedkit", "plasticGreen")
+		elseif value == 0xe9 then
+			self:placeItem(x, y, "pistol", "polymer")
+		elseif value == 0xea then
+			self:placeMagazineWithAmmo(x, y, "pistolMagazine", "polymer", "smallBullet", "brass")
+		elseif value == 0xeb then
+			for _=1, 8 do
+				self:placeItem(x, y, "slugShell", "plasticGreen")
 			end
+		elseif value == 0xec then
+			self:placeItem(x, y, "altar", "granite")
+		elseif value == 0xfe then
+			self:addSpatter(x, y, "glass", generator:random(1, 7))
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end

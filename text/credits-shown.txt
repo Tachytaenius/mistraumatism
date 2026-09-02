@@ -1,0 +1,34 @@
+                        CREDITS
+
+Mistraumatism was made by Tachytaenius (AKA wolfboyft).
+
+Thanks to all the people who helped me learn to
+program. And thank you, to you, for playing my game.
+
+Very special thanks to all my loved ones, across all
+time. Nothing is ever erased.
+
+---
+
+One font is by Kelora on the Dwarf Fortress wiki.
+Another is the original one from Dwarf Fortress.
+The default font is by Azoth.
+
+---
+
+The game was made using the LÖVE framework, which I
+really like. Credit to its developers!
+
+Max Cahill wrote the Batteries library that this
+project uses (modified).
+
+---
+
+LSDJ is by Johan Kotlinski, and was used to make audio.
+
+gb-presenter-rs (modified), which was used to render
+songs and sounds made in LSDJ, is by nununoisy.
+
+---
+
+Please check the credits with links in text/credits.txt!

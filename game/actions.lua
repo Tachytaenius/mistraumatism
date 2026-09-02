@@ -752,8 +752,26 @@ function game:loadActionTypes()
 	function swapInventorySlot.construct(self, entity, slot)
 		if entity.inventory and (not slot or (#entity.inventory >= slot and entity.inventory[slot].item)) and slot ~= entity.inventory.selectedSlot then
 			local new = {type = "swapInventorySlot"}
+
+			local noCost = 2
+			local otherCost = 4
+			local meleeCost = 6
+			local gunCost = 10
+
+			local function getCost(slot)
+				if not slot then
+					return noCost
+				end
+				local item = entity.inventory[slot].item
+				if not item then
+					return noCost
+				end
+				local type = item.itemType
+				return type.isGun and gunCost or type.isMeleeWeapon and meleeCost or otherCost
+			end
+
 			new.slot = slot
-			new.timer = 12
+			new.timer = getCost(slot) + getCost(entity.inventory.selectedSlot)
 			return new
 		end
 	end
@@ -848,7 +866,7 @@ function game:loadActionTypes()
 		local new = {type = "reload"}
 		new.slot = slot
 		new.reloadType = reloadType
-		new.timer = 12
+		new.timer = 9
 		if selectionType then
 			new[selectionType] = selection
 		end
@@ -1050,7 +1068,7 @@ function game:loadActionTypes()
 		if selectionKey then
 			new[selectionKey] = selectionIndex
 		end
-		new.timer = 7
+		new.timer = 5
 		if unload.validate(self, entity, new) then
 			return new
 		end

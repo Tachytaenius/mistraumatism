@@ -207,6 +207,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		spawnY = spawnY,
 		postLevelGen = function()
 			self:setReachedSafety()
+			self:setMusic("sacrosanct", nil, true)
 		end
 	}
 end

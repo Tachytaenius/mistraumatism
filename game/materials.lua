@@ -167,6 +167,9 @@ function game:loadMaterials()
 	)
 
 	addMaterial("inflictionMagic", "grief and pain", "magenta", "liquid")
+
+	addMaterial("aquariumGlass", "aquarium glass", "cyan", "solid").spatterCharSet = "leafLitter"
+	addMaterial("glass", "glass", "cyan", "solid").spatterCharSet = "leafLitter"
 end
 
 return game

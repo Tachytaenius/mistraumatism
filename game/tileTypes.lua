@@ -130,6 +130,14 @@ function game:loadTileTypes()
 			character = "■",
 			secondaryColour = "cyan"
 		},
+		fullGlassWindow = {
+			displayName = "large window",
+			pretendConnectionTypeName = "wall",
+			solidity = "solid",
+			blocksLight = false,
+			character = "▒",
+			secondaryColour = "darkCyan"
+		},
 		drawbridgeVertical = {
 			displayName = "drawbridge",
 			solidity = "passable",

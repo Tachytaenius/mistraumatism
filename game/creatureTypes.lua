@@ -90,8 +90,8 @@ function game:loadCreatureTypes()
 	}
 
 	creatureTypes.zombie = {
-		displayName = "zombie",
-		tile = "z",
+		displayName = "walking rot",
+		tile = "r",
 		colour = "lightGrey",
 		bloodMaterialName = "bloodRed",
 		size = 48,
@@ -282,9 +282,9 @@ function game:loadCreatureTypes()
 
 		moveTimerLength = 3,
 		sightDistance = 18,
-		maxHealth = 40,
-		maxBlood = 24,
-		bleedHealRate = 384,
+		maxHealth = 70,
+		maxBlood = 18,
+		bleedHealRate = 512,
 		-- meleeTimerLength = 1,
 		-- meleeDamage = 1,
 		-- meleeBleedRateAdd = 0,
@@ -299,7 +299,6 @@ function game:loadCreatureTypes()
 		vocalisationRange = 20,
 		painDamageThreshold = 4,
 
-		flying = true,
 		attackDeadTargets = true,
 		canOpenDoors = true,
 		inventorySize = 6,
@@ -320,8 +319,8 @@ function game:loadCreatureTypes()
 		moveTimerLength = 5,
 		sightDistance = 18,
 		maxHealth = 100,
-		maxBlood = 100,
-		bleedHealRate = 48,
+		maxBlood = 80,
+		bleedHealRate = 96,
 		meleeTimerLength = 5,
 		meleeDamage = 15,
 		meleeBleedRateAdd = 64,
@@ -698,9 +697,9 @@ function game:loadCreatureTypes()
 
 		moveTimerLength = 5,
 		sightDistance = 17,
-		maxHealth = 30,
-		maxBlood = 30,
-		bleedHealRate = 30,
+		maxHealth = 64,
+		maxBlood = 64,
+		bleedHealRate = 64,
 		meleeTimerLength = 4,
 		meleeDamage = 8,
 		meleeBleedRateAdd = 16,
@@ -722,7 +721,7 @@ function game:loadCreatureTypes()
 		projectileAbilities = {
 			{
 				name = "fireball",
-				shootTime = 4,
+				shootTime = 7,
 				projectileTile = "☼",
 				projectileColour = "yellow",
 				projectileSubtickMoveTimerLength = 256,

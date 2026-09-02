@@ -488,6 +488,39 @@ function game:loadInteractionTypes()
 		end
 	end
 
+	interactionTypes.bed = {}
+	function interactionTypes.bed:startInfoWorld(interactor, interactionType, interactee)
+		local player = self.state.player
+		if not (interactor and interactor == player) then
+			return
+		end
+		if not self.state.reachedSafety then
+			return 1, {type = "unsafe"}
+		end
+		return 1, {type = self.state.consideredSleep and "sleep" or "consider"}
+	end
+	function interactionTypes.bed:resultWorld(interactor, interactionType, interactee, info)
+		local player = self.state.player
+		if not (interactor and interactor == player) then
+			return
+		end
+		if info.type == "unsafe" then
+			self:announce("You do not feel even remotely safe enough to sleep.", "darkRed")
+			return
+		end
+		if info.type == "consider" then
+			self:announce("You can sleep. You are safe now.\nIs that your intent?", "lightGrey")
+			self.state.consideredSleep = true
+			return
+		end
+		if info.type == "sleep" then
+			-- TODO: A nice fadeout
+			self:announce("At last you are asleep. With a warming sense of hope...\nYou begin to dream.", "green")
+			self:toCredits()
+			self.forceRepeatUpdate = true
+		end
+	end
+
 	self.state.interactionTypes = interactionTypes
 end
 

@@ -32,10 +32,12 @@ function info:createLevel()
 	local types = {
 		[0x00] = "floor",
 		[0x55] = "wall",
-		[0xaa] = "airlockDrain"
+		[0xaa] = "airlockDrain",
+		[0xff] = "fullGlassWindow"
 	}
 	local materials = {
-		[0x00] = "steel"
+		[0x00] = "steel",
+		[0xff] = "aquariumGlass"
 	}
 	local spawnX, spawnY
 	local function water(x, y)
@@ -44,12 +46,14 @@ function info:createLevel()
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x22 then
 			self:placeItem(x, y, "pumpShotgun", "steel")
-			for _=1, 7 do
-				self:placeItem(x - 1, y, "buckshotShell", "plasticRed")
+			-- for _=1, 7 do
+			-- 	self:placeItem(x, y + 1, "buckshotShell", "plasticRed")
+			-- end
+			for _=1, 11 do
+				self:placeItem(x, y + 1, "slugShell", "plasticGreen")
 			end
-			for _=1, 5 do
-				self:placeItem(x - 1, y + 1, "slugShell", "plasticGreen")
-			end
+		elseif value == 0x32 then
+			self:placeMonster(x, y, "zombie")
 		elseif value == 0x33 then
 			water(x, y)
 			self:placeMonster(x, y, "angler")

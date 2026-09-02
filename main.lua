@@ -73,12 +73,20 @@ function love.update(dt)
 	local repeatUpdate -- For changing state and not immediately drawing before updating it
 	repeat
 		repeatUpdate = game:realtimeUpdate(dt)
+		if game.quitting then
+			return
+		end
+		repeatUpdate = repeatUpdate or game.forceRepeatUpdate
+		game.forceRepeatUpdate = false
 	until not repeatUpdate
 
 	commands.tickFinished()
 end
 
 function love.draw()
+	if game.quitting then
+		return
+	end
 	game:draw()
 
 	-- love.graphics.print(love.timer.getFPS())

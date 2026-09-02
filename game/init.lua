@@ -37,6 +37,15 @@ function game:resetTileEntityLists()
 	state.previousTileEntityLists = nil
 end
 
+function game:clearAnnouncements()
+	local state = self.state
+	if not state then
+		return
+	end
+	state.announcements = {}
+	state.splitAnnouncements = {}
+end
+
 function game:newState(params)
 	local state = {}
 	self.state = state
@@ -60,8 +69,7 @@ function game:newState(params)
 	self:newTeam("critter")
 	self:setTeamRelation("person", "monster", "enemy")
 
-	state.announcements = {}
-	state.splitAnnouncements = {}
+	self:clearAnnouncements()
 
 	state.lastPlayerX, state.lastPlayerY, state.lastPlayerSightDistance = 0, 0, 0 -- Failsafes in case of no player
 
@@ -219,7 +227,7 @@ function game:init(args)
 			"patriarchalCesspool",
 			"underwaterMaze",
 			"exit",
-			"secretSanctuary"
+			consts.secretLevelName
 		}
 		local accessibleLevels = {}
 		for i = 1, #levels do
@@ -231,7 +239,7 @@ function game:init(args)
 			"The Patriarchal Cesspool",
 			"The Watery Grave",
 			"The Home Stretch",
-			"The Secret Sanctuary"
+			consts.secretLevelDisplayName
 		}
 		util.makeBidirectional(levels)
 		local progress = love.filesystem.read("progress.txt") or ""

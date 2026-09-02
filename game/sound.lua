@@ -5,10 +5,22 @@ function game:loadSounds()
 	local function loadSound(name)
 		soundSources[name] = love.audio.newSource("sounds/" .. name .. ".mp3", "static")
 	end
-
 	loadSound("playerDeath")
-
 	self.soundSources = soundSources
+
+	local musicSources = {}
+	local function loadMusic(name)
+		-- Keeping the source as static seems to make music loop much more cleanly
+		musicSources[name] = love.audio.newSource("music/" .. name .. ".mp3", "static")
+	end
+	loadMusic("eyes-in-the-darkness-of-your-mind")
+	loadMusic("splintered-murk")
+	loadMusic("primordial-sickness")
+	loadMusic("nail-and-claw")
+	loadMusic("mercious")
+	loadMusic("sacrosanct")
+	loadMusic("the-long-view")
+	self.musicSources = musicSources
 end
 
 function game:playSound(name)
@@ -32,12 +44,13 @@ function game:setMusic(name, forceFadeoutEnd, noLoop)
 
 	if self.musicFadeoutTimer and not forceFadeoutEnd then
 		self.musicAfterFadeout = name
+		self.loopingAfterFadeout = not noLoop
 		return
 	else
 		self:stopMusic()
 	end
 
-	self.music = love.audio.newSource("music/" .. name .. ".mp3", "static") -- Static seems to make the sound loop much more cleanly
+	self.music = self.musicSources[name]
 	self.musicName = name
 	self.music:setLooping(not noLoop)
 	self.music:play()
@@ -67,8 +80,9 @@ function game:handleMusicFade(dt)
 	if self.musicFadeoutTimer >= self.musicFadeoutEnd then
 		self:stopMusic()
 		if self.musicAfterFadeout then
-			self:setMusic(self.musicAfterFadeout)
+			self:setMusic(self.musicAfterFadeout, false, not self.loopingAfterFadeout)
 			self.musicAfterFadeout = nil
+			self.loopingAfterFadeout = nil
 		end
 		return
 	end

@@ -152,4 +152,7 @@ consts.preGameOverScreenTimerLength = 7
 consts.gameOverScreenTimerPauseLength = 2
 consts.gameOverScreenTimerLength = 4
 
+consts.secretLevelName = "secretSanctuary"
+consts.secretLevelDisplayName = "The Secret Sanctuary"
+
 return consts
