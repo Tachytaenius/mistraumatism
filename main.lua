@@ -21,6 +21,7 @@ function love.load(args)
 		end
 	end
 	love.graphics.setDefaultFilter("nearest")
+	love.mouse.setVisible(false)
 	game:init(args)
 end
 

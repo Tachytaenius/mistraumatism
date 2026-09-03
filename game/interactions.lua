@@ -509,7 +509,7 @@ function game:loadInteractionTypes()
 			return
 		end
 		if info.type == "consider" then
-			self:announce("You can sleep. You are safe now.\nIs that your intent?", "lightGrey")
+			self:announce("You can sleep; you are safe now. Is that your intent?", "lightGrey")
 			self.state.consideredSleep = true
 			return
 		end
