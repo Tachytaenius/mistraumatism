@@ -1836,4 +1836,17 @@ function game:entityCanJumpToTile(entity, x, y)
 		not self:canEntitiesBeFlungThroughTile(x, y)
 end
 
+function game:checkAllMonstersDead()
+	if not self.state.allMonstersDeadFunc then
+		return -- No need to check
+	end
+	for _, entity in ipairs(self.state.entities.creatures) do
+		if entity.team == "monster" and not (entity.dead or entity.removed) then
+			return
+		end
+	end
+	self.state.allMonstersDeadFunc()
+	self.state.allMonstersDeadFunc = nil
+end
+
 return game

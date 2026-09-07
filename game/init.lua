@@ -29,6 +29,7 @@ function game:prepareForLevel()
 	state.entities = {}
 	state.entities.creatures = {}
 	state.airlockData = {}
+	state.allMonstersDeadFunc = nil
 end
 
 function game:resetTileEntityLists()

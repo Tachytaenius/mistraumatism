@@ -155,4 +155,6 @@ consts.gameOverScreenTimerLength = 4
 consts.secretLevelName = "secretSanctuary"
 consts.secretLevelDisplayName = "The Secret Sanctuary"
 
+consts.mouseHideTimerLength = 1
+
 return consts

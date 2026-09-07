@@ -1,5 +1,3 @@
--- love entrypoint
-
 local version = love.filesystem.read("version.txt") -- This file is provided on build
 
 local util = require("util")
@@ -7,8 +5,11 @@ util.load()
 
 local game = require("game")
 
+local consts = require("consts")
 local commands = require("commands")
 local settings = require("settings")
+
+local mouseHideTimer
 
 function love.load(args)
 	for _, arg in ipairs(args) do
@@ -21,8 +22,8 @@ function love.load(args)
 		end
 	end
 	love.graphics.setDefaultFilter("nearest")
-	love.mouse.setVisible(false)
 	game:init(args)
+	mouseHideTimer = consts.mouseHideTimerLength
 end
 
 function love.keypressed(key)
@@ -33,6 +34,7 @@ local function handleSettings()
 	love.audio.setVolume(settings.sound.volume)
 
 	-- Window should've been made already
+	settings.graphics.fullscreen = love.window.getFullscreen()
 	local shouldRemakeWindow
 	if commands.checkCommand("decreaseCanvasScale") then
 		if settings.graphics.canvasScale > 1 then
@@ -69,6 +71,9 @@ end
 function love.update(dt)
 	commands.tickStarted(dt)
 
+	mouseHideTimer = math.max(0, mouseHideTimer - dt)
+	love.mouse.setVisible(mouseHideTimer > 0)
+
 	handleSettings()
 
 	local repeatUpdate -- For changing state and not immediately drawing before updating it
@@ -91,4 +96,14 @@ function love.draw()
 	game:draw()
 
 	-- love.graphics.print(love.timer.getFPS())
+end
+
+function love.textinput(text)
+	if text == "?" then
+		print("Help? Help is... TODO.")
+	end
+end
+
+function love.mousemoved()
+	mouseHideTimer = consts.mouseHideTimerLength
 end

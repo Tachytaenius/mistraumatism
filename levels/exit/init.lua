@@ -34,7 +34,11 @@ function info:createLevel() -- name should be the name of the directory containi
 	}
 	local spawnX, spawnY
 	local ceilingMessage = self:newTileMessage("There is a skyward hole in the cavern ceiling above\nyou. The sunlight sifts down and glints at you\nagainst the dust.", "white")
+	local exitDoorX, exitDoorY
 	local function decodeExtra(x, y, r, g, value, a)
+		-- NOTE: There are intentionally no healing items in this level!!
+		-- So that if you're bleeding out the game just doesn't let you escape. Less cases to deal with, so it's easier
+
 		if value == 0x44 then
 			self:placeTileMessage(x, y, ceilingMessage)
 		elseif value == 0x55 then
@@ -54,7 +58,8 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0x5c then
 			self:placeDoorItem(x, y, "ornateDoor", "granite", false)
 		elseif value == 0x5d then
-			-- TODO: Add a door that opens when all enemies are killed
+			exitDoorX, exitDoorY = x, y
+			self:placeDoorItem(x, y, "heavyDoor", "obsidian", false, "noKey")
 			self:getTile(x, y).isGameFinishTrigger = true
 		elseif value == 0xaa then
 			self:placeItem(x, y, "flower", "borage")
@@ -70,7 +75,7 @@ function info:createLevel() -- name should be the name of the directory containi
 				cell.storedEnergy = self.state.itemTypes.plasmaEnergyCell.maxEnergy
 			-- end
 		elseif value == 0xe2 then
-			self:placeItem(x, y, "largeMedkit", "plasticGreen")
+			-- self:placeItem(x, y, "largeMedkit", "plasticGreen")
 		elseif value == 0xe3 then
 			self:placeItem(x, y, "tacticalArmour", "hyperPolymer")
 			self:placeItem(x - 1, y, "combatKnife", "steel")
@@ -87,7 +92,7 @@ function info:createLevel() -- name should be the name of the directory containi
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
 		elseif value == 0xe8 then
-			self:placeItem(x, y, "smallMedkit", "plasticGreen")
+			-- self:placeItem(x, y, "smallMedkit", "plasticGreen")
 		elseif value == 0xe9 then
 			self:placeItem(x, y, "pistol", "polymer")
 		elseif value == 0xea then
@@ -124,6 +129,20 @@ function info:createLevel() -- name should be the name of the directory containi
 		return r, g, b, a
 	end)
 	assert(spawnX and spawnY, "No spawn location")
+
+	function self.state.allMonstersDeadFunc()
+		if not self.state.player or self.state.player.dead then
+			return
+		end
+		self:fadeMusicOut(5)
+		local bleedingOut, willLoseBlood = self:isEntityBleedingOut(self.state.player)
+		if bleedingOut then
+			self:announce("Something feels different, but you're bleeding out.", "white")
+		else
+			self:announce("Something feels different...", "white")
+			self:mechanismOpenDoor(exitDoorX, exitDoorY)
+		end
+	end
 
 	return {
 		spawnX = spawnX,
