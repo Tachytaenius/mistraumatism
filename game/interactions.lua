@@ -211,6 +211,54 @@ function game:loadInteractionTypes()
 	end
 	interactionTypes.observable.resultHeld = interactionTypes.observable.resultWorld
 
+	interactionTypes.wogle = {}
+	function interactionTypes.wogle:startInfoWorld(interactor, interactionType, interactee)
+		return 12
+	end
+	function interactionTypes.wogle:startInfoHeld(interactor, interactionType, interactee)
+		return 9
+	end
+	function interactionTypes.wogle:resultWorld(interactor, interactionType, interactee, info)
+		if not self.state.player or interactor ~= self.state.player then
+			return
+		end
+		local item = interactionType == "world" and interactee.itemData or interactee
+		local heldItem = self:getHeldItem(interactor)
+		if heldItem and heldItem.isMagicSpellbook then
+			if item.alreadyGaveArmour then
+				self:announce("The wogle stone has nothing to give in particular.", "darkMagenta")
+			else
+				self:announce("A blessing! The power of the wogle!", "magenta")
+				self:placeItem(interactor.x, interactor.y, "shawl", "wardingMagic")
+				item.alreadyGaveArmour = true
+
+				for _=1, 25 do
+					local rand = 10
+					local slownessMin, slownessMax = 128, 1024
+					local lifetimeMin, lifetimeMax = 10, 40
+					self:newParticle({}, {
+						startX = interactor.x,
+						startY = interactor.y,
+						targetX = interactor.x + love.math.random(-rand, rand),
+						targetY = interactor.y + love.math.random(-rand, rand),
+
+						foregroundColour = "green",
+						backgroundColour = "black",
+
+						tile = "*",
+
+						lifetime = love.math.random(lifetimeMin, lifetimeMax),
+
+						subtickMoveTimerLength = love.math.random(slownessMin, slownessMax)
+					})
+				end
+			end
+		else
+			self:announce("It seems to be some kind of protective relic.", "lightGrey")
+		end
+	end
+	interactionTypes.wogle.resultHeld = interactionTypes.wogle.resultWorld
+
 	interactionTypes.button = {} -- Store state and other information on the item, not an entity representing the item in the world
 	function interactionTypes.button:startInfoWorld(interactor, interactionType, interactee)
 		return 1

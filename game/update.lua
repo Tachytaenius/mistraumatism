@@ -5,6 +5,9 @@ local game = {}
 
 function game:isPlayerInControl()
 	local state = self.state
+	if state.playerEscaping then
+		return false
+	end
 	if state.changeToLevelTimer or state.startLevelTimer then
 		return false
 	end
@@ -86,6 +89,8 @@ function game:realtimeUpdate(dt)
 				else
 					return
 				end
+			else
+				self:getScriptedPlayerInput()
 			end
 
 			local run = false
@@ -157,6 +162,20 @@ function game:getPlayerInput()
 		end
 	    ::continue::
 	end
+end
+
+function game:getScriptedPlayerInput()
+	local state = self.state
+	local player = state.player
+	if not player or player.dead then
+		return
+	end
+
+	if not state.playerEscaping then
+		return
+	end
+
+	self:advanceEscape()
 end
 
 function game:announceLevelArrival()

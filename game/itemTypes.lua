@@ -1244,6 +1244,33 @@ function game:loadItemTypes()
 		noPickUp = true
 	}
 
+	itemTypes.exitSeal = {
+		noPickUp = true,
+		tile = "≡",
+		interactable = true,
+		interactionType = state.interactionTypes.observable,
+		displayName = "malicious lock"
+	}
+
+	itemTypes.wogleStone = {
+		-- Catweazle reference!
+		-- Couldn't find out what it's made of. If I really wanted to I could ask geologists based on screenshots and also where the scenes were shot (assuming the stone was found nearby). This is all assuming the rock wasn't a fake so as to not be too heavy.
+		noPickUp = true,
+		tile = "☻",
+		interactable = true,
+		interactionType = state.interactionTypes.wogle,
+		displayName = "wogle stone"
+	}
+
+	itemTypes.shawl = {
+		tile = "^",
+		displayName = "shawl",
+		wearable = true,
+		armourDefence = 1, -- Multiplicative
+		armourDurability = 0, -- Additive
+		forceKeepBetweenLevels = true
+	}
+
 	self:validateItemTypes()
 end
 

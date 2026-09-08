@@ -90,7 +90,8 @@ function game:loadMaterials()
 		addMaterial("marble", "marble", "white", "solid"),
 		addMaterial("marbleGreen", "green marble", "darkGreen", "solid"),
 		addMaterial("obsidian", "obsidian", "darkGrey", "solid"),
-		addMaterial("basalt", "basalt", "darkGrey", "solid")
+		addMaterial("basalt", "basalt", "darkGrey", "solid"),
+		addMaterial("unknownRock", "unknown rock", "darkYellow", "solid")
 	)
 
 	local salt = addMaterial("salt", "salt", "white", "solid")
@@ -170,6 +171,11 @@ function game:loadMaterials()
 
 	addMaterial("aquariumGlass", "aquarium glass", "cyan", "solid").spatterCharSet = "leafLitter"
 	addMaterial("glass", "glass", "cyan", "solid").spatterCharSet = "leafLitter"
+
+	addMaterial("wardingMagic", "warding magic", "darkGrey", "solid").armourInfo = {
+		defence = 26,
+		durability = 100
+	}
 end
 
 return game

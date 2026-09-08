@@ -232,7 +232,7 @@ end
 function game:updateEntitiesAndProjectiles()
 	local state = self.state
 
-	state.entitiesToRemove = {}
+	state.entitiesToRemove = state.entitiesToRemove or {}
 	local function kill(entity, forceRemove, cause, broadcastEventNow)
 		assert(not entity.dead, "Entity is already dead")
 		assert(entity.entityType == "creature", "Can't kill non-creatures")
@@ -345,7 +345,7 @@ function game:updateEntitiesAndProjectiles()
 		if item.itemType.isButton and item.pressed and not item.frozenState then
 			item.pressed = false
 			self:broadcastButtonStateChangedEvent(item, nil, false, x, y)
-			if item.onUnpress then 
+			if item.onUnpress then
 				item.onUnpress(self, item, x, y)
 			end
 		elseif item.itemType.isLever then

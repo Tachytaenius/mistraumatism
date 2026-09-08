@@ -59,7 +59,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0x11] = "fescue",
 		[0x22] = "oak"
 	}
-	local spawnX, spawnY = math.floor(imageCentreX), math.floor(imageCentreY) -- TEMP
+	local spawnX, spawnY
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x11 then
 			self:placeDoorItem(x, y, "door", "oak")
@@ -200,6 +200,17 @@ function info:createLevel() -- name should be the name of the directory containi
 				end
 			end
 		end
+	end
+
+	-- No man can build where stands the wogle stone.
+	local x = spawnX
+	local y = totalH - 7
+	while true do -- Go up until a nonsolid tile is (probably quite quickly) found
+		if self:getWalkable(x, y) then
+			self:placeItem(x, y, "wogleStone", "unknownRock")
+			break
+		end
+		y = y - 1
 	end
 
 	return {

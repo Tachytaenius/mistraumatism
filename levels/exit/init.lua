@@ -58,8 +58,12 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0x5c then
 			self:placeDoorItem(x, y, "ornateDoor", "granite", false)
 		elseif value == 0x5d then
-			exitDoorX, exitDoorY = x, y
+
+			local seal = self:placeExaminable(x, y, "exitSeal", "inflictionMagic", "Malice still clings to this door. It is sealed.")
+			seal.isExitSeal = true
+
 			self:placeDoorItem(x, y, "heavyDoor", "obsidian", false, "noKey")
+			exitDoorX, exitDoorY = x, y
 			self:getTile(x, y).isGameFinishTrigger = true
 		elseif value == 0xaa then
 			self:placeItem(x, y, "flower", "borage")
@@ -130,6 +134,46 @@ function info:createLevel() -- name should be the name of the directory containi
 	end)
 	assert(spawnX and spawnY, "No spawn location")
 
+	local function openExit()
+		self:mechanismOpenDoor(exitDoorX, exitDoorY)
+		local particleCount = 80
+		local rand = 9
+		local choices = {
+			-- "red", "yellow", "green", "cyan", "blue", "magenta"
+			-- "cyan", "magenta", "white"
+			"red", "cyan"
+		}
+		local tileChoices = {
+			-- "·", "'", "`", "."
+			"·"
+		}
+		local lifetimeMin = 2
+		local lifetimeMax = 20
+		local slownessMin, slownessMax = 128, 1024
+		self:tickItems(function(item, x, y, locationType, locationEntity)
+			if item.isExitSeal then
+				for _=1, particleCount do
+					self:newParticle({}, {
+						startX = x,
+						startY = y,
+						targetX = x + love.math.random(-rand, rand),
+						targetY = y + love.math.random(-rand, rand),
+
+						foregroundColour = choices[love.math.random(#choices)],
+						backgroundColour = "black",
+
+						tile = tileChoices[love.math.random(#tileChoices)],
+
+						lifetime = love.math.random(lifetimeMin, lifetimeMax),
+
+						subtickMoveTimerLength = love.math.random(slownessMin, slownessMax)
+					})
+				end
+				return true
+			end
+		end)
+	end
+
 	function self.state.allMonstersDeadFunc()
 		if not self.state.player or self.state.player.dead then
 			return
@@ -137,10 +181,10 @@ function info:createLevel() -- name should be the name of the directory containi
 		self:fadeMusicOut(5)
 		local bleedingOut, willLoseBlood = self:isEntityBleedingOut(self.state.player)
 		if bleedingOut then
-			self:announce("Something feels different, but you're bleeding out.", "white")
+			self:announce("Something is different, but you can't know what.", "white")
 		else
 			self:announce("Something feels different...", "white")
-			self:mechanismOpenDoor(exitDoorX, exitDoorY)
+			openExit()
 		end
 	end
 
