@@ -77,6 +77,9 @@ function game:updateAnnouncements()
 		end
 	end
 
+	if state.linesSincePlayerInControl > 0 then
+		state.linesPrintedIndicator = not state.linesPrintedIndicator
+	end
 	state.linesSincePlayerInControl = 0
 	state.unreadAnnouncementsWarn = not util.isEmpty(state.unreadAnnouncements)
 end

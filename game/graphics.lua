@@ -873,6 +873,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		drawStringFramebuffer(2, self.framebufferHeight - 1, char, col, "black")
 		drawStringFramebuffer(self.framebufferWidth - 3, self.framebufferHeight - 1, char, col, "black")
 	end
+	-- drawStringFramebuffer(math.floor(self.framebufferWidth / 2), self.framebufferHeight - 1, state.linesSincePlayerInControl > 0 and "+" or "-", "lightGrey", "darkGrey")
+	-- drawStringFramebuffer(math.floor(self.framebufferWidth / 2) + 1, self.framebufferHeight - 1, state.linesPrintedIndicator and "/" or "\\", "lightGrey", "darkGrey")
+	drawStringFramebuffer(self.viewportWidth + 1, self.viewportHeight + 1, state.linesPrintedIndicator and "│" or "─", "lightGrey", "darkGrey") -- If re-printing the same message(s) over and over, this lets the player know that more were printed
 
 	-- Draw bleeding indicator
 	local noBlood = not state.player or not state.player.blood or state.player.dead
