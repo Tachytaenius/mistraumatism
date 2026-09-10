@@ -347,7 +347,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local function drawConsole(height)
 		local y = self.framebufferHeight - 1 - height
 		local rows = {}
-		for i = #state.splitAnnouncements, 1, -1 do
+		for i = #state.splitAnnouncements - (state.consoleHistoryScroll or 0), 1, -1 do
 			local line = state.splitAnnouncements[i]
 			table.insert(rows, 1, {
 				text = line.text,
@@ -450,6 +450,14 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		drawStringFramebuffer(self.framebufferWidth - 3, self.framebufferHeight - 1, char, col, "black")
 	end
 	if self.state.consoleHistoryMode then
+		if #state.splitAnnouncements > 0 then
+			local screenMax = self.framebufferHeight - 2
+			local first = #state.splitAnnouncements - (state.consoleHistoryScroll or 0)
+			local last = math.max(1, first - screenMax + 1)
+			drawStringFramebuffer(2, 0, last .. "-" .. first .. "/" .. #self.state.splitAnnouncements, "lightGrey", "black")
+		else
+			drawStringFramebuffer(2, 0, "No announcements", "lightGrey", "black")
+		end
 		return
 	end
 	drawStringFramebuffer(self.state.consoleHistoryMode and self.framebufferWidth - 3 or self.viewportWidth + 1, self.state.consoleHistoryMode and 0 or (self.viewportHeight + 1), state.linesPrintedIndicator and "│" or "─", "lightGrey", "darkGrey") -- If re-printing the same message(s) over and over, this lets the player know that more were printed

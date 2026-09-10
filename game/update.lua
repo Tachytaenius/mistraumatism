@@ -30,8 +30,16 @@ function game:realtimeUpdate(dt)
 	self:handleMusicFade(dt)
 	if self.mode == "gameplay" then
 		if self.state.consoleHistoryMode then
+			if commands.checkCommand("scrollListBackwards") then
+				self.state.consoleHistoryScroll = self.state.consoleHistoryScroll + 1
+			end
+			if commands.checkCommand("scrollListForwards") then
+				self.state.consoleHistoryScroll = self.state.consoleHistoryScroll - 1
+			end
+			self.state.consoleHistoryScroll = math.max(0, math.min(self:getMaxConsoleHistoryScroll(), self.state.consoleHistoryScroll))
 			if commands.checkCommand("toggleHistory") then
 				self.state.consoleHistoryMode = false
+				self.state.consoleHistoryScroll = nil
 			end
 			self:updateAnnouncements()
 			return
@@ -40,6 +48,7 @@ function game:realtimeUpdate(dt)
 		local ok = not self:specialState()
 		if ok and not self.state.consoleHistoryMode and commands.checkCommand("toggleHistory") then
 			self.state.consoleHistoryMode = true
+			self.state.consoleHistoryScroll = 0
 		end
 
 		if self.preGameOverScreenTimer then
@@ -158,7 +167,6 @@ function game:realtimeUpdate(dt)
 	elseif self.mode == "levelSelect" then
 		return self:updateLevelSelect(dt)
 	end
-	self.realTime = self.realTime + dt
 end
 
 function game:getPlayerInput()
@@ -279,6 +287,8 @@ function game:update()
 	self:checkForGameFinished()
 
 	self:clearNonPersistentVariables()
+
+	self:announce(tostring(state.tick), "white")
 
 	self.state.previousTileEntityLists, self.state.tileEntityLists = self.state.tileEntityLists, nil
 	self.state.tileEntityLists = self:getTileEntityLists()

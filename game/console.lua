@@ -66,7 +66,7 @@ function game:updateAnnouncements()
 	local state = self.state
 
 	local rows = 0
-	for i = #state.splitAnnouncements, 1, -1 do
+	for i = #state.splitAnnouncements - (state.consoleHistoryScroll or 0), 1, -1 do
 		local split = state.splitAnnouncements[i]
 		split.read = true
 		self:checkAnnouncementRead(split.announcement)
@@ -83,6 +83,11 @@ function game:updateAnnouncements()
 	end
 	state.linesSincePlayerInControl = 0
 	state.unreadAnnouncementsWarn = not util.isEmpty(state.unreadAnnouncements)
+end
+
+function game:getMaxConsoleHistoryScroll()
+	local screenMax = self.framebufferHeight - 2
+	return math.max(0, #self.state.splitAnnouncements - screenMax)
 end
 
 return game

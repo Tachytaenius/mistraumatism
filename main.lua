@@ -86,6 +86,8 @@ function love.update(dt)
 		game.forceRepeatUpdate = false
 	until not repeatUpdate
 
+	game.realTime = game.realTime + dt
+
 	commands.tickFinished()
 end
 
