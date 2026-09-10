@@ -3,12 +3,20 @@ local commands = require("commands")
 
 local game = {}
 
-function game:isPlayerInControl()
+function game:specialState()
 	local state = self.state
 	if state.playerEscaping then
-		return false
+		return true
 	end
 	if state.changeToLevelTimer or state.startLevelTimer or state.sleepTimer or state.toCreditsTimer then
+		return true
+	end
+	return false
+end
+
+function game:isPlayerInControl()
+	local state = self.state
+	if self:specialState() then
 		return false
 	end
 	local player = state.player
@@ -21,6 +29,19 @@ end
 function game:realtimeUpdate(dt)
 	self:handleMusicFade(dt)
 	if self.mode == "gameplay" then
+		if self.state.consoleHistoryMode then
+			if commands.checkCommand("toggleHistory") then
+				self.state.consoleHistoryMode = false
+			end
+			self:updateAnnouncements()
+			return
+		end
+
+		local ok = not self:specialState()
+		if ok and not self.state.consoleHistoryMode and commands.checkCommand("toggleHistory") then
+			self.state.consoleHistoryMode = true
+		end
+
 		if self.preGameOverScreenTimer then
 			self.preGameOverScreenTimer = self.preGameOverScreenTimer + dt
 			if self.preGameOverScreenTimer >= consts.preGameOverScreenTimerLength then

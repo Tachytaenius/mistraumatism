@@ -73,6 +73,8 @@ return {
 
 		confirm = "space",
 
+		toggleHistory = "tab",
+
 		decreaseCanvasScale = "f9",
 		increaseCanvasScale = "f10",
 		toggleFullscreen = "f11"

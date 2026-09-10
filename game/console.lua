@@ -72,7 +72,8 @@ function game:updateAnnouncements()
 		self:checkAnnouncementRead(split.announcement)
 
 		rows = rows + 1
-		if rows >= self.consoleHeight then
+		local consoleHeight = self.state.consoleHistoryMode and self.framebufferHeight - 2 or self.consoleHeight
+		if rows >= consoleHeight then
 			break
 		end
 	end

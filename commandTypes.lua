@@ -63,6 +63,8 @@ return {
 
 	confirm = "pressed",
 
+	toggleHistory = "pressed",
+
 	toggleFullscreen = "pressed",
 	decreaseCanvasScale = "pressed",
 	increaseCanvasScale = "pressed"

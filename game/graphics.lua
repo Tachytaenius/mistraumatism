@@ -344,16 +344,76 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 	end
 
+	local function drawConsole(height)
+		local y = self.framebufferHeight - 1 - height
+		local rows = {}
+		for i = #state.splitAnnouncements, 1, -1 do
+			local line = state.splitAnnouncements[i]
+			table.insert(rows, 1, {
+				text = line.text,
+				colour = line.announcement.colour,
+				isContinuedLine = line.isContinuedLine,
+				isFirstOfTick = line.announcement.isFirstOfTick,
+				isFirstAfterPlayerControlLost = line.announcement.isFirstAfterPlayerControlLost
+			})
+			if #rows >= height then
+				break
+			end
+		end
+		for rowI, row in ipairs(rows) do
+			local textI = 1
+			local icon
+			if row.isContinuedLine then
+				icon = " "
+			-- elseif row.isFirstAfterPlayerControlLost then
+			-- 	icon = "•"
+			elseif row.isFirstOfTick then
+				icon = "∙"
+			else
+				icon = "·"
+			end
+			drawCharacterFramebuffer(
+				1,
+				y + rowI - 1,
+				icon,
+				"darkGrey",
+				"black"
+			)
+			for _, code in utf8.codes(row.text) do
+				local char = utf8.char(code)
+				drawCharacterFramebuffer(
+					2 + textI - 1,
+					y + rowI - 1,
+					char,
+					row.colour,
+					"black"
+				)
+				textI = textI + 1
+			end
+		end
+	end
+
+	if self.state.consoleHistoryMode then
+		drawConsole(self.framebufferHeight - 2)
+	end
+
 	-- Draw borders
 	local borderDouble = true
 	local borderNum = borderDouble and 2 or 1
 	local borderForeground = "lightGrey"
 	local borderBackground = "darkGrey"
-	local rectangles = {
-		{x = 0, y = 0, w = self.viewportWidth + 2, h = self.viewportHeight + 2},
-		{x = 0, y = self.viewportHeight + 1, w = self.consoleWidth + 2, h = self.consoleHeight + 2},
-		{x = self.viewportWidth + 1, y = 0, w = self.framebufferWidth - self.viewportWidth - 1, h = self.framebufferHeight - self.consoleHeight - 1}
-	}
+	local rectangles
+	if self.state.consoleHistoryMode then
+		rectangles = {
+			{x = 0, y = 0, w = self.framebufferWidth, h = self.framebufferHeight}
+		}
+	else
+		rectangles = {
+			{x = 0, y = 0, w = self.viewportWidth + 2, h = self.viewportHeight + 2},
+			{x = 0, y = self.viewportHeight + 1, w = self.consoleWidth + 2, h = self.consoleHeight + 2},
+			{x = self.viewportWidth + 1, y = 0, w = self.framebufferWidth - self.viewportWidth - 1, h = self.framebufferHeight - self.consoleHeight - 1}
+		}
+	end
 	local function isBorder(x, y)
 		for _, rectangle in ipairs(rectangles) do
 			local dx, dy = x - rectangle.x, y - rectangle.y
@@ -382,6 +442,17 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		    ::continue::
 		end
 	end
+	if state.linesSincePlayerInControl > self.consoleHeight or state.unreadAnnouncementsWarn then
+		local char = "↑"
+		local flash = self.realTime % 3 < 1.5
+		local col = flash and "yellow" or "darkYellow"
+		drawStringFramebuffer(2, self.framebufferHeight - 1, char, col, "black")
+		drawStringFramebuffer(self.framebufferWidth - 3, self.framebufferHeight - 1, char, col, "black")
+	end
+	if self.state.consoleHistoryMode then
+		return
+	end
+	drawStringFramebuffer(self.state.consoleHistoryMode and self.framebufferWidth - 3 or self.viewportWidth + 1, self.state.consoleHistoryMode and 0 or (self.viewportHeight + 1), state.linesPrintedIndicator and "│" or "─", "lightGrey", "darkGrey") -- If re-printing the same message(s) over and over, this lets the player know that more were printed
 
 	local function drawCharacterWorldToViewport(worldX, worldY, character, foregroundColour, backgroundColour)
 		local viewportX = worldX - topLeftX
@@ -803,51 +874,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	end
 
 	-- Console
-	local rows = {}
-	for i = #state.splitAnnouncements, 1, -1 do
-		local line = state.splitAnnouncements[i]
-		table.insert(rows, 1, {
-			text = line.text,
-			colour = line.announcement.colour,
-			isContinuedLine = line.isContinuedLine,
-			isFirstOfTick = line.announcement.isFirstOfTick,
-			isFirstAfterPlayerControlLost = line.announcement.isFirstAfterPlayerControlLost
-		})
-		if #rows >= self.consoleHeight then
-			break
-		end
-	end
-	for rowI, row in ipairs(rows) do
-		local textI = 1
-		local icon
-		if row.isContinuedLine then
-			icon = " "
-		-- elseif row.isFirstAfterPlayerControlLost then
-		-- 	icon = "•"
-		elseif row.isFirstOfTick then
-			icon = "∙"
-		else
-			icon = "·"
-		end
-		drawCharacterFramebuffer(
-			1,
-			2 + self.viewportHeight + rowI - 1,
-			icon,
-			"darkGrey",
-			"black"
-		)
-		for _, code in utf8.codes(row.text) do
-			local char = utf8.char(code)
-			drawCharacterFramebuffer(
-				2 + textI - 1,
-				2 + self.viewportHeight + rowI - 1,
-				char,
-				row.colour,
-				"black"
-			)
-			textI = textI + 1
-		end
-	end
+	drawConsole(self.consoleHeight)
 
 	-- Status panel etc
 
@@ -880,17 +907,6 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		message, colour = "????", "darkGrey"
 	end
 	drawStringFramebuffer(2, self.viewportHeight + 1, message, "lightGrey", "darkGrey") -- colour, "black")
-
-	if state.linesSincePlayerInControl > self.consoleHeight or state.unreadAnnouncementsWarn then
-		local char = "↑"
-		local flash = self.realTime % 3 < 1.5
-		local col = flash and "yellow" or "darkYellow"
-		drawStringFramebuffer(2, self.framebufferHeight - 1, char, col, "black")
-		drawStringFramebuffer(self.framebufferWidth - 3, self.framebufferHeight - 1, char, col, "black")
-	end
-	-- drawStringFramebuffer(math.floor(self.framebufferWidth / 2), self.framebufferHeight - 1, state.linesSincePlayerInControl > 0 and "+" or "-", "lightGrey", "darkGrey")
-	-- drawStringFramebuffer(math.floor(self.framebufferWidth / 2) + 1, self.framebufferHeight - 1, state.linesPrintedIndicator and "/" or "\\", "lightGrey", "darkGrey")
-	drawStringFramebuffer(self.viewportWidth + 1, self.viewportHeight + 1, state.linesPrintedIndicator and "│" or "─", "lightGrey", "darkGrey") -- If re-printing the same message(s) over and over, this lets the player know that more were printed
 
 	-- Draw bleeding indicator
 	local noBlood = not state.player or not state.player.blood or state.player.dead
