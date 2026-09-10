@@ -8,7 +8,7 @@ function game:isPlayerInControl()
 	if state.playerEscaping then
 		return false
 	end
-	if state.changeToLevelTimer or state.startLevelTimer then
+	if state.changeToLevelTimer or state.startLevelTimer or state.sleepTimer or state.toCreditsTimer then
 		return false
 	end
 	local player = state.player
@@ -212,6 +212,25 @@ function game:update()
 			self:announceLevelArrival()
 		end
 		return
+	end
+	if state.sleepTimer then
+		state.sleepTimer = state.sleepTimer - 1
+		if state.sleepTimer <= 0 then
+			state.sleepTimer = nil
+			state.sleepTimerStart = nil
+			if state.sleepFunc then
+				state.sleepFunc()
+			end
+		end
+	end
+	if state.toCreditsTimer then
+		state.toCreditsTimer = state.toCreditsTimer - 1
+		if state.toCreditsTimer <= 0 then
+			state.toCreditsTimer = nil
+			self:toCredits()
+			self.forceRepeatUpdate = true
+			return
+		end
 	end
 
 	state.damagesQueue = state.damagesQueue or {}

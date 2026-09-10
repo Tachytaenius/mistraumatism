@@ -1,4 +1,5 @@
 local commands = require("commands")
+local consts = require("consts")
 
 local game = {}
 
@@ -542,6 +543,9 @@ function game:loadInteractionTypes()
 		if not (interactor and interactor == player) then
 			return
 		end
+		if not (interactor.x == interactee.x and interactor.y == interactee.y) then
+			return
+		end
 		if not self.state.reachedSafety then
 			return 1, {type = "unsafe"}
 		end
@@ -562,10 +566,15 @@ function game:loadInteractionTypes()
 			return
 		end
 		if info.type == "sleep" then
-			-- TODO: A nice fadeout
-			self:announce("At last you are asleep. With a warming sense of hope...\nYou begin to dream.", "green")
-			self:toCredits()
-			self.forceRepeatUpdate = true
+			self:setCursor()
+			self.state.sleepTimer = 260
+			self.state.sleepTimerStart = self.state.sleepTimer
+			self:fadeMusicOut(self.state.sleepTimer * consts.fixedUpdateTickLength * 0.6)
+			function self.state.sleepFunc()
+				self:announce("At last you are asleep. With a warming sense of hope,\nyou begin to dream.", "green")
+				self.state.toCreditsTimer = 240
+				self.state.noVision = true
+			end
 		end
 	end
 
