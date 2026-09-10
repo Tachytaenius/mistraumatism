@@ -38,15 +38,6 @@ function game:resetTileEntityLists()
 	state.previousTileEntityLists = nil
 end
 
-function game:clearAnnouncements()
-	local state = self.state
-	if not state then
-		return
-	end
-	state.announcements = {}
-	state.splitAnnouncements = {}
-end
-
 function game:newState(params)
 	local state = {}
 	self.state = state

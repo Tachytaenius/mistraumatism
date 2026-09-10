@@ -80,6 +80,8 @@ function game:realtimeUpdate(dt)
 			self:updateAmmoSelection()
 
 			if self:isPlayerInControl() then
+				self:updateAnnouncements()
+
 				self.state.playerWasInControl = true
 				self:updateCursor()
 				self.updateTimer = 0

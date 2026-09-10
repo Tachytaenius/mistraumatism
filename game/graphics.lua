@@ -866,6 +866,14 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	end
 	drawStringFramebuffer(2, self.viewportHeight + 1, message, "lightGrey", "darkGrey") -- colour, "black")
 
+	if state.linesSincePlayerInControl > self.consoleHeight or state.unreadAnnouncementsWarn then
+		local char = "↑"
+		local flash = self.realTime % 3 < 1.5
+		local col = flash and "yellow" or "darkYellow"
+		drawStringFramebuffer(2, self.framebufferHeight - 1, char, col, "black")
+		drawStringFramebuffer(self.framebufferWidth - 3, self.framebufferHeight - 1, char, col, "black")
+	end
+
 	-- Draw bleeding indicator
 	local noBlood = not state.player or not state.player.blood or state.player.dead
 	if not noBlood then
