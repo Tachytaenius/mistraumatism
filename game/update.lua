@@ -288,8 +288,6 @@ function game:update()
 
 	self:clearNonPersistentVariables()
 
-	self:announce(tostring(state.tick), "white")
-
 	self.state.previousTileEntityLists, self.state.tileEntityLists = self.state.tileEntityLists, nil
 	self.state.tileEntityLists = self:getTileEntityLists()
 
