@@ -60,6 +60,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		[0x22] = "oak"
 	}
 	local spawnX, spawnY
+	local bedsideX, bedsideY
 	local function decodeExtra(x, y, r, g, value, a)
 		if value == 0x11 then
 			self:placeDoorItem(x, y, "door", "oak")
@@ -81,9 +82,15 @@ function info:createLevel() -- name should be the name of the directory containi
 			
 		elseif value == 0x28 then
 			self:placeItem(x, y, "bedsideTable", "oak")
+			bedsideX, bedsideY = x, y
 			self:placeItem(x + 1, y, "bed", "oak")
 		elseif value == 0x33 then
 			self:placeCritter(x, y, "greySquirrel")
+		elseif value == 0x44 then
+			-- No man can build where stands the wogle stone.
+			self:placeItem(x, y, "wogleStone", "unknownRock")
+			-- And yet there's a house here? I'unno :3
+			-- Have fun interpreting it!
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end
@@ -202,23 +209,15 @@ function info:createLevel() -- name should be the name of the directory containi
 		end
 	end
 
-	-- No man can build where stands the wogle stone.
-	local x = spawnX
-	local y = totalH - 7
-	while true do -- Go up until a nonsolid tile is (probably quite quickly) found
-		if self:getWalkable(x, y) then
-			self:placeItem(x, y, "wogleStone", "unknownRock")
-			break
-		end
-		y = y - 1
-	end
-
 	return {
 		spawnX = spawnX,
 		spawnY = spawnY,
 		postLevelGen = function()
 			self:setReachedSafety()
 			self:setMusic("sacrosanct", nil, true)
+			if not self:checkForMagicBook() then
+				self:placeMagicBook(bedsideX, bedsideY)
+			end
 		end
 	}
 end

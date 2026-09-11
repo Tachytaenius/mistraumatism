@@ -249,9 +249,7 @@ function info:createLevel()
 		elseif value == 0xf2 then
 			self:placeItem(x, y, "rocketLauncher", "polymer")
 		elseif value == 0xf3 then
-			local book = self:placeExaminable(x, y, "smallBook", "ginkgo", "It seems to be a benevolent book of spells...\nBut whose was it?")
-			book.isSecretLevelKey = true
-			book.isMagicSpellbook = true
+			self:placeMagicBook(x, y)
 		elseif value == 0xf4 then
 			for _= 1, 4 do
 				self:placeItem(x, y, "buckshotShell", "plasticRed")

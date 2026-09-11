@@ -68,10 +68,15 @@ function game:checkForGameFinished()
 end
 
 function game:finishGame()
+	if self.state.gameFinishTriggerTripped then
+		return
+	end
+	self.state.gameFinishTriggerTripped = true
+	self:setCursor()
 	if self:doesPlayerHaveSecretLevelKey() then
 		self:allowLevelAccess(consts.secretLevelName)
 		-- TODO: Inform the player that they're getting the secret ending.
-		self:announce("It feels like you now even know that you're loved.\nYou have done well ♥", "green")
+		self:announce("It feels like you can now know that you're loved.\nYou have done well ♥", "green")
 		self.afterEndingSequence = "secret" -- In this case you view credits when going back to bed in the secret sanctuary
 	else
 		self.afterEndingSequence = "credits"
@@ -82,10 +87,10 @@ function game:finishGame()
 
 	self.state.playerEscaping = true
 	self.state.playerEscapingCallbacks = {}
-	self.state.playerEscapingCallbacks[20] = function()
-		self:clearAnnouncements()
-	end
-	self.state.playerEscapingCallbacks[56] = function()
+	-- self.state.playerEscapingCallbacks[53] = function()
+	-- 	self:clearAnnouncements()
+	-- end
+	self.state.playerEscapingCallbacks[59] = function()
 		self:setMusic("mercious", true, true)
 	end
 	function self.state.playerEscapingCallbacks.finished()

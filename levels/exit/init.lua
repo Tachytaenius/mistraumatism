@@ -92,7 +92,7 @@ function info:createLevel() -- name should be the name of the directory containi
 		elseif value == 0xe6 then
 			self:placeItem(x, y, "autoShotgun", "polymer")
 		elseif value == 0xe7 then
-			for _=1, 8 do
+			for _=1, 4 do
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
 		elseif value == 0xe8 then
@@ -107,6 +107,10 @@ function info:createLevel() -- name should be the name of the directory containi
 			end
 		elseif value == 0xec then
 			self:placeItem(x, y, "altar", "granite")
+		elseif value == 0xed then
+			for _=1, 2 do
+				self:placeItem(x, y, "thrownGrenade", "plasticGreen")
+			end
 		elseif value == 0xfe then
 			self:addSpatter(x, y, "glass", generator:random(1, 7))
 		elseif value == 0xff then

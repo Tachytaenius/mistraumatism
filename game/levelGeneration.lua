@@ -286,6 +286,22 @@ function game:makeAirlock(params)
 	self.state.airlockData[#self.state.airlockData+1] = info
 end
 
+function game:placeMagicBook(x, y)
+	local book = self:placeExaminable(x, y, "smallBook", "ginkgo", "It seems to be a benevolent book of spells...\nBut whose was it?")
+	book.isSecretLevelKey = true
+	book.isMagicSpellbook = true
+end
+
+function game:checkForMagicBook()
+	local found = false
+	self:tickItems(function(item)
+		if item.isMagicSpellbook then
+			found = true
+		end
+	end)
+	return found
+end
+
 function game:initialiseMap(width, height)
 	local group = self:getAutotileGroupId()
 	local state = self.state

@@ -311,13 +311,13 @@ function game:changeLevel(levelName, noReset)
 		state.player.x = levelGenerationResult.spawnX
 		state.player.y = levelGenerationResult.spawnY
 	end
-	if levelGenerationResult.postLevelGen then
-		levelGenerationResult.postLevelGen()
-	end
 	state.entities[#state.entities+1] = state.player
 	state.entities.creatures[#state.entities.creatures+1] = state.player
 	if not noReset then
 		self:levelChangePlayerReset()
+	end
+	if levelGenerationResult.postLevelGen then
+		levelGenerationResult.postLevelGen()
 	end
 	self:resetTileEntityLists()
 end
