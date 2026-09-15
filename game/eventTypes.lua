@@ -49,6 +49,11 @@ function game:loadEventTypes()
 		investigateLocationOverride = "manualOperationLocation",
 		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "gate", "wasOpening", "open", "opens", "close", "closes")
 	}
+	eventTypes.curtainsChangeState = {
+		sourceEntityRelation = "objectUse",
+		investigateLocationOverride = "manualOperationLocation",
+		announceToPlayer = makeSimpleStateToggleAnnouncer(false, "curtains", "wasOpening", "open", "opens", "close", "closes")
+	}
 	eventTypes.doorLockChangeState = {
 		sourceEntityRelation = "objectUse",
 		investigateLocationOverride = "manualOperationLocation",

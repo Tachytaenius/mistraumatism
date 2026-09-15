@@ -73,9 +73,10 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeItem(x + 2, y, "ornateTable", "oak")
 			self:placeItem(x + 3, y, "ornateChair", "oak")
 		elseif value == 0x25 then
-			self:placeItem(x, y, "toilet", "porcelain")
-			self:placeItem(x + 1, y, "bathroomSink", "porcelain")
-			self:placeItem(x , y + 1, "bathtub", "porcelain")
+			self:placeItem(x + 1, y, "toilet", "porcelain")
+			self:placeItem(x, y + 1, "wallCabinet", "oak")
+			self:placeItem(x, y + 2, "bathroomSink", "porcelain")
+			self:placeItem(x, y, "bathtub", "porcelain")
 		elseif value == 0x26 then
 
 		elseif value == 0x27 then
@@ -84,6 +85,7 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeItem(x, y, "bedsideTable", "oak")
 			bedsideX, bedsideY = x, y
 			self:placeItem(x + 1, y, "bed", "oak")
+			self:placeItem(x + 2, y, "wardrobe", "oak")
 		elseif value == 0x33 then
 			self:placeCritter(x, y, "greySquirrel")
 		elseif value == 0x44 then
@@ -91,6 +93,10 @@ function info:createLevel() -- name should be the name of the directory containi
 			self:placeItem(x, y, "wogleStone", "unknownRock")
 			-- And yet there's a house here? I'unno :3
 			-- Have fun interpreting it!
+		elseif value == 0x55 then
+			self:placeDoorItem(x, y, "curtains", "cloth", true)
+		elseif value == 0x56 then
+			self:placeDoorItem(x, y, "curtains", "cloth", false)
 		elseif value == 0xff then
 			spawnX, spawnY = x, y
 		end

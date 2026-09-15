@@ -751,7 +751,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			local itemMaterial = state.materials[entity.itemData.material]
 			local background = entity.itemData.itemType.secondaryColour or "black"
 			local foreground = itemMaterial.colour
-			if entity.itemData.itemType.swapColours then
+			if entity.itemData.itemType.swapColours and not (entity.itemData.itemType.swapColoursDoorState ~= nil and entity.itemData.itemType.swapColoursDoorState ~= not not entity.doorTile.doorData.open) then
 				foreground, background = background, foreground
 			end
 			local tile = entity.itemData.itemType.tile
@@ -995,7 +995,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 			if entity.itemData.itemType.isButton and entity.itemData.pressed or entity.itemData.itemType.isLever and entity.itemData.active then
 				tile = entity.itemData.itemType.activeTile
 			end
-			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, entity.itemData.itemType.secondaryColour or "black", entity.itemData.itemType.swapColours))
+			local swap = entity.itemData.itemType.swapColours and not (entity.itemData.itemType.swapColoursDoorState ~= nil and entity.itemData.itemType.swapColoursDoorState ~= not not entity.doorTile.doorData.open)
+			drawCharacterFramebuffer(statusX + 1, statusY + 1 + yShift, tile, util.conditionalSwap(state.materials[entity.itemData.material].colour, entity.itemData.itemType.secondaryColour or "black", swap))
 		end
 		if not noText then
 			drawStringFramebuffer(statusX + 3, statusY + yShift, title, titleColour, "black")
@@ -1442,7 +1443,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 						end
 						colour = state.materials[entity.itemData.material].colour
 						background = entity.itemData.itemType.secondaryColour
-						swap = entity.itemData.itemType.swapColours
+						swap = entity.itemData.itemType.swapColours and not (entity.itemData.itemType.swapColoursDoorState ~= nil and entity.itemData.itemType.swapColoursDoorState ~= not not entity.doorTile.doorData.open)
 					end
 					drawCharacterFramebuffer(x, y, character, util.conditionalSwap(colour, background or "black", swap))
 				end

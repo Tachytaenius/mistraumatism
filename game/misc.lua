@@ -1,6 +1,6 @@
 local util = require("util")
 local consts = require("consts")
-local commands = require("commands")
+local settings = require("settings")
 
 local game = {}
 
@@ -208,6 +208,39 @@ end
 
 function game:distance(x1, y1, x2, y2)
 	return self:length(x2 - x1, y2 - y1)
+end
+
+function game:remakeWindow(canvasWidth, canvasHeight)
+	if not (canvasWidth and canvasHeight) then
+		canvasWidth, canvasHeight = self:getCanvasSize()
+	end
+	local _, _, flags = love.window.getMode()
+	local currentDisplay = flags.display
+
+	love.window.setMode(
+		canvasWidth * settings.graphics.canvasScale,
+		canvasHeight * settings.graphics.canvasScale,
+		{
+			fullscreen = settings.graphics.fullscreen,
+			borderless = settings.graphics.fullscreen,
+			display = currentDisplay
+		}
+	)
+	love.window.setTitle(consts.windowTitle)
+end
+
+function game:setIcon(path)
+	if path == self.path then
+		return
+	end
+	self.path = path
+	if not path then
+		self.scaledIconImageData = nil
+		love.window.setIcon()
+		return
+	end
+	self.scaledIconImageData = util.getScaledImageData(path, consts.iconScale)
+	love.window.setIcon(self.scaledIconImageData)
 end
 
 return game

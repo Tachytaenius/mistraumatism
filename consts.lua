@@ -6,7 +6,6 @@ consts.loveIdentity = "mistraumatism"
 consts.loveVersion = "11.5"
 
 consts.windowTitle = "Mistraumatism"
-consts.iconPath = "icon.png"
 consts.iconScale = 16
 
 local null = utf8.char(0)

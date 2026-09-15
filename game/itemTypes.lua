@@ -860,6 +860,11 @@ function game:loadItemTypes()
 		swapColours = true,
 		displayName = "filing cabinet"
 	}
+	itemTypes.wallCabinet = {
+		noPickUp = true,
+		tile = "■",
+		displayName = "wall cabinet"
+	}
 
 	itemTypes.statue1 = {
 		noPickUp = true,
@@ -935,6 +940,22 @@ function game:loadItemTypes()
 		isGate = true,
 		stateChangeSoundRange = 5,
 		dynamicDoorTileInfo = {closedLineNumber = 2, openLineNumber = 2, perpendicularLineNumberOpen = 2}
+	}
+	itemTypes.curtains = {
+		isDoor = true,
+		anchorsOverPits = true,
+		interactable = true,
+		interactionType = state.interactionTypes.door,
+		noPickUp = true,
+		doorWindow = false,
+		tile = "│",
+		openTile = "║",
+		displayName = "curtains",
+		swapColoursDoorState = false,
+		isCurtains = true,
+		stateChangeSoundRange = 1,
+		swapColours = true,
+		dynamicDoorTileInfo = {closedLineNumber = 1, openLineNumber = 2, perpendicularLineNumberOpen = 1, dontOpenRotate = true, alwaysRotation = 1, mirrorPerpendicular = true}
 	}
 	itemTypes.heavyDoor = {
 		isDoor = true,
@@ -1022,6 +1043,17 @@ function game:loadItemTypes()
 		noPickUp = true,
 		tile = "u",
 		displayName = "big plant pot"
+	}
+	itemTypes.plantPot = {
+		noPickUp = true,
+		tile = "u",
+		displayName = "plant pot"
+	}
+	itemTypes.wardrobe = {
+		noPickUp = true,
+		tile = "╫",
+		swapColours = true,
+		displayName = "wardrobe"
 	}
 
 	itemTypes.button = {

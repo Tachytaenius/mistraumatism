@@ -4,6 +4,7 @@ local commands = require("commands")
 local game = {}
 
 function game:setReachedSafety()
+	self:setIcon("icons/safe.png")
 	self.state.reachedSafety = true
 	local player = self.state.player
 	if player then

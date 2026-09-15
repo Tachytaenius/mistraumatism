@@ -52,6 +52,18 @@ function game:broadcastGateStateChangedEvent(tile, opener, manual)
 	})
 end
 
+function game:broadcastCurtainsStateChangedEvent(tile, opener, manual)
+	self:broadcastEvent({
+		sourceEntity = opener,
+		x = tile.x,
+		y = tile.y,
+		manualOperationLocation = manual and opener and {x = opener.x, y = opener.y},
+		type = "curtainsChangeState",
+		soundRange = tile.doorData.entity.itemData.itemType.stateChangeSoundRange,
+		wasOpening = tile.doorData.open -- Rather than closing
+	})
+end
+
 function game:broadcastButtonStateChangedEvent(item, interactor, manual, x, y)
 	self:broadcastEvent({
 		sourceEntity = interactor,
@@ -160,6 +172,8 @@ function game:loadInteractionTypes()
 		end
 		if doorData.entity.itemData.itemType.isGate then
 			self:broadcastGateStateChangedEvent(tile, interactor, true)
+		elseif doorData.entity.itemData.itemType.isCurtains then
+			self:broadcastCurtainsStateChangedEvent(tile, interactor, true)
 		else
 			self:broadcastDoorStateChangedEvent(tile, interactor, true)
 		end

@@ -64,7 +64,7 @@ local function handleSettings()
 		end
 	end
 	if shouldRemakeWindow then
-		util.remakeWindow(game:getCanvasSize())
+		game:remakeWindow()
 	end
 end
 
@@ -98,12 +98,6 @@ function love.draw()
 	game:draw()
 
 	-- love.graphics.print(love.timer.getFPS())
-end
-
-function love.textinput(text)
-	if text == "?" then
-		print("Help? Help is... TODO.")
-	end
 end
 
 function love.mousemoved()

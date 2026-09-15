@@ -2,7 +2,7 @@ name = "mistraumatism"
 default_targets = ["appimage", "win64", "win32", "macos"]
 build_directory = "makelove-build"
 love_version = "11.5"
-icon_file = "icon.png"
+icon_file = "icons/main.png"
 
 love_files = [
     "::git-ls-tree::",

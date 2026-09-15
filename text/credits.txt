@@ -33,6 +33,14 @@ Thanks to the LÖVE team!
 
 ---
 
+ALGORITHMS
+
+The roguelike visibility algorithm (modified) used for projectiles, hitscans, and player view can be found here:
+http://www.adammil.net/blog/view.php?id=125
+Thanks to Adam Milazzo!
+
+---
+
 LIBRARIES
 
 Batteries (only pathfinding and its dependency were included (modified)) can be found here:

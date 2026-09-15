@@ -12,7 +12,7 @@ time. Nothing is ever erased.
 
 One font is by Kelora on the Dwarf Fortress wiki.
 Another is the original one from Dwarf Fortress.
-The default font is by Azoth.
+The default font is by Azoth. Huge thanks!
 
 ---
 
@@ -24,6 +24,11 @@ project uses (modified).
 
 ---
 
+Adam Milazzo designed the visibility algorithm, which I
+modified to use for projectiles and hitscans too.
+
+---
+
 LSDJ is by Johan Kotlinski, and was used to make audio.
 
 gb-presenter-rs (modified), which was used to render
@@ -31,4 +36,5 @@ songs and sounds made in LSDJ, is by nununoisy.
 
 ---
 
-Please check the credits with links in text/credits.txt!
+A full credits menu with links is TODO. For now, look
+in text/credits.txt (this is text/credits-shown.txt).
