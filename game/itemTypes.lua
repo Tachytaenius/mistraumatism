@@ -511,12 +511,12 @@ function game:loadItemTypes()
 		projectileSubtickMoveTimerLength = 224,
 		range = 9,
 		projectileExplosionRadius = 3,
-		projectileExplosionDamage = 120,
+		projectileExplosionDamage = 180,
 		projectileInitialDisappearTimer = 24, -- Explodes on disappear
 		projectileStopOnHitButDontDisappear = true,
 		projectileExplosionProjectiles = {
 			{ -- Shrapnel
-				count = 20,
+				count = 30,
 				tile = "`",
 				colour = "darkGrey",
 				subtickMoveTimerLength = 96,

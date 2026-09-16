@@ -804,7 +804,7 @@ function game:updateEntitiesAndProjectiles()
 					(noPsychicDamageTimerAlreadyFinished and damageJustHitZero)
 				then
 					-- TODO: Will this always be announced?
-					self:announce("You remember yourself.", "lightGrey")
+					self:announce("Your perception is yours again.", "lightGrey")
 				end
 			end
 		end
