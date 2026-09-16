@@ -110,6 +110,18 @@ function game:loadInteractionTypes()
 		if not interactor.creatureType.canOpenDoors then
 			return
 		end
+		if doorData and doorData.secretSanctuaryDoorInsideHack then
+			local interactorTile = self:getTile(interactor.x, interactor.y)
+			if not interactorTile then
+				return
+			end
+			if interactorTile.wasGenerated then
+				if interactor == self.state.player then
+					self:announce("Can't use that from here.", "darkGrey")
+				end
+				return
+			end
+		end
 		if doorData and doorData.lockName then
 			local item = self:getHeldItem(interactor)
 			if (not item or item.lockName ~= doorData.lockName) and not interactor.creatureType.canUnlockAnyDoor then

@@ -152,7 +152,7 @@ function game:placeDoorItem(x, y, itemTypeName, material, open, lockName, forceH
 	})
 	local doorEntity = self:newItemEntity(x, y, doorItem, {doorTile = tile})
 	tile.doorData = {entity = doorEntity, open = open, lockName = lockName, hinge = forceHinge}
-	return doorEntity
+	return doorEntity, tile.doorData
 end
 
 function game:randomSpatterRectangleDistribute(x, y, w, h, material, amount)

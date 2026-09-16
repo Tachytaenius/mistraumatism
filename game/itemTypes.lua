@@ -1303,6 +1303,30 @@ function game:loadItemTypes()
 		forceKeepBetweenLevels = true
 	}
 
+	itemTypes.chest = {
+		tile = "⌂",
+		displayName = "chest",
+		noPickUp = true
+	}
+
+	itemTypes.stove = {
+		tile = "╤",
+		swapColours = true,
+		displayName = "stove",
+		noPickUp = true
+	}
+
+	itemTypes.kitchenSurface = {
+		tile = "╥",
+		noPickUp = true,
+		displayName = "countertop"
+	}
+
+	itemTypes.choppingBoard = {
+		tile = "■",
+		displayName = "cutting board"
+	}
+
 	self:validateItemTypes()
 end
 

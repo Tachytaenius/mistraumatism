@@ -30,6 +30,7 @@ local function tilePathCheckFunction(self, tileX, tileY, entity)
 	end
 	if tile.doorData then
 		if not tile.doorData.open and not (
+			-- NOTE: We assume nothing revolving around secretSanctuaryDoorInsideHack is going to matter here
 			entity.creatureType.canOpenDoors and
 			tile.doorData.entity.itemData.itemType.interactable and
 			(
