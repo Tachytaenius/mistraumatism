@@ -38,6 +38,8 @@ function game:draw()
 		self:drawFramebufferTitle(framebuffer)
 	elseif self.mode == "levelSelect" then
 		self:drawFramebufferLevelSelect(framebuffer)
+	elseif self.mode == "menu" then
+		self:drawFramebufferMenu(framebuffer)
 	end
 
 	local fontImage = self.fontImage
@@ -641,8 +643,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 
 	local indicatorTiles = {} -- To stop indicators from clashing
 	local drawActionIndicators = self.realTime % 1.5 < 0.5
-	local drawCursor = self.realTime % 0.5 < (commands.checkCommand("moveCursor") and not commands.checkCommand("dodgeMode") and 0.4 or 0.25)
-	local drawJumpableTiles = self.realTime % 0.5 < 0.25 and commands.checkCommand("viewJumpReach") -- commands.checkCommand("moveAlternativeMode")
+	local drawCursor = self.realTime % 0.5 < (commands.checkModifier("moveCursorMode") and 0.4 or 0.25)
+	local drawJumpableTiles = self.realTime % 0.5 < 0.25 and commands.checkCommand("viewJumpReach")
 	local drawEnemyAim = self.realTime % 0.75 < 0.375
 	local drawEntityWarnings = (self.realTime + 0.1875) % 0.75 < 0.375
 	local drawActionTime = false
@@ -1258,7 +1260,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local entity = self:getCursorEntity()
 	drawEntityStatus(state.player and self:getHeldItem(state.player) and {entityType = "item", itemData = self:getHeldItem(state.player)} or nil, "POSSESSION", inventoryHeight) -- HACK
 	if state.player and state.player.currentWornItem then
-		if commands.checkCommand("changeWornItemMode") then
+		if commands.checkModifier("changeWornItemMode") then
 			drawInventory(true) -- Gets obscured. We just wanted the box
 
 			local x = statusX + 1
@@ -1449,7 +1451,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				end
 				local zeroX = statusX + 6
 				for i, entity in ipairs(entityList) do
-					local relative =  i - (selectedEntityIndex or 1)
+					local relative = i - (selectedEntityIndex or 1)
 					local separation = relative < 0 and -2 or relative > 0 and 1 or 0
 					local drawX = zeroX + relative + separation
 					if drawX > statusX + 1 and drawX < statusX + 10 then
@@ -1808,6 +1810,41 @@ function game:drawFramebufferLevelSelect(framebuffer)
 	if self.levelSelectInfo.selector == 1 then
 		drawStringFramebuffer(x + 4, y + h, " Intro text flicker: " .. (self.levelSelectInfo.flickerIntroEnabled and "√" or "x") .. " ", "white", "darkGrey")
 	end
+end
+
+function game:drawFramebufferMenu(framebuffer)
+	-- Copied...
+	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
+		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
+		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		if
+			0 <= framebufferX and framebufferX < self.framebufferWidth and
+			0 <= framebufferY and framebufferY < self.framebufferHeight
+		then
+			local cell = framebuffer[framebufferX][framebufferY]
+			cell.character = character
+			cell.foregroundColour = foregroundColour
+			cell.backgroundColour = backgroundColour
+		end
+	end
+	local function drawStringFramebuffer(framebufferX, framebufferY, str, foregroundColour, backgroundColour)
+		local x = 0
+		local y = 0
+		for _, code in utf8.codes(str) do
+			local char = utf8.char(code)
+			if char == "\n" then
+				x = 0
+				y = y + 1
+				goto continue
+			end
+			drawCharacterFramebuffer(framebufferX + x, framebufferY + y, char, foregroundColour, backgroundColour)
+			x = x + 1
+		    ::continue::
+		end
+	end
+
+	drawStringFramebuffer(0, 0, "Menu... (TODO)", "white", "black")
 end
 
 return game

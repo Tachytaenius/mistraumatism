@@ -153,7 +153,7 @@ function game:loadTileTypes()
 			allowIncomingConnectionTypeNames = {wall = true},
 			blocksLight = true
 		},
-		roughWall = {  -- Natural
+		roughWall = { -- Natural
 			displayName = "rough wall",
 			solidity = "solid",
 			character = "▓",

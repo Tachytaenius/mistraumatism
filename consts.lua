@@ -156,4 +156,16 @@ consts.secretLevelDisplayName = "The Secret Sanctuary"
 
 consts.mouseHideTimerLength = 1
 
+consts.fixedControls = {
+	menu = "escape",
+	scrollBackwardsGroup = "up",
+	scrollForwardsGroup = "down",
+	confirm = "return"
+}
+-- To stop binding any commands to keys that these use
+consts.fixedControlsUsedKeys = {}
+for k, v in pairs(consts.fixedControls) do
+	consts.fixedControlsUsedKeys[v] = k
+end
+
 return consts

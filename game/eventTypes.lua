@@ -329,11 +329,11 @@ function game:loadEventTypes()
 			if playerSource then
 				return "You vanish" .. extra .. ".", "red"
 			elseif sourceKnown then
-				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " vanishes" .. extra .. ".", "red"
+				return "The " .. self:getEntityDisplayName(eventData.sourceEntity) .. " vanishes" .. extra .. ".", "cyan"
 			elseif visible then
-				return "You see something vanish" .. extra .. ".", "red"
+				return "You see something vanish" .. extra .. ".", "lightGrey"
 			elseif audible then
-				return "You hear something vanish" .. extra .. ".", "darkRed"
+				return "You hear something vanish" .. extra .. ".", "lightGrey"
 			end
 		end
 	}

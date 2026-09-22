@@ -160,54 +160,38 @@ function game:loadActionTypes()
 		local playerMoveTimerLength = self:getMoveTimerLength(player)
 		if playerMoveTimerLength then
 			local direction
-			if commands.checkCommand("dodgeMode") or not commands.checkCommand("moveCursor") then
-				if commands.checkCommand("moveRight") then
-					direction = "right"
-				elseif commands.checkCommand("moveUpRight") then
-					direction = "upRight"
-				elseif commands.checkCommand("moveUp") then
-					direction = "up"
-				elseif commands.checkCommand("moveUpLeft") then
-					direction = "upLeft"
-				elseif commands.checkCommand("moveLeft") then
-					direction = "left"
-				elseif commands.checkCommand("moveDownLeft") then
-					direction = "downLeft"
-				elseif commands.checkCommand("moveDown") then
-					direction = "down"
-				elseif commands.checkCommand("moveDownRight") then
-					direction = "downRight"
-				end
+			if commands.checkCommand("moveRight") then
+				direction = "right"
+			elseif commands.checkCommand("moveUpRight") then
+				direction = "upRight"
+			elseif commands.checkCommand("moveUp") then
+				direction = "up"
+			elseif commands.checkCommand("moveUpLeft") then
+				direction = "upLeft"
+			elseif commands.checkCommand("moveLeft") then
+				direction = "left"
+			elseif commands.checkCommand("moveDownLeft") then
+				direction = "downLeft"
+			elseif commands.checkCommand("moveDown") then
+				direction = "down"
+			elseif commands.checkCommand("moveDownRight") then
+				direction = "downRight"
 			end
 			if direction then
-				local ignoreGaps = commands.checkCommand("moveAlternativeMode") or player.creatureType.flying
+				local ignoreGaps = commands.checkModifier("moveAlternativeMode") or player.creatureType.flying
 				local offsetX, offsetY = self:getDirectionOffset(direction)
 				local specialType = nil
-				if commands.checkCommand("dodgeMode") then
+				if commands.checkModifier("dodgeMode") then
 					if self:isEntitySwimming(player) then
 						return nil
 					end
-					-- if commands.checkCommand("jumpDodgeMode") then
-						-- if
-						-- 	player.creatureType.jumpTimerLength and
-						-- 	player.creatureType.jumpAirborneTimerLength and
-						-- 	player.creatureType.jumpSteadyTimerLength
-						-- then
-						-- 	specialType = "jump"
-						-- end
-					-- else
-						if
-							player.creatureType.dodgeTimerLength and
-							player.creatureType.dodgeSteadyTimerLength
-						then
-							specialType = "dodge"
-						end
-					-- end
+					if
+						player.creatureType.dodgeTimerLength and
+						player.creatureType.dodgeSteadyTimerLength
+					then
+						specialType = "dodge"
+					end
 				end
-				-- if specialType == "jump" or specialType == "dodge" then
-				-- if specialType == "dodge" then
-				-- 	ignoreGaps = true
-				-- end
 				if self:getWalkable(player.x + offsetX, player.y + offsetY, false, ignoreGaps) then
 					return move.construct(self, player, direction, specialType)
 				end
@@ -378,11 +362,11 @@ function game:loadActionTypes()
 		end
 		local magIndex
 		if self:getHeldItem(player).itemType.alteredMagazineUse == "selectEitherShot" then
-			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+			if commands.checkModifier("operateGunSide1") and commands.checkModifier("operateGunSide2") then
 				magIndex = "all"
-			elseif commands.checkCommand("operateGunSide1") then
+			elseif commands.checkModifier("operateGunSide1") then
 				magIndex = 1
-			elseif commands.checkCommand("operateGunSide2") then
+			elseif commands.checkModifier("operateGunSide2") then
 				magIndex = 2
 			else
 				-- Pull triggers for loaded (with live rounds) and cocked barrels first, then try ones with cocked hammers
@@ -503,7 +487,7 @@ function game:loadActionTypes()
 		if not commands.checkCommand("melee") then
 			return
 		end
-		local chargeMode = commands.checkCommand("meleeChargeMode")
+		local chargeMode = commands.checkModifier("meleeChargeMode")
 		if not player.creatureType.meleeTimerLength then
 			return
 		end
@@ -539,7 +523,7 @@ function game:loadActionTypes()
 			return
 		end
 		local new = {type = "pickUp"}
-		new.timer = 4
+		new.timer = 5
 		new.targetEntity = targetEntity
 		return new
 	end
@@ -555,7 +539,7 @@ function game:loadActionTypes()
 		end
 	end
 	function pickUp.fromInput(self, player)
-		if not (commands.checkCommand("pickUpOrDrop") and not commands.checkCommand("dropMode")) then
+		if not commands.checkCommand("pickUp") then
 			return
 		end
 		local targetEntity = self:getCursorEntity()
@@ -587,7 +571,7 @@ function game:loadActionTypes()
 		end
 	end
 	function drop.fromInput(self, player)
-		if not (commands.checkCommand("pickUpOrDrop") and commands.checkCommand("dropMode")) then
+		if not commands.checkCommand("drop") then
 			return
 		end
 		if not self:getHeldItem(player) then
@@ -729,18 +713,18 @@ function game:loadActionTypes()
 	function useHeldItem.fromInput(self, player)
 		if commands.checkCommand("useHeldItem") then
 			local gunSideSelection
-			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+			if commands.checkModifier("operateGunSide1") and commands.checkModifier("operateGunSide2") then
 
-			elseif commands.checkCommand("operateGunSide1") then
+			elseif commands.checkModifier("operateGunSide1") then
 				gunSideSelection = 1
-			elseif commands.checkCommand("operateGunSide2") then
+			elseif commands.checkModifier("operateGunSide2") then
 				gunSideSelection = 2
 			end
 
 			local energyWeaponModeSet = "hold"
-			if commands.checkCommand("energyWeaponChargeMode") and not commands.checkCommand("energyWeaponDischargeMode") then
+			if commands.checkModifier("energyWeaponChargeMode") and not commands.checkModifier("energyWeaponDischargeMode") then
 				energyWeaponModeSet = "fromBattery"
-			elseif commands.checkCommand("energyWeaponDischargeMode") then
+			elseif commands.checkModifier("energyWeaponDischargeMode") then
 				energyWeaponModeSet = "toBattery"
 			end
 
@@ -790,12 +774,9 @@ function game:loadActionTypes()
 		if not player.inventory then
 			return
 		end
-		if commands.checkCommand("unloadMode") or commands.checkCommand("changeWornItemMode") then
-			return
-		end
 		if commands.checkCommand("deselectInventorySlot") then
 			return swapInventorySlot.construct(self, player, nil)
-		elseif not commands.checkCommand("reloadMode") then
+		else
 			for i = 1, 9 do
 				if i > #player.inventory then
 					break
@@ -803,7 +784,7 @@ function game:loadActionTypes()
 				if not player.inventory[i].item then
 					goto continue
 				end
-				if commands.checkCommand("handleInventorySlot" .. i) then
+				if commands.checkCommand("swapToInventorySlot" .. i) then
 					return swapInventorySlot.construct(self, player, i)
 				end
 			    ::continue::
@@ -901,9 +882,6 @@ function game:loadActionTypes()
 		if not heldItem then
 			return
 		end
-		if not commands.checkCommand("reloadMode") then
-			return
-		end
 		if not player.inventory then
 			return
 		end
@@ -912,7 +890,7 @@ function game:loadActionTypes()
 			if i > #player.inventory then
 				break
 			end
-			if commands.checkCommand("handleInventorySlot" .. i) then
+			if commands.checkCommand("reloadFromInventorySlot" .. i) then
 				number = i
 			end
 		end
@@ -923,11 +901,11 @@ function game:loadActionTypes()
 		if heldItem.itemType.magazine then
 			local selection, selectionType
 			if heldItem.itemType.alteredMagazineUse == "selectEitherShot" then
-				if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+				if commands.checkModifier("operateGunSide1") and commands.checkModifier("operateGunSide2") then
 
-				elseif commands.checkCommand("operateGunSide1") then
+				elseif commands.checkModifier("operateGunSide1") then
 					selection = 1
-				elseif commands.checkCommand("operateGunSide2") then
+				elseif commands.checkModifier("operateGunSide2") then
 					selection = 2
 				else
 					-- Try cocked barrels (so that the gun is immediately ready to fire) first
@@ -966,11 +944,11 @@ function game:loadActionTypes()
 						end
 					end
 				else
-					if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+					if commands.checkModifier("operateGunSide1") and commands.checkModifier("operateGunSide2") then
 
-					elseif commands.checkCommand("operateGunSide1") then
+					elseif commands.checkModifier("operateGunSide1") then
 						selection = 1
-					elseif commands.checkCommand("operateGunSide2") then
+					elseif commands.checkModifier("operateGunSide2") then
 						selection = 2
 					else
 						selection = heldItem.selectedMagazine
@@ -1108,9 +1086,6 @@ function game:loadActionTypes()
 		end
 	end
 	function unload.fromInput(self, player)
-		if not commands.checkCommand("unloadMode") then
-			return
-		end
 		local heldItem = self:getHeldItem(player)
 		if not heldItem then
 			return
@@ -1122,11 +1097,11 @@ function game:loadActionTypes()
 		local selection, selectionKey
 		if self:getHeldItem(player).itemType.alteredMagazineUse == "selectEitherShot" then
 			local magIndex
-			if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+			if commands.checkModifier("operateGunSide1") and commands.checkModifier("operateGunSide2") then
 
-			elseif commands.checkCommand("operateGunSide1") then
+			elseif commands.checkModifier("operateGunSide1") then
 				magIndex = 1
-			elseif commands.checkCommand("operateGunSide2") then
+			elseif commands.checkModifier("operateGunSide2") then
 				magIndex = 2
 			else
 				-- Unload fired ones in cocked barrels first, so that you can reload into a cocked barrel quickly
@@ -1187,11 +1162,11 @@ function game:loadActionTypes()
 					end
 				end
 			else
-				if commands.checkCommand("operateGunSide1") and commands.checkCommand("operateGunSide2") then
+				if commands.checkModifier("operateGunSide1") and commands.checkModifier("operateGunSide2") then
 
-				elseif commands.checkCommand("operateGunSide1") then
+				elseif commands.checkModifier("operateGunSide1") then
 					selection = 1
-				elseif commands.checkCommand("operateGunSide2") then
+				elseif commands.checkModifier("operateGunSide2") then
 					selection = 2
 				else
 					selection = heldItem.selectedMagazine
@@ -1211,7 +1186,7 @@ function game:loadActionTypes()
 			selectionKey = "whichMagazine"
 		end
 
-		if commands.checkCommand("deselectInventorySlot") then
+		if commands.checkCommand("unloadToInventorySlotNone") then
 			local x, y
 			if not self.state.cursor then
 				x, y = player.x, player.y
@@ -1231,7 +1206,7 @@ function game:loadActionTypes()
 			if i > #player.inventory then
 				break
 			end
-			if commands.checkCommand("handleInventorySlot" .. i) then
+			if commands.checkCommand("unloadToInventorySlot" .. i) then
 				number = i
 			end
 		end
@@ -1279,10 +1254,43 @@ function game:loadActionTypes()
 		end
 	end
 	function interact.fromInput(self, player)
-		if not commands.checkCommand("interact") then
-			return
+		local targetEntity
+		local autoDoorOpen = false -- Ideally it would say "door is locked", but *without* spamming it every tick. Will fix that first.
+		if autoDoorOpen then
+			-- Try door
+			local direction
+			if commands.checkCommand("moveRight") then
+				direction = "right"
+			elseif commands.checkCommand("moveUpRight") then
+				direction = "upRight"
+			elseif commands.checkCommand("moveUp") then
+				direction = "up"
+			elseif commands.checkCommand("moveUpLeft") then
+				direction = "upLeft"
+			elseif commands.checkCommand("moveLeft") then
+				direction = "left"
+			elseif commands.checkCommand("moveDownLeft") then
+				direction = "downLeft"
+			elseif commands.checkCommand("moveDown") then
+				direction = "down"
+			elseif commands.checkCommand("moveDownRight") then
+				direction = "downRight"
+			end
+			if direction then
+				local ox, oy = self:getDirectionOffset(direction)
+				local tile = self:getTile(player.x + ox, player.y + oy)
+				if
+					tile.doorData and not tile.doorData.open
+					and self:canCreatureOpenDoor(player, tile.doorData.entity, true)
+					and self:getWalkable(player.x + ox, player.y + oy, true, player.creatureType.flying)
+				then
+					targetEntity = tile.doorData.entity
+				end
+			end
 		end
-		local targetEntity = self:getCursorEntity()
+
+		targetEntity = targetEntity or commands.checkCommand("interact") and self:getCursorEntity()
+
 		if not targetEntity or targetEntity.entityType ~= "item" or not targetEntity.itemData.itemType.interactable then
 			return
 		end
@@ -1392,11 +1400,7 @@ function game:loadActionTypes()
 		end
 	end
 	function doffItem.fromInput(self, player)
-		if not commands.checkCommand("changeWornItemMode") then
-			return
-		end
-
-		if commands.checkCommand("deselectInventorySlot") then
+		if commands.checkCommand("doffItemToInventorySlotNone") then
 			local x, y
 			if not self.state.cursor then
 				x, y = player.x, player.y
@@ -1419,7 +1423,7 @@ function game:loadActionTypes()
 			if i > #player.inventory then
 				break
 			end
-			if commands.checkCommand("handleInventorySlot" .. i) then
+			if commands.checkCommand("doffItemToInventorySlot" .. i) then
 				number = i
 			end
 		end
@@ -1465,7 +1469,7 @@ function game:loadActionTypes()
 		end
 	end
 	function donItem.fromInput(self, player)
-		if not commands.checkCommand("changeWornItemMode") then
+		if not commands.checkModifier("changeWornItemMode") then
 			return
 		end
 		return donItem.construct(self, player) -- If valid

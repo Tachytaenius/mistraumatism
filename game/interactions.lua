@@ -3,6 +3,14 @@ local consts = require("consts")
 
 local game = {}
 
+local function getDoorTileDoorData(doorEntity)
+	local tile = doorEntity.doorTile
+	if not tile then
+		return
+	end
+	return tile.doorData
+end
+
 function game:isDoorBlocked(doorEntity)
 	for _, entity in ipairs(self.state.entities) do
 		if entity.x == doorEntity.x and entity.y == doorEntity.y and entity ~= doorEntity then
@@ -94,45 +102,15 @@ function game:loadInteractionTypes()
 	-- Self is game instance
 
 	interactionTypes.door = {}
-	local function getDoorTileDoorData(doorEntity)
-		local tile = doorEntity.doorTile
-		if not tile then
-			return
-		end
-		return tile.doorData
-	end
 	function interactionTypes.door:startInfoWorld(interactor, interactionType, interactee)
 		if interactionType ~= "world" then
 			return
 		end
 		local timerLength = 3
-		local doorData = getDoorTileDoorData(interactee)
-		if not interactor.creatureType.canOpenDoors then
+		if not self:canCreatureOpenDoor(interactor, interactee, false) then
 			return
 		end
-		if doorData and doorData.secretSanctuaryDoorInsideHack then
-			local interactorTile = self:getTile(interactor.x, interactor.y)
-			if not interactorTile then
-				return
-			end
-			if interactorTile.wasGenerated then
-				if interactor == self.state.player then
-					self:announce("Can't use that from here.", "darkGrey")
-				end
-				return
-			end
-		end
-		if doorData and doorData.lockName then
-			local item = self:getHeldItem(interactor)
-			if (not item or item.lockName ~= doorData.lockName) and not interactor.creatureType.canUnlockAnyDoor then
-				local shutOrOpen = doorData.open and "open" or "shut"
-				local keyMention = doorData.lockName == "noKey" and "" or " and needs a key"
-				if interactor == self.state.player and self.state.player then
-					self:announce("The door is locked " .. shutOrOpen .. keyMention .. ".", "darkYellow")
-				end
-				return
-			end
-		end
+		local doorData = getDoorTileDoorData(interactee)
 		local info = {
 			doneDoorOpenState = doorData and not doorData.open
 		}
@@ -449,10 +427,10 @@ function game:loadInteractionTypes()
 
 		local motionLength, motion
 		if isConstructingFromInput then
-			local inputA = commands.checkCommand("rotateAmmoBackwards")
-			local inputB = commands.checkCommand("rotateAmmoForwards")
-			local unloadInput = commands.checkCommand("unloadMode")
-			local reloadInput = commands.checkCommand("reloadMode")
+			local inputA = commands.checkModifier("rotateAmmoBackwardsMode")
+			local inputB = commands.checkModifier("rotateAmmoForwardsMode")
+			local unloadInput = commands.checkModifier("unloadMode")
+			local reloadInput = commands.checkModifier("reloadMode")
 			-- if inputA and inputB then
 			-- 	motionLength = 2
 			-- 	motion = item.actionOpen and "close" or "open"
@@ -605,6 +583,37 @@ function game:loadInteractionTypes()
 	end
 
 	self.state.interactionTypes = interactionTypes
+end
+
+function game:canCreatureOpenDoor(interactor, interactee, silent)
+	local doorData = getDoorTileDoorData(interactee)
+	if not interactor.creatureType.canOpenDoors then
+		return
+	end
+	if doorData and doorData.secretSanctuaryDoorInsideHack then
+		local interactorTile = self:getTile(interactor.x, interactor.y)
+		if not interactorTile then
+			return
+		end
+		if interactorTile.wasGenerated then
+			if interactor == self.state.player and not silent then
+				self:announce("You can't use that from here.", "darkGrey")
+			end
+			return
+		end
+	end
+	if doorData and doorData.lockName then
+		local item = self:getHeldItem(interactor)
+		if (not item or item.lockName ~= doorData.lockName) and not interactor.creatureType.canUnlockAnyDoor then
+			local shutOrOpen = doorData.open and "open" or "shut"
+			local keyMention = doorData.lockName == "noKey" and "" or " and needs a key"
+			if interactor == self.state.player and self.state.player and not silent then
+				self:announce("The door is locked " .. shutOrOpen .. keyMention .. ".", "darkYellow")
+			end
+			return
+		end
+	end
+	return true
 end
 
 return game

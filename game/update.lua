@@ -28,6 +28,21 @@ end
 
 function game:realtimeUpdate(dt)
 	self:handleMusicFade(dt)
+
+	if self.mode ~= "menu" then
+		if commands.checkCommand("menu") then
+			self:initMenu()
+			self:updateMenu(dt)
+			return
+		end
+	else
+		if self:updateMenu(dt) then
+			self:exitMenu()
+		else
+			return
+		end
+	end
+
 	if self.mode == "gameplay" then
 		if self.state.consoleHistoryMode then
 			if commands.checkCommand("scrollListBackwards") then

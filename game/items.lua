@@ -98,20 +98,18 @@ function game:updateAmmoSelection()
 	end
 
 	local movement = 0
-	if commands.checkCommand("ammoListMode") then
-		if commands.checkCommand("deselectTarget") then
-			self.state.ammoSelectionIndex = nil
-		elseif not self.state.ammoSelectionIndex then
-			if commands.checkCommand("scrollListBackwards") or commands.checkCommand("scrollListForwards") then
-				self.state.ammoSelectionIndex = 1
-			end
-		else
-			if commands.checkCommand("scrollListBackwards") then
-				movement = movement - 1
-			end
-			if commands.checkCommand("scrollListForwards") then
-				movement = movement + 1
-			end
+	if commands.checkCommand("deselectAmmo") then
+		self.state.ammoSelectionIndex = nil
+	elseif not self.state.ammoSelectionIndex then
+		if commands.checkCommand("scrollAmmoListBackwards") or commands.checkCommand("scrollAmmoListForwards") then
+			self.state.ammoSelectionIndex = 1
+		end
+	else
+		if commands.checkCommand("scrollAmmoListBackwards") then
+			movement = movement - 1
+		end
+		if commands.checkCommand("scrollAmmoListForwards") then
+			movement = movement + 1
 		end
 	end
 	if self.state.ammoSelectionIndex then

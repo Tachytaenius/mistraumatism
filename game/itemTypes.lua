@@ -384,7 +384,7 @@ function game:loadItemTypes()
 		projectileSubtickMoveTimerLengthMin = 16,
 		range = 18,
 		projectileExplosionRadius = 4,
-		projectileExplosionDamage = 350,
+		projectileExplosionDamage = 450,
 		-- projectileExplosionProjectiles = {
 			-- {
 			-- 	count = 12,
@@ -417,7 +417,7 @@ function game:loadItemTypes()
 		-- },
 		projectileExplosionProjectiles = {
 			{ -- Shrapnel
-				count = 35,
+				count = 20,
 				tile = "`",
 				colour = "darkGrey",
 				subtickMoveTimerLength = 96,
@@ -511,18 +511,18 @@ function game:loadItemTypes()
 		projectileSubtickMoveTimerLength = 224,
 		range = 9,
 		projectileExplosionRadius = 3,
-		projectileExplosionDamage = 180,
-		projectileInitialDisappearTimer = 24, -- Explodes on disappear
+		projectileExplosionDamage = 240,
+		projectileInitialDisappearTimer = 20, -- Explodes on disappear
 		projectileStopOnHitButDontDisappear = true,
 		projectileExplosionProjectiles = {
 			{ -- Shrapnel
-				count = 30,
+				count = 70,
 				tile = "`",
 				colour = "darkGrey",
 				subtickMoveTimerLength = 96,
 				damage = 3,
 				maxPierces = 2,
-				bleedRateAdd = 30,
+				bleedRateAdd = 5,
 				-- instantBloodLoss = 1,
 				range = 3
 			}

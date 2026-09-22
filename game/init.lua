@@ -131,11 +131,12 @@ function game:init(args)
 	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
 	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values
 	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
-
+	commands.compileControls()
 	self:loadSounds()
 
 	-- TEMP, change as needed
 	local skipIntro, startLevelName, noPlayer, skipTitle, playerCreatureType
+	local playerCreatureTypeFromArg, playerCreatureTypeFromAltMode = false, true
 	for _, arg in ipairs(args) do
 		if arg == "--skipIntro" then
 			skipIntro = true
@@ -154,6 +155,7 @@ function game:init(args)
 		local playerCreatureTypeArg = "^--playerCreatureType="
 		if arg:match(playerCreatureTypeArg) then
 			playerCreatureType = arg:gsub(playerCreatureTypeArg, "")
+			playerCreatureTypeFromArg = true
 		end
 	end
 
@@ -270,6 +272,9 @@ function game:init(args)
 				if self:doAltPlayerCreatureTypeMode() then
 					-- Super secret sexy mode! :D
 					playerCreatureType = "werewolf"
+					playerCreatureTypeFromAltMode = true
+				elseif not playerCreatureTypeFromArg or not playerCreatureTypeFromAltMode then
+					playerCreatureType = nil
 				end
 				if not firstLevel or skipIntro then
 					exitIntro(levelName, not skipIntro)

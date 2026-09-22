@@ -1,71 +1,121 @@
+local util = require("util")
+
+local commands = {
+	jump = {type = "pressed"},
+	viewJumpReach = {type = "hold"},
+
+	lockOn = {type = "pressed"},
+	clearCursor = {type = "pressed"},
+	spawnCursor = {type = "pressed"},
+
+	shoot = {type = "pressed"},
+	melee = {type = "pressed"},
+	useHeldItem = {type = "pressed"},
+	interact = {type = "pressed"},
+
+	menu = {type = "pressed"},
+	confirm = {type = "pressed"},
+
+	toggleHistory = {type = "pressed"},
+
+	toggleFullscreen = {type = "pressed"},
+	decreaseCanvasScale = {type = "pressed"},
+	increaseCanvasScale = {type = "pressed"}
+}
+
+local commandGroups = {
+	deselectGroup = {isGroup = true,
+		deselectTarget = {type = "pressed"},
+		deselectAmmo = {type = "pressed"}
+	},
+
+	waitGroup = {isGroup = true,
+		wait = {type = "hold", modifiers = {"waitHoldMode"}},
+		waitPrecise = {type = "pressed"}
+	},
+
+	scrollBackwardsGroup = {isGroup = true,
+		scrollListBackwards = {type = "repeat", modifiers = {}},
+		scrollAmmoListBackwards = {type = "repeat", modifiers = {"ammoListMode"}}
+	},
+	scrollForwardsGroup = {isGroup = true,
+		scrollListForwards = {type = "repeat", modifiers = {}},
+		scrollAmmoListForwards = {type = "repeat", modifiers = {"ammoListMode"}}
+	},
+
+	pickUpOrDropGroup = {isGroup = true,
+		pickUp = {type = "repeat"},
+		drop = {type = "repeat", modifiers = {"dropMode"}}
+	}
+}
+
+local function newDirGroup(dir)
+	local move = "move" .. dir
+	local moveCursor = "moveCursor" .. dir
+	commandGroups[move .. "Group"] = {isGroup = true,
+		[move] = {type = "hold"},
+		[moveCursor] = {type = "repeat", modifiers = {"moveCursorMode"}},
+	}
+end
+newDirGroup("Right")
+newDirGroup("UpRight")
+newDirGroup("Up")
+newDirGroup("UpLeft")
+newDirGroup("Left")
+newDirGroup("DownLeft")
+newDirGroup("Down")
+newDirGroup("DownRight")
+
+for num = 1, 9 do
+	commandGroups["handleInventorySlot" .. num .. "Group"] = {isGroup = true,
+		["reloadFromInventorySlot" .. num] = {type = "repeat", modifiers = {"reloadMode"}},
+		["unloadToInventorySlot" .. num] = {type = "repeat", modifiers = {"unloadMode"}},
+		["doffItemToInventorySlot" .. num] = {type = "pressed", modifiers = {"changeWornItemMode"}},
+		["swapToInventorySlot" .. num] = {type = "pressed"}
+	}
+end
+commandGroups.handleInventorySlotNoneGroup = {isGroup = true,
+	doffItemToInventorySlotNone = {type = "pressed", modifiers = {"changeWornItemMode"}},
+	unloadToInventorySlotNone = {type = "repeat", modifiers = {"unloadMode"}},
+	deselectInventorySlot = {type = "pressed"}
+}
+
+for groupName, commandGroup in pairs(commandGroups) do
+	commandGroup.relevantModifiers = {}
+	commandGroup.groupName = groupName
+	for commandName, commandValue in pairs(commandGroup) do
+		if commandName == "isGroup" or commandName == "relevantModifiers" or commandName == "groupName" then
+			goto continue
+		end
+		commandValue.group = commandGroup
+		commands[commandName] = commandValue
+		for _, modifier in ipairs(commandValue.modifiers or {}) do
+			commandGroup.relevantModifiers[modifier] = true
+		end
+		commandValue.modifiers = util.arrayToSet(commandValue.modifiers or {})
+	    ::continue::
+	end
+end
+
 return {
-	dodgeMode = "hold",
-	-- jumpDodgeMode = "hold",
-	jump = "pressed",
-	moveAlternativeMode = "hold",
-	viewJumpReach = "hold",
-	moveRight = "hold",
-	moveUpRight = "hold",
-	moveUp = "hold",
-	moveUpLeft = "hold",
-	moveLeft = "hold",
-	moveDownLeft = "hold",
-	moveDown = "hold",
-	moveDownRight = "hold",
-
-	moveCursor = "hold",
-	moveCursorRight = "repeat",
-	moveCursorUpRight = "repeat",
-	moveCursorUp = "repeat",
-	moveCursorUpLeft = "repeat",
-	moveCursorLeft = "repeat",
-	moveCursorDownLeft = "repeat",
-	moveCursorDown = "repeat",
-	moveCursorDownRight = "repeat",
-	lockOn = "pressed",
-	clearCursor = "pressed",
-	deselectTarget = "pressed",
-
-	wait = "hold",
-	waitPrecise = "pressed",
-
-	meleeChargeMode = "hold",
-	shoot = "pressed",
-	melee = "pressed",
-	useHeldItem = "pressed",
-	interact = "pressed",
-
-	ammoListMode = "hold",
-	scrollListBackwards = "repeat",
-	scrollListForwards = "repeat",
-
-	dropMode = "hold",
-	pickUpOrDrop = "pressed",
-	reloadMode = "hold",
-	unloadMode = "hold",
-	operateGunSide1 = "hold",
-	operateGunSide2 = "hold",
-	energyWeaponChargeMode = "hold",
-	energyWeaponDischargeMode = "hold",
-	rotateAmmoBackwards = "hold",
-	rotateAmmoForwards = "hold",
-	changeWornItemMode = "hold",
-	handleInventorySlot1 = "pressed",
-	handleInventorySlot2 = "pressed",
-	handleInventorySlot3 = "pressed",
-	handleInventorySlot4 = "pressed",
-	handleInventorySlot5 = "pressed",
-	handleInventorySlot6 = "pressed",
-	handleInventorySlot7 = "pressed",
-	handleInventorySlot8 = "pressed",
-	handleInventorySlot9 = "pressed",
-	deselectInventorySlot = "pressed",
-
-	confirm = "pressed",
-
-	toggleHistory = "pressed",
-
-	toggleFullscreen = "pressed",
-	decreaseCanvasScale = "pressed",
-	increaseCanvasScale = "pressed"
+	commands = commands,
+	commandGroups = commandGroups,
+	modifiers = {
+		dodgeMode = true,
+		moveAlternativeMode = true,
+		moveCursorMode = true,
+		meleeChargeMode = true,
+		ammoListMode = true,
+		dropMode = true,
+		reloadMode = true,
+		unloadMode = true,
+		energyWeaponChargeMode = true,
+		energyWeaponDischargeMode = true,
+		changeWornItemMode = true,
+		waitHoldMode = true,
+		operateGunSide1 = true,
+		operateGunSide2 = true,
+		rotateAmmoBackwardsMode = true,
+		rotateAmmoForwardsMode = true
+	}
 }

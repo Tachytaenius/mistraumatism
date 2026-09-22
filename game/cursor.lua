@@ -140,37 +140,35 @@ function game:updateCursor()
 		-- end
 	end
 
-	if commands.checkCommand("moveCursor") and not commands.checkCommand("dodgeMode") then
-		if not state.cursor then
-			move("zero")
-		end
-		if commands.checkCommand("moveCursorRight") then
-			move("right")
-		end
-		if commands.checkCommand("moveCursorUpRight") then
-			move("upRight")
-		end
-		if commands.checkCommand("moveCursorUp") then
-			move("up")
-		end
-		if commands.checkCommand("moveCursorUpLeft") then
-			move("upLeft")
-		end
-		if commands.checkCommand("moveCursorLeft") then
-			move("left")
-		end
-		if commands.checkCommand("moveCursorDownLeft") then
-			move("downLeft")
-		end
-		if commands.checkCommand("moveCursorDown") then
-			move("down")
-		end
-		if commands.checkCommand("moveCursorDownRight") then
-			move("downRight")
-		end
+	if not state.cursor and commands.checkModifier("moveCursorMode") then
+		move("zero")
+	end
+	if commands.checkCommand("moveCursorRight") then
+		move("right")
+	end
+	if commands.checkCommand("moveCursorUpRight") then
+		move("upRight")
+	end
+	if commands.checkCommand("moveCursorUp") then
+		move("up")
+	end
+	if commands.checkCommand("moveCursorUpLeft") then
+		move("upLeft")
+	end
+	if commands.checkCommand("moveCursorLeft") then
+		move("left")
+	end
+	if commands.checkCommand("moveCursorDownLeft") then
+		move("downLeft")
+	end
+	if commands.checkCommand("moveCursorDown") then
+		move("down")
+	end
+	if commands.checkCommand("moveCursorDownRight") then
+		move("downRight")
 	end
 
-	if state.cursor and commands.checkCommand("deselectTarget") and not commands.checkCommand("ammoListMode") then
+	if state.cursor and commands.checkCommand("deselectTarget") then
 		self:forceDeselectCursorEntity(nil)
 	end
 
@@ -178,13 +176,11 @@ function game:updateCursor()
 	if entityList and state.cursor then
 		local selectedEntity = self:getCursorEntity()
 		local movement = 0
-		if not commands.checkCommand("ammoListMode") then
-			if commands.checkCommand("scrollListBackwards") then
-				movement = movement - 1
-			end
-			if commands.checkCommand("scrollListForwards") then
-				movement = movement + 1
-			end
+		if commands.checkCommand("scrollListBackwards") then
+			movement = movement - 1
+		end
+		if commands.checkCommand("scrollListForwards") then
+			movement = movement + 1
 		end
 		local justGainedSelection = false
 		-- if not selectedEntity and (moved or movement ~= 0 or self:entityListChanged(state.cursor.x, state.cursor.y, "selectable")) then
