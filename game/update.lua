@@ -28,6 +28,7 @@ end
 
 function game:realtimeUpdate(dt)
 	self:handleMusicFade(dt)
+	self:handleCursorButtonMode(dt)
 
 	if self.mode ~= "menu" then
 		if commands.checkCommand("menu") then
@@ -130,7 +131,7 @@ function game:realtimeUpdate(dt)
 				self.state.playerWasInControl = true
 				self:updateCursor()
 				self.updateTimer = 0
-				local result = self:getPlayerInput()
+				local result = self:getPlayerInput(dt)
 				if result and result.wait then
 					self.state.waiting = true
 				else
@@ -184,7 +185,7 @@ function game:realtimeUpdate(dt)
 	end
 end
 
-function game:getPlayerInput()
+function game:getPlayerInput(dt)
 	local state = self.state
 	local player = state.player
 	if not player or player.dead then
@@ -192,11 +193,12 @@ function game:getPlayerInput()
 	end
 
 	-- Try waiting
-	if commands.checkCommand("wait") or commands.checkCommand("waitPrecise") then
+	if commands.checkCommand("waitHold") or commands.checkCommand("waitPrecise") then
 		return {wait = true} -- No further actions
 	end
 
 	-- Try making an action
+	self.autoOpenDoorHackTriedThisTick = nil
 	for _, actionType in ipairs(state.actionTypes) do
 		if not actionType.fromInput then
 			goto continue
@@ -204,10 +206,20 @@ function game:getPlayerInput()
 		local newAction = actionType.fromInput(self, player)
 		if newAction then
 			player.actions[#player.actions+1] = newAction
-			return -- No further actions
+			break -- No further actions
 		end
 	    ::continue::
 	end
+	if self.autoOpenDoorHackTriedThisTick then
+		self.autoOpenDoorHackTimer = self.autoOpenDoorHackTimer or consts.autoOpenDoorHackTimerLength
+		self.autoOpenDoorHackTimer = self.autoOpenDoorHackTimer - dt
+		if self.autoOpenDoorHackTimer <= 0 then
+			self.autoOpenDoorHackTimer = nil
+		end
+	else
+		self.autoOpenDoorHackTimer = nil
+	end
+	self.autoOpenDoorHackTriedThisTick = nil
 end
 
 function game:getScriptedPlayerInput()

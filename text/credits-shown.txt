@@ -12,7 +12,7 @@ time. Nothing is ever erased.
 
 One font is by Kelora on the Dwarf Fortress wiki.
 Another is the original one from Dwarf Fortress.
-The default font is by Azoth. Huge thanks!
+And another is by Azoth. Huge thanks!
 
 ---
 
@@ -24,7 +24,7 @@ project uses (modified).
 
 ---
 
-Adam Milazzo designed the visibility algorithm, which I
+The visibility algorithm is Adam Milazzo's, which I
 modified to use for projectiles and hitscans too.
 
 ---

@@ -27,7 +27,15 @@ function love.load(args)
 end
 
 function love.keypressed(key)
-	commands.keyPressed(key)
+	if game.menuInfo and game.menuInfo.rebinding then
+		if key == "escape" then
+			game:rebindToKey(nil)
+		else
+			game:rebindToKey(key)
+		end
+	else
+		commands.keyPressed(key)
+	end
 end
 
 local function handleSettings()

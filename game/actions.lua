@@ -1,4 +1,5 @@
 local commands = require("commands")
+local settings = require("settings")
 local consts = require("consts")
 
 local game = {}
@@ -1255,7 +1256,7 @@ function game:loadActionTypes()
 	end
 	function interact.fromInput(self, player)
 		local targetEntity
-		local autoDoorOpen = false -- Ideally it would say "door is locked", but *without* spamming it every tick. Will fix that first.
+		local autoDoorOpen = settings.input.autoOpenDoors
 		if autoDoorOpen then
 			-- Try door
 			local direction
@@ -1279,9 +1280,11 @@ function game:loadActionTypes()
 			if direction then
 				local ox, oy = self:getDirectionOffset(direction)
 				local tile = self:getTile(player.x + ox, player.y + oy)
+				self.autoOpenDoorHackTriedThisTick = true
+				local silent = not not self.autoOpenDoorHackTimer
 				if
 					tile.doorData and not tile.doorData.open
-					and self:canCreatureOpenDoor(player, tile.doorData.entity, true)
+					and self:canCreatureOpenDoor(player, tile.doorData.entity, silent)
 					and self:getWalkable(player.x + ox, player.y + oy, true, player.creatureType.flying)
 				then
 					targetEntity = tile.doorData.entity

@@ -118,7 +118,7 @@ function game:init(args)
 			paletteName = arg:gsub(paletteArg, "")
 		end
 	end
-	fontName = fontName or "azoth_acorn_8x8"
+	fontName = fontName or "traumatica"
 	paletteName = paletteName or "natural"
 
 	local fontLocation = "fonts/" .. fontName .. ".png"

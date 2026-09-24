@@ -198,7 +198,7 @@ end
 
 function game:mechanismOpenDoor(x, y)
 	local tile = self:getTile(x, y)
-	if tile.doorData then
+	if tile.doorData and not tile.doorData.open then
 		tile.doorData.open = true
 		self:broadcastDoorStateChangedEvent(tile, nil, false)
 	end
@@ -212,7 +212,7 @@ function game:mechanismShutDoor(x, y)
 	if tile.doorData.entity and self:isDoorBlocked(tile.doorData.entity) then
 		return
 	end
-	if tile.doorData then
+	if tile.doorData and tile.doorData.open then
 		tile.doorData.open = false
 		self:broadcastDoorStateChangedEvent(tile, nil, false)
 	end

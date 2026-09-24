@@ -1845,6 +1845,29 @@ function game:drawFramebufferMenu(framebuffer)
 	end
 
 	drawStringFramebuffer(0, 0, "Menu... (TODO)", "white", "black")
+	local y = 3
+	local keyXOffs = 30
+	local dots = string.rep("." and "─", keyXOffs)
+	for _, group in ipairs(self.menuInfo.controlsList) do
+		drawStringFramebuffer(0, y, util.capitalise(group.name), "lightGrey", "black")
+		y = y + 1
+		for _, entry in ipairs(group) do
+			drawStringFramebuffer(0, y, dots, "darkGrey", "black")
+			drawStringFramebuffer(0, y, util.capitalise(entry.name), "white", "black")
+
+			local boundTo = settings.inputBindings[entry.binding]
+			if boundTo then
+				drawStringFramebuffer(keyXOffs, y, "[", "lightGrey", "darkGrey")
+				drawStringFramebuffer(keyXOffs + 1, y, boundTo:upper(), "white", "darkGrey")
+				drawStringFramebuffer(keyXOffs + 1 + #boundTo, y, "]", "lightGrey", "darkGrey")
+			else
+				drawStringFramebuffer(keyXOffs, y, "Unbound", "lightGrey", "darkGrey")
+			end
+
+			y = y + 1
+		end
+		y = y + 1
+	end
 end
 
 return game

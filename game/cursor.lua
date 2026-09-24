@@ -1,3 +1,4 @@
+local settings = require("settings")
 local commands = require("commands")
 
 local game = {}
@@ -102,7 +103,7 @@ function game:updateCursor()
 		return
 	end
 
-	if commands.checkCommand("clearCursor") then
+	if self.cursorButtonResult == "clear" then
 		self:setCursor()
 	end
 
@@ -128,6 +129,9 @@ function game:updateCursor()
 
 	local moved
 	local function move(direction)
+		if direction ~= "zero" then
+			self.cursorButtonTimer = nil
+		end
 		moved = true
 		if not state.cursor then
 			self:setCursor(cameraX, cameraY)
@@ -140,7 +144,7 @@ function game:updateCursor()
 		-- end
 	end
 
-	if not state.cursor and commands.checkModifier("moveCursorMode") then
+	if not state.cursor and self.cursorButtonResult == "create" then
 		move("zero")
 	end
 	if commands.checkCommand("moveCursorRight") then
@@ -233,6 +237,30 @@ function game:forceDeselectCursorEntity(reselectIndex)
 	if entityList then
 		state.cursor.selectedEntity = entityList[math.min(reselectIndex, #entityList)]
 	end
+end
+
+function game:handleCursorButtonMode(dt)
+	if self.cursorButtonTimer then
+		self.cursorButtonTimer = self.cursorButtonTimer - dt
+		if self.cursorButtonTimer <= 0 then
+			self.cursorButtonTimer = nil
+		end
+	end
+	self.cursorButtonResult = nil
+	local held = commands.checkModifier("moveCursorMode")
+	if held then
+		if not self.wasHeld and not self.cursorButtonTimer and (self.state and self.state.cursor) then
+			self.cursorButtonTimer = settings.input.cursorButtonTimerLength
+		end
+	else
+		if self.wasHeld and self.cursorButtonTimer then
+			self.cursorButtonResult = "clear"
+		end
+	end
+	if held then
+		self.cursorButtonResult = self.cursorButtonResult or "create"
+	end
+	self.wasHeld = held
 end
 
 return game

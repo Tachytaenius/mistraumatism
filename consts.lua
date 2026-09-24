@@ -85,9 +85,6 @@ consts.tau = math.pi * 2
 
 consts.spreadRetargetDistance = 128
 
-consts.initialKeyRepeatTimerLength = 0.2
-consts.keyRepeatTimerLength = 0.05
-
 consts.bleedTimerLength = 1536
 consts.bleedHealTimerLength = 512
 consts.maxBleedingAmount = 900
@@ -167,5 +164,7 @@ consts.fixedControlsUsedKeys = {}
 for k, v in pairs(consts.fixedControls) do
 	consts.fixedControlsUsedKeys[v] = k
 end
+
+consts.autoOpenDoorHackTimerLength = 0.5
 
 return consts

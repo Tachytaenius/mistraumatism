@@ -1,0 +1,53 @@
+"movement"
+moveRightGroup move right
+moveUpRightGroup move up-right
+moveUpGroup move up
+moveUpLeftGroup move up-left
+moveLeftGroup move left
+moveDownLeftGroup move down-left
+moveDownGroup move down
+moveDownRightGroup move down-right
+"UI"
+toggleHistory toggle history
+confirm confirm
+scrollBackwardsGroup scroll backwards
+scrollForwardsGroup scroll forwards
+"general"
+lockOn lock on
+deselectGroup deselect
+shoot shoot
+melee melee
+useHeldItem use held item
+waitHold wait (hold)
+waitPrecise wait (precise)
+interact interact
+jump jump
+viewJumpReach view jump reach
+pickUpOrDropGroup pick up or drop
+"inventory"
+handleInventorySlot1Group inventory slot 1
+handleInventorySlot2Group inventory slot 2
+handleInventorySlot3Group inventory slot 3
+handleInventorySlot4Group inventory slot 4
+handleInventorySlot5Group inventory slot 5
+handleInventorySlot6Group inventory slot 6
+handleInventorySlot7Group inventory slot 7
+handleInventorySlot8Group inventory slot 8
+handleInventorySlot9Group inventory slot 9
+handleInventorySlotNoneGroup no inventory slot
+"modifiers"
+moveAlternativeMode alternative move mode
+dodgeMode dodge mode
+moveCursorMode move cursor mode
+ammoListMode ammo list mode
+meleeChargeMode charge melee mode
+reloadMode reload mode
+unloadMode unload mode
+dropMode drop mode
+energyWeaponChargeMode energy weapon charge mode
+energyWeaponDischargeMode energy weapon discharge mode
+changeWornItemMode change worn item mode
+operateGunSide1 operate gun side 1
+operateGunSide2 operate gun side 2
+rotateAmmoBackwardsMode rotate ammo backwards mode
+rotateAmmoForwardsMode rotate ammo forwards mode

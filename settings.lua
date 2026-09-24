@@ -8,7 +8,13 @@ return {
 		-- canvasScale = 1, -- Automatically filled with largest allowable size
 		fullscreen = false
 	},
-	controls = {
+	input = {
+		initialKeyRepeatTimerLength = 0.2,
+		keyRepeatTimerLength = 0.05,
+		cursorButtonTimerLength = 0.25,
+		autoOpenDoors = true
+	},
+	inputBindings = {
 		viewJumpReach = "m",
 		jump = "j",
 
@@ -22,7 +28,7 @@ return {
 		moveDownRightGroup = "c",
 
 		lockOn = "l",
-		clearCursor = "k",
+		-- clearCursor = "k",
 		deselectGroup = "#",
 
 		scrollBackwardsGroup = "[",
@@ -31,7 +37,8 @@ return {
 		shoot = "f",
 		melee = "v",
 		useHeldItem = "t",
-		waitGroup = "h",
+		waitHold = "h",
+		waitPrecise = "y",
 		interact = "b",
 
 		pickUpOrDropGroup = "g",
@@ -66,7 +73,6 @@ return {
 		energyWeaponChargeMode = "lctrl",
 		energyWeaponDischargeMode = "lalt",
 		changeWornItemMode = "o",
-		waitHoldMode = "lctrl",
 		operateGunSide1 = "lctrl",
 		operateGunSide2 = "lalt",
 		rotateAmmoBackwardsMode = "lalt",

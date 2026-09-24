@@ -50,7 +50,7 @@ end
 
 function commands.compileControls()
 	controls = {}
-	for _, t in ipairs({settings.controls, consts.fixedControls}) do
+	for _, t in ipairs({settings.inputBindings, consts.fixedControls}) do
 		for k, v in pairs(t) do
 			if commandTypes.commandGroups[k] then
 				for command in pairs(commandTypes.commandGroups[k]) do
@@ -93,13 +93,13 @@ function commands.tickStarted(dt)
 			if previous then
 				local timerNow = previous.timer - dt
 				if timerNow <= 0 then
-					timerNow = consts.keyRepeatTimerLength
+					timerNow = settings.input.keyRepeatTimerLength
 					thisTick = {triggered = true, timer = timerNow}
 				else
 					thisTick = {triggered = false, timer = timerNow}
 				end
 			else
-				thisTick = {triggered = true, timer = consts.initialKeyRepeatTimerLength}
+				thisTick = {triggered = true, timer = settings.input.initialKeyRepeatTimerLength}
 			end
 			commands.thisTickRepeatKeys[command] = thisTick
 		end

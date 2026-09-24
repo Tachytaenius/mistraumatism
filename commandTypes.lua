@@ -5,7 +5,7 @@ local commands = {
 	viewJumpReach = {type = "hold"},
 
 	lockOn = {type = "pressed"},
-	clearCursor = {type = "pressed"},
+	-- clearCursor = {type = "pressed"},
 	spawnCursor = {type = "pressed"},
 
 	shoot = {type = "pressed"},
@@ -20,18 +20,16 @@ local commands = {
 
 	toggleFullscreen = {type = "pressed"},
 	decreaseCanvasScale = {type = "pressed"},
-	increaseCanvasScale = {type = "pressed"}
+	increaseCanvasScale = {type = "pressed"},
+
+	waitHold = {type = "hold"},
+	waitPrecise = {type = "pressed"},
 }
 
 local commandGroups = {
 	deselectGroup = {isGroup = true,
 		deselectTarget = {type = "pressed"},
 		deselectAmmo = {type = "pressed"}
-	},
-
-	waitGroup = {isGroup = true,
-		wait = {type = "hold", modifiers = {"waitHoldMode"}},
-		waitPrecise = {type = "pressed"}
 	},
 
 	scrollBackwardsGroup = {isGroup = true,
@@ -112,10 +110,15 @@ return {
 		energyWeaponChargeMode = true,
 		energyWeaponDischargeMode = true,
 		changeWornItemMode = true,
-		waitHoldMode = true,
 		operateGunSide1 = true,
 		operateGunSide2 = true,
 		rotateAmmoBackwardsMode = true,
 		rotateAmmoForwardsMode = true
+	},
+	modifierGroups = {
+		{"reloadMode", "unloadMode"},
+		{"energyWeaponChargeMode", "energyWeaponDischargeMode"},
+		{"operateGunSide1", "operateGunSide2"},
+		{"rotateAmmoBackwardsMode", "rotateAmmoForwardsMode"}
 	}
 }
