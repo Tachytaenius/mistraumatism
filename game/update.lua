@@ -44,6 +44,10 @@ function game:realtimeUpdate(dt)
 		end
 	end
 
+	if self.endingSequenceGraphics then
+		self.endingSequenceGraphics.realtimeUpdate(dt)
+	end
+
 	if self.mode == "gameplay" then
 		if self.state.consoleHistoryMode then
 			if commands.checkCommand("scrollListBackwards") then
@@ -250,6 +254,10 @@ end
 function game:update()
 	local state = self.state
 	state.waiting = false -- No longer needed
+
+	if self.endingSequenceGraphics then
+		self.endingSequenceGraphics.update()
+	end
 
 	if state.changeToLevelTimer then
 		state.changeToLevelTimer = state.changeToLevelTimer - 1

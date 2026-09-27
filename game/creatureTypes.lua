@@ -21,10 +21,10 @@ function game:loadCreatureTypes()
 		dodgeSteadyTimerLength = 5,
 		canJump = true,
 		maxJumpDistance = 2.9,
-		jumpTimerLength = 5,
+		jumpTimerLength = 4,
 		-- jumpAirborneTimerLength = 2,
 		jumpSubtickMoveTimerLength = 512,
-		jumpSteadyTimerLength = 13,
+		jumpSteadyTimerLength = 14,
 		swimMoveTimerLength = 18,
 		breathingTimerLength = 900, -- 900 ticks / (18 ticks / step) = 50 steps when submerged. 0.03125 seconds / tick * 900 ticks = 28.125 seconds before drowning.
 		sightDistance = 17,
@@ -59,7 +59,7 @@ function game:loadCreatureTypes()
 		dodgeSteadyTimerLength = 3,
 		canJump = true,
 		maxJumpDistance = 3.5,
-		jumpTimerLength = 5,
+		jumpTimerLength = 4,
 		jumpSubtickMoveTimerLength = 448, -- 256 * 1.75
 		jumpSteadyTimerLength = 5,
 		swimMoveTimerLength = 14,

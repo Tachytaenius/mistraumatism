@@ -4,6 +4,8 @@ local commands = require("commands")
 local game = {}
 
 function game:initMenu()
+	self:pauseSound()
+
 	self.menuInfo = {
 		oldMode = self.mode
 	}
@@ -24,6 +26,7 @@ function game:initMenu()
 end
 
 function game:exitMenu()
+	self:resumeSound()
 	self.mode = self.menuInfo.oldMode
 	self.menuInfo = nil
 end

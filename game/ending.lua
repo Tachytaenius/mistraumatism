@@ -1,5 +1,6 @@
 local consts = require("consts")
 local commands = require("commands")
+local settings = require("settings")
 
 local game = {}
 
@@ -76,7 +77,6 @@ function game:finishGame()
 	self:setCursor()
 	if self:doesPlayerHaveSecretLevelKey() then
 		self:allowLevelAccess(consts.secretLevelName)
-		-- TODO: Inform the player that they're getting the secret ending.
 		self:announce("It feels like you can now know that you're loved.\nYou have done well ♥", "green")
 		self.afterEndingSequence = "secret" -- In this case you view credits when going back to bed in the secret sanctuary
 	else
@@ -88,45 +88,69 @@ function game:finishGame()
 
 	self.state.playerEscaping = true
 	self.state.playerEscapingCallbacks = {}
-	-- self.state.playerEscapingCallbacks[53] = function()
-	-- 	self:clearAnnouncements()
-	-- end
-	self.state.playerEscapingCallbacks[59] = function()
+	self.state.playerEscapingCallbacks[53] = function()
 		self:setMusic("mercious", true, true)
 	end
-	function self.state.playerEscapingCallbacks.finished()
-		self.state.playerEscapeSteps = nil
-		self.state.playerEscaping = nil
-		self.state.playerEscapingCallbacks = nil
-		self:endingTransition()
+	self.state.playerEscapingCallbacks[60] = function()
+		self.endingSequenceGraphics = {
+			startY = self.state.player and self.state.player.y or self.state.lastPlayerY,
+			endY = 30,
+			stage = 1,
+			show = function()
+				return not self.menuInfo
+			end,
+			fade = 0,
+			realtimeUpdate = function(dt)
+				if self.endingSequenceGraphics.stage == 2 then
+					self:updateEndScene(dt)
+				end
+			end,
+			update = function()
+				if self.endingSequenceGraphics.stage == 1 then
+					local y = self.state.player and self.state.player.y or self.state.lastPlayerY
+					self.endingSequenceGraphics.fade = math.max(0, math.min(1, 1 - (y - self.endingSequenceGraphics.endY) / (self.endingSequenceGraphics.startY - self.endingSequenceGraphics.endY)))
+					if self.endingSequenceGraphics.fade >= 1 then
+						self.endingSequenceGraphics.stage = 2
+						self.state.playerEscapeSteps = nil
+
+						self.state.playerEscaping = nil
+						self.state.playerEscapingCallbacks = nil
+						self.mode = "ending"
+						self:initEndScene()
+					end
+				elseif self.endingSequenceGraphics.stage == 2 then
+					
+				end
+			end,
+			draw = function()
+				local g = self.endingSequenceGraphics
+				if g.stage == 2 then
+					self:drawEndScene()
+					return
+				end
+				love.graphics.setCanvas(g.canvas)
+				love.graphics.clear(1, 1, 1, 1) -- Because this canvas would be remade if font was changed during gameplay, don't rely on this not being cleared if this line isn't here
+				love.graphics.setCanvas()
+			end
+		}
+		self:refreshEndGraphicsCanvasses()
 	end
 end
 
-function game:endingTransition()
-	self.mode = "text"
-	self.textInfo = {
-		path = "text/trust-sombre.txt",
-		timer = 0,
-		releaseTime = 5,
-		getColour = function(x, y)
-			return "white", "black"
-		end,
-		updateFunction = function(self, dt)
-			if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
-				self:fadeMusicOut(3)
-				if self.afterEndingSequence == "secret" then
-					self.mode = "gameplay"
-					self:changeLevel(consts.secretLevelName)
-				elseif self.afterEndingSequence == "credits" then
-					self:toCredits()
-				else
-					error("afterEndingSequence isn't set to a correct value: \"" .. tostring(self.afterEndingSequence) .. "\"")
-				end
-				return true -- As in game/init.lua
-			end
-			self.textInfo.timer = self.textInfo.timer + dt
-		end
-	}
+function game:finishEnding()
+	self.endingSequenceGraphics = nil
+	if self.state.player and self.state.player.bleedingAmount then
+		self.state.player.bleedingAmount = 0
+	end
+	self:fadeMusicOut(3)
+	if self.afterEndingSequence == "secret" then
+		self.mode = "gameplay"
+		self:changeLevel(consts.secretLevelName)
+	elseif self.afterEndingSequence == "credits" then
+		self:toCredits()
+	else
+		error("afterEndingSequence isn't set to a correct value: \"" .. tostring(self.afterEndingSequence) .. "\"")
+	end
 	self.forceRepeatUpdate = true
 end
 
@@ -162,6 +186,38 @@ function game:advanceEscape()
 		player.actions[#player.actions+1] = newAction
 		return -- No further actions
 	end
+end
+
+function game:initEndScene()
+	local g = self.endingSequenceGraphics
+	g.fadeTimer2 = 0
+	g.objects = {}
+	table.insert(g.objects, {x = 0, y = 30, r = 20})
+end
+
+function game:updateEndScene(dt)
+	local g = self.endingSequenceGraphics
+	g.fadeTimer2 = math.min(1, g.fadeTimer2 + dt * 0.25)
+end
+
+function game:drawEndScene()
+	local g = self.endingSequenceGraphics
+	love.graphics.setCanvas(g.canvas)
+	love.graphics.clear(0, 0, 0, 1)
+	love.graphics.print("Ending sequence is TODO")
+
+	love.graphics.setColor(1, 1, 1, 1 - g.fadeTimer2)
+	love.graphics.rectangle("fill", 0, 0, g.canvas:getDimensions())
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.setCanvas()
+end
+
+function game:refreshEndGraphicsCanvasses()
+	local g = self.endingSequenceGraphics
+	local w, h = self:getCanvasSize()
+	w = w * settings.graphics.canvasScale
+	h = h * settings.graphics.canvasScale
+	g.canvas = love.graphics.newCanvas(w, h)
 end
 
 return game

@@ -21,6 +21,14 @@ function game:loadSounds()
 	loadMusic("sacrosanct")
 	loadMusic("the-long-view")
 	self.musicSources = musicSources
+
+	-- self.allSources = {}
+	-- for _, source in pairs(self.musicSources) do
+	-- 	table.insert(self.allSources, source)
+	-- end
+	-- for _, source in pairs(self.soundSources) do
+	-- 	table.insert(self.allSources, source)
+	-- end
 end
 
 function game:playSound(name)
@@ -87,6 +95,26 @@ function game:handleMusicFade(dt)
 		return
 	end
 	self.music:setVolume(1 - self.musicFadeoutTimer / self.musicFadeoutEnd)
+end
+
+function game:pauseSound()
+	-- self.pausedSources = {}
+	-- for _, source in pairs(self.allSources)	do
+	-- 	if source:isPlaying() then
+	-- 		table.insert(self.pausedSources, source)
+	-- 		source:pause()
+	-- 	end
+	-- end
+	self.pausedSources = love.audio.pause()
+end
+
+function game:resumeSound()
+	-- for _, source in ipairs(self.pausedSources) do
+	-- 	source:play()
+	-- end
+	-- self.pausedSources = nil
+	love.audio.play(self.pausedSources)
+	self.pausedSources = nil
 end
 
 return game

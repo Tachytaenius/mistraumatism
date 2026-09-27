@@ -1,4 +1,5 @@
 local version = love.filesystem.read("version.txt") -- This file is provided on build
+version = version or "unknown"
 
 local util = require("util")
 util.load()
@@ -16,12 +17,13 @@ function love.load(args)
 		if arg == "--help" then
 			print("Yes, you are loved :)")
 		elseif arg == "--version" then
-			print(version or "No version found...")
+			print(version)
 			love.event.quit()
 			return
 		end
 	end
 	love.graphics.setDefaultFilter("nearest")
+	game.version = version
 	game:init(args)
 	mouseHideTimer = consts.mouseHideTimerLength
 end
@@ -110,4 +112,10 @@ end
 
 function love.mousemoved()
 	mouseHideTimer = consts.mouseHideTimerLength
+end
+
+function love.resized()
+	if game.endingSequenceGraphics then
+		game:refreshEndGraphicsCanvasses()
+	end
 end

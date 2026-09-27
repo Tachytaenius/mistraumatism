@@ -78,6 +78,14 @@ function game:draw()
 		end
 	end
 	love.graphics.setShader()
+
+	if self.endingSequenceGraphics and self.endingSequenceGraphics.show(self) then
+		-- The fantasy computer's graphics suddenly transcend the limitations of a text-only terminal. Magical!
+		love.graphics.setColor(1, 1, 1, self.endingSequenceGraphics.fade)
+		self.endingSequenceGraphics.draw(self)
+		love.graphics.draw(self.endingSequenceGraphics.canvas, xOffset, yOffset, 0)
+		love.graphics.setColor(1, 1, 1)
+	end
 end
 
 function game:drawFramebufferGameplay(framebuffer) -- After this function completes, the result is in currentFramebuffer
@@ -1844,7 +1852,10 @@ function game:drawFramebufferMenu(framebuffer)
 		end
 	end
 
-	drawStringFramebuffer(0, 0, "Menu... (TODO)", "white", "black")
+	drawStringFramebuffer(0, 0, "MENU (TODO)", "white", "black")
+	local text = "Version: " .. self.version
+	drawStringFramebuffer(self.framebufferWidth - #text, 0, text, "darkGrey", "black")
+	do return end -- TEMP
 	local y = 3
 	local keyXOffs = 30
 	local dots = string.rep("." and "─", keyXOffs)

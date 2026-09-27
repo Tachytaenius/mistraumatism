@@ -255,9 +255,7 @@ function info:createLevel()
 				self:placeItem(x, y, "buckshotShell", "plasticRed")
 			end
 		elseif value == 0xf5 then
-			for _=1, 2 do
-				self:placeItem(x, y, "bandage", "cloth")
-			end
+			self:placeItem(x, y, "smallMedkit", "plasticGreen")
 		elseif value == 0xfe then
 			local tile = self:getTile(x, y)
 			tile.fallLevelChange = "patriarchalCesspool"
