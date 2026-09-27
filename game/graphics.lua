@@ -9,7 +9,7 @@ local commands = require("commands")
 local game = {}
 
 function game:clearFramebuffer()
-	local framebuffer = self.currentFramebuffer
+	local framebuffer = self.framebuffer
 	for x = 0, self.framebufferWidth - 1 do
 		local column = framebuffer[x]
 		for y = 0, self.framebufferHeight - 1 do
@@ -26,8 +26,7 @@ function game:draw()
 		return
 	end
 
-	self.currentFramebuffer, self.otherFramebuffer = self.otherFramebuffer, self.currentFramebuffer
-	local framebuffer = self.currentFramebuffer
+	local framebuffer = self.framebuffer
 	self:clearFramebuffer()
 
 	if self.mode == "gameplay" then
@@ -44,39 +43,31 @@ function game:draw()
 
 	local fontImage = self.fontImage
 	local paletteImage = self.paletteImage
-	local characterQuad = self.characterQuad
-	local characterColoursShader = self.characterColoursShader
+	local terminalShader = self.terminalShader
 
 	local characterWidth = fontImage:getWidth() / consts.fontWidthCharacters
 	local characterHeight = fontImage:getHeight() / consts.fontHeightCharacters
-	love.graphics.setShader(characterColoursShader)
-	characterColoursShader:send("palette", paletteImage)
+	love.graphics.setShader(terminalShader)
+	terminalShader:send("palette", paletteImage)
+	terminalShader:send("font", fontImage)
+	terminalShader:send("framebufferSize", {self.framebufferWidth, self.framebufferHeight})
+	-- terminalShader:send("charSize", {characterWidth, characterHeight})
+	local framebufferData = self.framebufferData
 	local width, height = self:getCanvasSize()
 	local xOffset = (love.graphics.getWidth() - width * settings.graphics.canvasScale) / 2
 	local yOffset = (love.graphics.getHeight() - height * settings.graphics.canvasScale) / 2
 	for x = 0, self.framebufferWidth - 1 do
-		local column = self.currentFramebuffer[x]
+		local column = self.framebuffer[x]
 		for y = 0, self.framebufferHeight - 1 do
 			local cell = column[y]
 			local characterId = consts.cp437Map[cell.character]
-			local fontX = characterId % consts.fontWidthCharacters
-			local fontY = math.floor(characterId / consts.fontWidthCharacters)
-			characterQuad:setViewport(
-				fontX * characterWidth, fontY * characterHeight,
-				characterWidth, characterHeight,
-				fontImage:getDimensions()
-			)
-			characterColoursShader:send("backgroundColourCoords", consts.colourCoordsTexel[cell.backgroundColour])
-			characterColoursShader:send("foregroundColourCoords", consts.colourCoordsTexel[cell.foregroundColour])
-			love.graphics.draw(
-				fontImage, characterQuad,
-				xOffset + x * characterWidth * settings.graphics.canvasScale,
-				yOffset + y * characterHeight * settings.graphics.canvasScale,
-				0,
-				settings.graphics.canvasScale, settings.graphics.canvasScale
-			)
+			local fgInfo = consts.colourIds[cell.foregroundColour]
+			local bgInfo = consts.colourIds[cell.backgroundColour]
+			framebufferData:setPixel(x, y, love.math.colorFromBytes(characterId, fgInfo, bgInfo, 255))
 		end
 	end
+	self.framebufferImage:replacePixels(self.framebufferData)
+	love.graphics.draw(self.framebufferImage, xOffset, yOffset, 0, characterWidth * settings.graphics.canvasScale, characterHeight * settings.graphics.canvasScale)
 	love.graphics.setShader()
 
 	if self.endingSequenceGraphics and self.endingSequenceGraphics.show(self) then
@@ -326,8 +317,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
 		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
-		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
-		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		assert(consts.colourIds[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourIds[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
 			0 <= framebufferY and framebufferY < self.framebufferHeight
@@ -1522,8 +1513,8 @@ function game:drawFramebufferText(framebuffer)
 	-- Copied
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
 		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
-		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
-		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		assert(consts.colourIds[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourIds[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
 			0 <= framebufferY and framebufferY < self.framebufferHeight
@@ -1576,8 +1567,8 @@ function game:drawFramebufferTitle(framebuffer)
 	-- Copied...
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
 		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
-		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
-		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		assert(consts.colourIds[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourIds[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
 			0 <= framebufferY and framebufferY < self.framebufferHeight
@@ -1649,8 +1640,8 @@ function game:drawFramebufferLevelSelect(framebuffer)
 	-- Copied...
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
 		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
-		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
-		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		assert(consts.colourIds[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourIds[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
 			0 <= framebufferY and framebufferY < self.framebufferHeight
@@ -1824,8 +1815,8 @@ function game:drawFramebufferMenu(framebuffer)
 	-- Copied...
 	local function drawCharacterFramebuffer(framebufferX, framebufferY, character, foregroundColour, backgroundColour)
 		assert(consts.cp437Map[character], "Invalid character " .. tostring(character))
-		assert(consts.colourCoords[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
-		assert(consts.colourCoords[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
+		assert(consts.colourIds[foregroundColour], "Invalid foreground colour " .. tostring(foregroundColour))
+		assert(consts.colourIds[backgroundColour], "Invalid background colour " .. tostring(backgroundColour))
 		if
 			0 <= framebufferX and framebufferX < self.framebufferWidth and
 			0 <= framebufferY and framebufferY < self.framebufferHeight

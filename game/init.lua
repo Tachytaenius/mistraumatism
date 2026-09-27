@@ -103,7 +103,8 @@ function game:init(args)
 	self.consoleWidth = self.framebufferWidth - 2
 	self.consoleHeight = self.framebufferHeight - self.viewportHeight - 3
 
-	self.currentFramebuffer, self.otherFramebuffer = self:newFramebuffer(), self:newFramebuffer()
+	self.framebuffer = self:newFramebuffer()
+	self.framebufferData = love.image.newImageData(self.framebufferWidth, self.framebufferHeight)
 
 	self.updateTimer = 0 -- Used when player is not in control, "spent" on fixed updates
 	self.realTime = 0
@@ -129,8 +130,8 @@ function game:init(args)
 	self:setIcon("icons/main.png")
 	self.fontImage = love.graphics.newImage(fontLocation)
 	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
-	self.characterQuad = love.graphics.newQuad(0, 0, 1, 1, 1, 1) -- Don't-care values
-	self.characterColoursShader = love.graphics.newShader("shaders/characterColours.glsl")
+	self.framebufferImage = love.graphics.newImage(self.framebufferData)
+	self.terminalShader = love.graphics.newShader("shaders/terminal.glsl")
 	commands.compileControls()
 	self:loadSounds()
 

@@ -41,32 +41,26 @@ consts.cp437Count = 256
 
 consts.fontWidthCharacters, consts.fontHeightCharacters = 16, 16
 
-consts.colourCoords = {
-	black = {0, 0}, darkGrey = {1, 0},
-	darkRed = {0, 1}, red = {1, 1},
-	darkYellow = {0, 2}, yellow = {1, 2},
-	darkGreen = {0, 3}, green = {1, 3},
-	darkCyan = {0, 4}, cyan = {1, 4},
-	darkBlue = {0, 5}, blue = {1, 5},
-	darkMagenta = {0, 6}, magenta = {1, 6},
-	lightGrey = {0, 7}, white = {1, 7}
+consts.colourIds = {
+	black = 0, darkGrey = 1,
+	darkRed = 2, red = 3,
+	darkYellow = 4, yellow = 5,
+	darkGreen = 6, green = 7,
+	darkCyan = 8, cyan = 9,
+	darkBlue = 10, blue = 11,
+	darkMagenta = 12, magenta = 13,
+	lightGrey = 14, white = 15
 }
 
-consts.colourCoordsTexel = {}
-for colour, coord in pairs(consts.colourCoords) do
-	consts.colourCoordsTexel[colour] = {coord[1] / 2, coord[2] / 8}
-end
-
 consts.darkerColours = {}
-for name, coords in pairs(consts.colourCoords) do
-	if coords[1] == 1 then
-		for otherName, otherCoords in pairs(consts.colourCoords) do
-			if otherCoords[2] == coords[2] and otherCoords[1] ~= coords[1] then
-				consts.darkerColours[name] = otherName
-			end
-		end
-	end
-end
+consts.darkerColours.darkGrey = "black"
+consts.darkerColours.red = "darkRed"
+consts.darkerColours.yellow = "darkYellow"
+consts.darkerColours.green = "darkGreen"
+consts.darkerColours.cyan = "darkCyan"
+consts.darkerColours.blue = "darkBlue"
+consts.darkerColours.magenta = "darkMagenta"
+consts.darkerColours.white = "lightGrey"
 consts.darkerColours.lightGrey = "darkGrey" -- Extra
 
 consts.fixedUpdateTickLength = 0.03125
