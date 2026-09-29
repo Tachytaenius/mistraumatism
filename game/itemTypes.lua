@@ -1137,7 +1137,7 @@ function game:loadItemTypes()
 		healItemUseTimer = 22,
 		healItemUseTimerOnGround = 25,
 		healItemBleedRateSubtract = 60,
-		healItemHealthAdd = 4,
+		healItemHealthAdd = 5,
 		healItemBloodReplenish = 6,
 		healItemDeleteOnUse = false,
 		interactionType = state.interactionTypes.healItem,

@@ -130,13 +130,15 @@ function game:init(args)
 	self:setIcon("icons/main.png")
 	self.fontImage = love.graphics.newImage(fontLocation)
 	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
-	self.framebufferImage = love.graphics.newImage(self.framebufferData)
+	self.framebufferImage = love.graphics.newImage(self.framebufferData, {
+		linear = true
+	})
 	self.terminalShader = love.graphics.newShader("shaders/terminal.glsl")
 	commands.compileControls()
 	self:loadSounds()
 
 	-- TEMP, change as needed
-	local skipIntro, startLevelName, noPlayer, skipTitle, playerCreatureType
+	local skipIntro, startLevelName, noPlayer, skipTitle, playerCreatureType, jumpToEnd
 	local playerCreatureTypeFromArg, playerCreatureTypeFromAltMode = false, true
 	for _, arg in ipairs(args) do
 		if arg == "--skipIntro" then
@@ -145,6 +147,8 @@ function game:init(args)
 			self.drawTickTimes = true
 		elseif arg == "--noPlayer" then
 			noPlayer = true
+		elseif arg == "--jumpToEnd" then
+			jumpToEnd = true
 		end
 		local startLevelArg = "^--startLevel="
 		if arg:match(startLevelArg) then
@@ -173,6 +177,13 @@ function game:init(args)
 			self.state.startLevelTimer = consts.startLevelTimerLength
 		end
 		self:debugOnNewState()
+		if jumpToEnd then
+			self:setReachedSafety()
+			self:setMusic("mercious", true, true)
+			self:setUpEndingSequenceGraphics()
+			self:endStage2()
+			self:jumpToEndingScene()
+		end
 		self.mode = "gameplay"
 	end
 

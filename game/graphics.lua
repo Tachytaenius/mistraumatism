@@ -643,7 +643,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local indicatorTiles = {} -- To stop indicators from clashing
 	local drawActionIndicators = self.realTime % 1.5 < 0.5
 	local drawCursor = self.realTime % 0.5 < (commands.checkModifier("moveCursorMode") and 0.4 or 0.25)
-	local drawJumpableTiles = self.realTime % 0.5 < 0.25 and commands.checkCommand("viewJumpReach")
+	local drawJumpableTiles = self.realTime % 1 < 0.5 and commands.checkCommand("viewJumpReach")
 	local drawEnemyAim = self.realTime % 0.75 < 0.375
 	local drawEntityWarnings = (self.realTime + 0.1875) % 0.75 < 0.375
 	local drawActionTime = false

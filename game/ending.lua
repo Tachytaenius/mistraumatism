@@ -89,52 +89,66 @@ function game:finishGame()
 	self.state.playerEscaping = true
 	self.state.playerEscapingCallbacks = {}
 	self.state.playerEscapingCallbacks[53] = function()
-		self:setMusic("mercious", true, true)
+		-- Set music has been moved to ending sequence graphics stage 2
 	end
 	self.state.playerEscapingCallbacks[60] = function()
-		self.endingSequenceGraphics = {
-			startY = self.state.player and self.state.player.y or self.state.lastPlayerY,
-			endY = 30,
-			stage = 1,
-			show = function()
-				return not self.menuInfo
-			end,
-			fade = 0,
-			realtimeUpdate = function(dt)
-				if self.endingSequenceGraphics.stage == 2 then
-					self:updateEndScene(dt)
-				end
-			end,
-			update = function()
-				if self.endingSequenceGraphics.stage == 1 then
-					local y = self.state.player and self.state.player.y or self.state.lastPlayerY
-					self.endingSequenceGraphics.fade = math.max(0, math.min(1, 1 - (y - self.endingSequenceGraphics.endY) / (self.endingSequenceGraphics.startY - self.endingSequenceGraphics.endY)))
-					if self.endingSequenceGraphics.fade >= 1 then
-						self.endingSequenceGraphics.stage = 2
-						self.state.playerEscapeSteps = nil
-
-						self.state.playerEscaping = nil
-						self.state.playerEscapingCallbacks = nil
-						self.mode = "ending"
-						self:initEndScene()
-					end
-				elseif self.endingSequenceGraphics.stage == 2 then
-					
-				end
-			end,
-			draw = function()
-				local g = self.endingSequenceGraphics
-				if g.stage == 2 then
-					self:drawEndScene()
-					return
-				end
-				love.graphics.setCanvas(g.canvas)
-				love.graphics.clear(1, 1, 1, 1) -- Because this canvas would be remade if font was changed during gameplay, don't rely on this not being cleared if this line isn't here
-				love.graphics.setCanvas()
-			end
-		}
-		self:refreshEndGraphicsCanvasses()
+		self:setUpEndingSequenceGraphics()
 	end
+end
+
+function game:setUpEndingSequenceGraphics()
+	self.endingSequenceGraphics = {
+		startY = self.state.player and self.state.player.y or self.state.lastPlayerY,
+		endY = 30,
+		stage = 1,
+		show = function()
+			return not self.menuInfo
+		end,
+		fade = 0,
+		realtimeUpdate = function(dt)
+			if self.endingSequenceGraphics.stage == 2 then
+				self:updateEndScene(dt)
+			end
+		end,
+		update = function()
+			if self.endingSequenceGraphics.stage == 1 then
+				local y = self.state.player and self.state.player.y or self.state.lastPlayerY
+				self.endingSequenceGraphics.fade = math.max(0, math.min(1, 1 - (y - self.endingSequenceGraphics.endY) / (self.endingSequenceGraphics.startY - self.endingSequenceGraphics.endY)))
+				if self.endingSequenceGraphics.fade >= 1 then
+					self.endingSequenceGraphics.stage = 2
+					self.state.playerEscapeSteps = nil
+
+					self:endStage2()
+				end
+			elseif self.endingSequenceGraphics.stage == 2 then
+
+			end
+		end,
+		draw = function()
+			local g = self.endingSequenceGraphics
+			if g.stage == 2 then
+				self:drawEndScene()
+				return
+			end
+			love.graphics.setCanvas(g.canvas)
+			love.graphics.clear(1, 1, 1, 1) -- Because this canvas would be remade if font was changed during gameplay, don't rely on this not being cleared if this line isn't here
+			love.graphics.setCanvas()
+		end
+	}
+	self:refreshEndGraphicsCanvasses()
+end
+
+function game:endStage2()
+	self.state.playerEscaping = nil
+	self.state.playerEscapingCallbacks = nil
+	self.mode = "ending"
+	self:setMusic("mercious", true, true)
+	self.endingSequenceGraphics.fade = 1
+	self:initEndScene()
+end
+
+function game:jumpToEndingScene()
+	self.endingSequenceGraphics.stage = 2
 end
 
 function game:finishEnding()
@@ -191,20 +205,20 @@ end
 function game:initEndScene()
 	local g = self.endingSequenceGraphics
 	g.fadeTimer2 = 0
-	g.objects = {}
-	table.insert(g.objects, {x = 0, y = 30, r = 20})
+	g.time = 0
 end
 
 function game:updateEndScene(dt)
 	local g = self.endingSequenceGraphics
 	g.fadeTimer2 = math.min(1, g.fadeTimer2 + dt * 0.25)
+	g.time = g.time + dt
 end
 
 function game:drawEndScene()
 	local g = self.endingSequenceGraphics
 	love.graphics.setCanvas(g.canvas)
 	love.graphics.clear(0, 0, 0, 1)
-	love.graphics.print("Ending sequence is TODO")
+	love.graphics.print(math.floor(g.time))
 
 	love.graphics.setColor(1, 1, 1, 1 - g.fadeTimer2)
 	love.graphics.rectangle("fill", 0, 0, g.canvas:getDimensions())
