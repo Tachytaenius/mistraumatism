@@ -110,30 +110,54 @@ function game:init(args)
 	self.realTime = 0
 	self.tickTimes = {}
 
-	local fontName, paletteName
-	local fontArg, paletteArg = "^--font=", "^--palette="
+	local terminalMode = false
 	for _, arg in ipairs(args) do
-		if arg:match(fontArg) then
-			fontName = arg:gsub(fontArg, "")
-		elseif arg:match(paletteArg) then
-			paletteName = arg:gsub(paletteArg, "")
+		if arg == "--terminal" then
+			terminalMode = true
+			break
 		end
 	end
-	fontName = fontName or "traumatica"
-	paletteName = paletteName or "natural"
 
-	local fontLocation = "fonts/" .. fontName .. ".png"
-	local fontImageData = love.image.newImageData(fontLocation)
-	local canvasWidth, canvasHeight = self:getCanvasSize(fontImageData:getDimensions())
-	settings.graphics.canvasScale = settings.graphics.canvasScale or util.getLargestAllowableCanvasScale(canvasWidth, canvasHeight)
-	self:remakeWindow(canvasWidth, canvasHeight)
-	self:setIcon("icons/main.png")
-	self.fontImage = love.graphics.newImage(fontLocation)
-	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
-	self.framebufferImage = love.graphics.newImage(self.framebufferData, {
-		linear = true
-	})
-	self.terminalShader = love.graphics.newShader("shaders/terminal.glsl")
+	if terminalMode then
+		self.term = require("term")
+		self.term.init()
+		-- Set new error handler
+		local function errorPrinter(msg, layer)
+			print((debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")))
+		end
+		function love.errorhandler(msg)
+			self.term.quit()
+			errorPrinter(msg, 2)
+		end
+	end
+
+	if not terminalMode then
+		local fontName, paletteName
+		local fontArg, paletteArg = "^--font=", "^--palette="
+		for _, arg in ipairs(args) do
+			if arg:match(fontArg) then
+				fontName = arg:gsub(fontArg, "")
+			elseif arg:match(paletteArg) then
+				paletteName = arg:gsub(paletteArg, "")
+			end
+		end
+		fontName = fontName or "traumatica"
+		paletteName = paletteName or "natural"
+
+		local fontLocation = "fonts/" .. fontName .. ".png"
+		local fontImageData = love.image.newImageData(fontLocation)
+		local canvasWidth, canvasHeight = self:getCanvasSize(fontImageData:getDimensions())
+		settings.graphics.canvasScale = settings.graphics.canvasScale or util.getLargestAllowableCanvasScale(canvasWidth, canvasHeight)
+		self:remakeWindow(canvasWidth, canvasHeight)
+		self:setIcon("icons/main.png")
+		self.fontImage = love.graphics.newImage(fontLocation)
+		self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
+		self.framebufferImage = love.graphics.newImage(self.framebufferData, {
+			linear = true
+		})
+		self.terminalShader = love.graphics.newShader("shaders/terminal.glsl")
+	end
+
 	commands.compileControls()
 	self:loadSounds()
 

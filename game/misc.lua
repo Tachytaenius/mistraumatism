@@ -211,6 +211,9 @@ function game:distance(x1, y1, x2, y2)
 end
 
 function game:remakeWindow(canvasWidth, canvasHeight)
+	if self.term then
+		return
+	end
 	if not (canvasWidth and canvasHeight) then
 		canvasWidth, canvasHeight = self:getCanvasSize()
 	end
@@ -241,6 +244,12 @@ function game:setIcon(path)
 	end
 	self.scaledIconImageData = util.getScaledImageData(path, consts.iconScale)
 	love.window.setIcon(self.scaledIconImageData)
+end
+
+function game:quitHandler()
+	if self.term then
+		self.term.quit()
+	end
 end
 
 return game

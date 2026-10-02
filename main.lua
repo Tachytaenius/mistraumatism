@@ -99,9 +99,19 @@ function love.update(dt)
 	game.realTime = game.realTime + dt
 
 	commands.tickFinished()
+
+	if game.term then
+		-- love.draw will not be called
+		game:draw()
+	end
 end
 
 function love.draw()
+	if game.term then
+		-- ???
+		return
+	end
+
 	if game.quitting then
 		return
 	end
@@ -118,4 +128,8 @@ function love.resized()
 	if game.endingSequenceGraphics then
 		game:refreshEndGraphicsCanvasses()
 	end
+end
+
+function love.quit()
+	return game:quitHandler()
 end

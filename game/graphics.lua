@@ -21,26 +21,7 @@ function game:clearFramebuffer()
 	end
 end
 
-function game:draw()
-	if self.noDraw then
-		return
-	end
-
-	local framebuffer = self.framebuffer
-	self:clearFramebuffer()
-
-	if self.mode == "gameplay" then
-		self:drawFramebufferGameplay(framebuffer)
-	elseif self.mode == "text" then
-		self:drawFramebufferText(framebuffer)
-	elseif self.mode == "title" then
-		self:drawFramebufferTitle(framebuffer)
-	elseif self.mode == "levelSelect" then
-		self:drawFramebufferLevelSelect(framebuffer)
-	elseif self.mode == "menu" then
-		self:drawFramebufferMenu(framebuffer)
-	end
-
+function game:drawGraphical()
 	local fontImage = self.fontImage
 	local paletteImage = self.paletteImage
 	local terminalShader = self.terminalShader
@@ -76,6 +57,47 @@ function game:draw()
 		self.endingSequenceGraphics.draw(self)
 		love.graphics.draw(self.endingSequenceGraphics.canvas, xOffset, yOffset, 0)
 		love.graphics.setColor(1, 1, 1)
+	end
+end
+
+function game:drawTerminal()
+	self.term.clear()
+
+	for x = 0, self.framebufferWidth - 1 do
+		local column = self.framebuffer[x]
+		for y = 0, self.framebufferHeight - 1 do
+			local cell = column[y]
+			self.term.print(x, y, cell.foregroundColour, cell.backgroundColour, cell.character)
+		end
+	end
+
+	self.term.present()
+end
+
+function game:draw()
+	if self.noDraw then
+		return
+	end
+
+	local framebuffer = self.framebuffer
+	self:clearFramebuffer()
+
+	if self.mode == "gameplay" then
+		self:drawFramebufferGameplay(framebuffer)
+	elseif self.mode == "text" then
+		self:drawFramebufferText(framebuffer)
+	elseif self.mode == "title" then
+		self:drawFramebufferTitle(framebuffer)
+	elseif self.mode == "levelSelect" then
+		self:drawFramebufferLevelSelect(framebuffer)
+	elseif self.mode == "menu" then
+		self:drawFramebufferMenu(framebuffer)
+	end
+
+	if self.term then
+		self:drawTerminal()
+	else
+		self:drawGraphical()
 	end
 end
 
