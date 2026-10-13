@@ -74,7 +74,7 @@ function game:draw()
 		-- The fantasy computer's graphics suddenly transcend the limitations of a text-only terminal. Magical!
 		love.graphics.setColor(1, 1, 1, self.endingSequenceGraphics.fade)
 		self.endingSequenceGraphics.draw(self)
-		love.graphics.draw(self.endingSequenceGraphics.canvas, xOffset, yOffset, 0)
+		love.graphics.draw(self.endingSequenceGraphics.canvas, xOffset, yOffset + self.endingSequenceGraphics.canvas:getHeight(), 0, 1, -1)
 		love.graphics.setColor(1, 1, 1)
 	end
 end

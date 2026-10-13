@@ -177,6 +177,7 @@ function game:init(args)
 			self.state.startLevelTimer = consts.startLevelTimerLength
 		end
 		self:debugOnNewState()
+		self.mode = "gameplay"
 		if jumpToEnd then
 			self:setReachedSafety()
 			self:setMusic("mercious", true, true)
@@ -184,7 +185,6 @@ function game:init(args)
 			self:endStage2()
 			self:jumpToEndingScene()
 		end
-		self.mode = "gameplay"
 	end
 
 	local function makeIntro(level, flickerIntro)

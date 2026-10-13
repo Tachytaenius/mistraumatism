@@ -161,4 +161,11 @@ end
 
 consts.autoOpenDoorHackTimerLength = 0.5
 
+consts.vertexFormat = {
+	{"VertexPosition", "float", 3},
+	{"VertexTexCoord", "float", 2},
+	{"VertexNormal", "float", 3},
+}
+consts.entityLoadObjZMultiplier = -1
+
 return consts

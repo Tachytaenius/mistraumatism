@@ -229,6 +229,12 @@ function game:remakeWindow(canvasWidth, canvasHeight)
 	love.window.setTitle(consts.windowTitle)
 end
 
+function game:handleResize()
+	if self.endingSequenceGraphics then
+		self:refreshEndGraphicsCanvasses()
+	end
+end
+
 function game:setIcon(path)
 	if path == self.path then
 		return

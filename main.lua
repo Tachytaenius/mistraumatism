@@ -46,9 +46,11 @@ local function handleSettings()
 	-- Window should've been made already
 	settings.graphics.fullscreen = love.window.getFullscreen()
 	local shouldRemakeWindow
+	local shouldRemakeEndCanvasses
 	if commands.checkCommand("decreaseCanvasScale") then
 		if settings.graphics.canvasScale > 1 then
 			settings.graphics.canvasScale = settings.graphics.canvasScale - 1
+			shouldRemakeEndCanvasses = true
 			if not settings.graphics.fullscreen then
 				shouldRemakeWindow = true
 			end
@@ -57,6 +59,7 @@ local function handleSettings()
 	if commands.checkCommand("increaseCanvasScale") then
 		if settings.graphics.canvasScale < util.getLargestAllowableCanvasScale(game:getCanvasSize()) then
 			settings.graphics.canvasScale = settings.graphics.canvasScale + 1
+			shouldRemakeEndCanvasses = true
 			if not settings.graphics.fullscreen then
 				shouldRemakeWindow = true
 			end
@@ -72,6 +75,9 @@ local function handleSettings()
 		else
 			shouldRemakeWindow = true
 		end
+	end
+	if shouldRemakeEndCanvasses then
+		game:handleResize()
 	end
 	if shouldRemakeWindow then
 		game:remakeWindow()
@@ -107,15 +113,13 @@ function love.draw()
 	end
 	game:draw()
 
-	-- love.graphics.print(love.timer.getFPS())
+	love.graphics.print(love.timer.getFPS())
 end
 
 function love.mousemoved()
 	mouseHideTimer = consts.mouseHideTimerLength
 end
 
-function love.resized()
-	if game.endingSequenceGraphics then
-		game:refreshEndGraphicsCanvasses()
-	end
+function love.resize()
+	game:handleResize()
 end
