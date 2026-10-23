@@ -52,6 +52,10 @@ function commands.compileControls()
 	controls = {}
 	for _, t in ipairs({settings.inputBindings, consts.fixedControls}) do
 		for k, v in pairs(t) do
+			if v == false then
+				goto continue
+			end
+
 			if commandTypes.commandGroups[k] then
 				for command in pairs(commandTypes.commandGroups[k]) do
 					if command == "isGroup" or command == "relevantModifiers" or command == "groupName" then
@@ -65,6 +69,8 @@ function commands.compileControls()
 
 			controls[k] = controls[k] or {}
 			table.insert(controls[k], v)
+
+			::continue::
 		end
 	end
 end
@@ -128,7 +134,14 @@ function commands.keyPressed(pressedKey)
 	end
 end
 
+local game
 function commands.checkCommand(command)
+	-- Lovely HACK
+	game = game or require("game")
+	if game.menuInfo and game.menuInfo.rebinding then
+		return false
+	end
+
 	local value = commandTypes.commands[command]
 	if not value then
 		error("Unknown command " .. command)

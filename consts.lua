@@ -159,6 +159,9 @@ for k, v in pairs(consts.fixedControls) do
 	consts.fixedControlsUsedKeys[v] = k
 end
 
+consts.keyUnbinder = "backspace"
+consts.fixedControlsUsedKeys[consts.keyUnbinder] = true -- HACK, I guess. But it kind of is a fixed control key sorta
+
 consts.autoOpenDoorHackTimerLength = 0.5
 
 consts.vertexFormat = {

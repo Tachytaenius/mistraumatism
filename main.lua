@@ -29,11 +29,17 @@ function love.load(args)
 end
 
 function love.keypressed(key)
+	if key == consts.keyUnbinder and not (game.menuInfo and game.menuInfo.rebinding) then
+		game:keyUnbinderPressed()
+		return
+	end
 	if game.menuInfo and game.menuInfo.rebinding then
-		if key == "escape" then
-			game:rebindToKey(nil)
-		else
-			game:rebindToKey(key)
+		local rebindKey = key
+		if key == consts.keyUnbinder then
+			rebindKey = false
+		end
+		if key == "escape" or game:rebindToKey(game.menuInfo.controlToRebind, rebindKey) then
+			game.menuInfo.rebindDone = true
 		end
 	else
 		commands.keyPressed(key)
@@ -44,12 +50,15 @@ local function handleSettings()
 	love.audio.setVolume(settings.sound.volume)
 
 	-- Window should've been made already
+	local prevFullscreen = settings.graphics.fullscreen
 	settings.graphics.fullscreen = love.window.getFullscreen()
 	local shouldRemakeWindow
 	local shouldRemakeEndCanvasses
+	local settingChanged = not not prevFullscreen == not not settings.graphics.fullscreen
 	if commands.checkCommand("decreaseCanvasScale") then
 		if settings.graphics.canvasScale > 1 then
 			settings.graphics.canvasScale = settings.graphics.canvasScale - 1
+			settingChanged = true
 			shouldRemakeEndCanvasses = true
 			if not settings.graphics.fullscreen then
 				shouldRemakeWindow = true
@@ -59,6 +68,7 @@ local function handleSettings()
 	if commands.checkCommand("increaseCanvasScale") then
 		if settings.graphics.canvasScale < util.getLargestAllowableCanvasScale(game:getCanvasSize()) then
 			settings.graphics.canvasScale = settings.graphics.canvasScale + 1
+			settingChanged = true
 			shouldRemakeEndCanvasses = true
 			if not settings.graphics.fullscreen then
 				shouldRemakeWindow = true
@@ -67,6 +77,7 @@ local function handleSettings()
 	end
 	if commands.checkCommand("toggleFullscreen") then
 		settings.graphics.fullscreen = not settings.graphics.fullscreen
+		settingChanged = true
 		if settings.graphics.fullscreen then
 			love.window.setFullscreen(true, "desktop")
 			-- If you change canvas scale and toggle fullscreen at the same time, there can be some buggy behaviour about which display is selected.
@@ -81,6 +92,9 @@ local function handleSettings()
 	end
 	if shouldRemakeWindow then
 		game:remakeWindow()
+	end
+	if settingChanged then
+		settings("save")
 	end
 end
 
@@ -113,7 +127,7 @@ function love.draw()
 	end
 	game:draw()
 
-	love.graphics.print(love.timer.getFPS())
+	-- love.graphics.print(love.timer.getFPS())
 end
 
 function love.mousemoved()

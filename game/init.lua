@@ -110,6 +110,7 @@ function game:init(args)
 	self.realTime = 0
 	self.tickTimes = {}
 
+	-- TODO: Replace args here with settings
 	local fontName, paletteName
 	local fontArg, paletteArg = "^--font=", "^--palette="
 	for _, arg in ipairs(args) do
@@ -125,7 +126,11 @@ function game:init(args)
 	local fontLocation = "fonts/" .. fontName .. ".png"
 	local fontImageData = love.image.newImageData(fontLocation)
 	local canvasWidth, canvasHeight = self:getCanvasSize(fontImageData:getDimensions())
-	settings.graphics.canvasScale = settings.graphics.canvasScale or util.getLargestAllowableCanvasScale(canvasWidth, canvasHeight)
+
+	settings("load")
+	settings("save")
+	-- settings.graphics.canvasScale = settings.graphics.canvasScale or util.getLargestAllowableCanvasScale(canvasWidth, canvasHeight)
+
 	self:remakeWindow(canvasWidth, canvasHeight)
 	self:setIcon("icons/main.png")
 	self.fontImage = love.graphics.newImage(fontLocation)

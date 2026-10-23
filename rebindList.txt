@@ -35,19 +35,24 @@ handleInventorySlot7Group inventory slot 7
 handleInventorySlot8Group inventory slot 8
 handleInventorySlot9Group inventory slot 9
 handleInventorySlotNoneGroup no inventory slot
-"modifiers"
-moveAlternativeMode alternative move mode
-dodgeMode dodge mode
-moveCursorMode move cursor mode
+"misc modifiers"
+dropMode drop mode
+changeWornItemMode change worn item mode
 ammoListMode ammo list mode
 meleeChargeMode charge melee mode
+"movement modifiers"
+moveCursorMode move cursor mode
+dodgeMode dodge mode
+moveAlternativeMode alternative move mode
+"gun loading modifiers"
 reloadMode reload mode
 unloadMode unload mode
-dropMode drop mode
-energyWeaponChargeMode energy weapon charge mode
-energyWeaponDischargeMode energy weapon discharge mode
-changeWornItemMode change worn item mode
+"gun side modifiers"
 operateGunSide1 operate gun side 1
 operateGunSide2 operate gun side 2
+"ammo rotation modifiers"
 rotateAmmoBackwardsMode rotate ammo backwards mode
 rotateAmmoForwardsMode rotate ammo forwards mode
+"energy weapon modifiers"
+energyWeaponChargeMode energy weapon charge mode
+energyWeaponDischargeMode energy weapon discharge mode

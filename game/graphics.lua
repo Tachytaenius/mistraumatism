@@ -5,6 +5,7 @@ local util = require("util")
 local settings = require("settings")
 local consts = require("consts")
 local commands = require("commands")
+local commandTypes = require("commandTypes")
 
 local game = {}
 
@@ -1843,32 +1844,170 @@ function game:drawFramebufferMenu(framebuffer)
 		end
 	end
 
-	drawStringFramebuffer(0, 0, "MENU (TODO)", "white", "black")
-	local text = "Version: " .. self.version
-	drawStringFramebuffer(self.framebufferWidth - #text, 0, text, "darkGrey", "black")
-	do return end -- TEMP
-	local y = 3
-	local keyXOffs = 30
-	local dots = string.rep("." and "─", keyXOffs)
-	for _, group in ipairs(self.menuInfo.controlsList) do
-		drawStringFramebuffer(0, y, util.capitalise(group.name), "lightGrey", "black")
-		y = y + 1
-		for _, entry in ipairs(group) do
-			drawStringFramebuffer(0, y, dots, "darkGrey", "black")
-			drawStringFramebuffer(0, y, util.capitalise(entry.name), "white", "black")
+	local curSubmenu = self.menuInfo.submenuStack[#self.menuInfo.submenuStack]
 
-			local boundTo = settings.inputBindings[entry.binding]
-			if boundTo then
-				drawStringFramebuffer(keyXOffs, y, "[", "lightGrey", "darkGrey")
-				drawStringFramebuffer(keyXOffs + 1, y, boundTo:upper(), "white", "darkGrey")
-				drawStringFramebuffer(keyXOffs + 1 + #boundTo, y, "]", "lightGrey", "darkGrey")
-			else
-				drawStringFramebuffer(keyXOffs, y, "Unbound", "lightGrey", "darkGrey")
-			end
+	local scrollRemaining = curSubmenu.scroll
+	local y = 0
 
-			y = y + 1
+	local function write(indent, text, colour, selected)
+		if scrollRemaining > 0 then
+			scrollRemaining = scrollRemaining - 1
+			return false
+		end
+		if type(text) == "function" then
+			text(y)
+		elseif text then
+			drawStringFramebuffer(indent, y, text, colour, "black")
+		end
+		if selected then
+			drawStringFramebuffer(1, y, "►", "white", "black")
 		end
 		y = y + 1
+		return true
+	end
+
+	if write(0, string.rep("=", self.framebufferWidth), "darkGrey") then
+		drawStringFramebuffer(math.floor((self.framebufferWidth - #curSubmenu.title) / 2), y - 1, curSubmenu.title, "white", "black")
+	end
+	write()
+
+	if curSubmenu.help then
+		for _, line in ipairs(curSubmenu.help) do
+			write(1, line, "lightGrey")
+		end
+		write()
+	end
+
+	for i, entry in ipairs(curSubmenu) do
+		write(3, entry.displayName, "white", i == curSubmenu.cursorPos)
+	end
+	write()
+
+	if curSubmenu.showControls then
+		local commandBoundKeys = {}
+		for _, source in ipairs({commandTypes.commands, commandTypes.commandGroups}) do
+			for command in pairs(source) do
+				local binding = settings.inputBindings[command]
+				if binding then
+					commandBoundKeys[binding] = commandBoundKeys[binding] and "conflict" or "present"
+				end
+			end
+		end
+
+		local modifierKeys = {}
+		for modifier in pairs(commandTypes.modifiers) do
+			local binding = settings.inputBindings[modifier]
+			modifierKeys[binding] = "present"
+		end
+
+		local modifierGroupBoundKeys = {}
+		for modifier, group in pairs(commandTypes.groupFromModifier) do
+			local groupTable = modifierGroupBoundKeys[group] or {}
+			modifierGroupBoundKeys[group] = groupTable
+			local binding = settings.inputBindings[modifier]
+			if binding then
+				groupTable[binding] = groupTable[binding] and "conflict" or "present"
+			end
+		end
+
+		for key in pairs(modifierKeys) do
+			if commandBoundKeys[key] then
+				modifierKeys[key] = "conflict"
+				commandBoundKeys[key] = "conflict"
+			end
+		end
+
+		local entryIndex = #curSubmenu + 1
+		local indent = 3
+		local keyXOffs = 30 + indent
+		local dots = string.rep("." and "─", keyXOffs)
+		for _, group in ipairs(self.menuInfo.controlsList) do
+			write(indent, util.capitalise(group.name), "lightGrey")
+			for _, entry in ipairs(group) do
+				write(nil, function(y)
+					drawStringFramebuffer(indent, y, dots, "darkGrey", "black")
+					drawStringFramebuffer(indent, y, util.capitalise(entry.name), "white", "black")
+
+					local boundTo = settings.inputBindings[entry.binding]
+					if boundTo then
+						local conflict = false
+						if commandTypes.modifiers[entry.binding] then
+							conflict = modifierKeys[boundTo] == "conflict"
+							local group = commandTypes.groupFromModifier[entry.binding]
+							if group and not conflict then
+								conflict = modifierGroupBoundKeys[group][boundTo] == "conflict"
+							end
+						else
+							conflict = commandBoundKeys[boundTo] == "conflict"
+						end
+						local bg = conflict and "darkRed" or "darkGrey"
+						drawStringFramebuffer(keyXOffs, y, "[", "lightGrey", bg)
+						drawStringFramebuffer(keyXOffs + 1, y, boundTo:upper(), "white", bg)
+						drawStringFramebuffer(keyXOffs + 1 + #boundTo, y, "]", "lightGrey", bg)
+						if conflict then
+							drawStringFramebuffer(keyXOffs + 1 + #boundTo + 1, y, "!", "red", "black")
+						end
+					else
+						drawStringFramebuffer(keyXOffs, y, "Unbound", "lightGrey", "darkGrey")
+					end
+				end, nil, entryIndex == curSubmenu.cursorPos)
+
+				entryIndex = entryIndex + 1
+			end
+			write()
+		end
+	end
+	if self.menuInfo.rebinding then
+		local width = 32
+		local height = 6
+		local X = math.floor((self.framebufferWidth - width) / 2)
+		local Y = math.floor((self.framebufferHeight - height) / 2)
+		local rectangles = {
+			{x = X, y = Y, w = width, h = height}
+		}
+		local function isBorder(x, y)
+			for _, rectangle in ipairs(rectangles) do
+				local dx, dy = x - rectangle.x, y - rectangle.y
+				if dx >= 0 and dy >= 0 and dx <= rectangle.w - 1 and dy <= rectangle.h - 1 then
+					if not (dx > 0 and dy > 0 and dx < rectangle.w - 1 and dy < rectangle.h - 1) then
+						return true
+					end
+				end
+			end
+			return false
+		end
+		for x = X, X + width - 1 do
+			for y = Y, Y + height - 1 do
+				if not isBorder(x, y) then
+					drawCharacterFramebuffer(x, y, " ", "lightGrey", "black")
+					goto continue
+				end
+				local b = 2
+				local borderNum = (y - Y < b or Y + height - 1 - y < b) and 2 or 1
+				local character = util.getBoxDrawingCharacter(
+					isBorder(x + 1, y) and borderNum or 0,
+					isBorder(x, y - 1) and borderNum or 0,
+					isBorder(x - 1, y) and borderNum or 0,
+					isBorder(x, y + 1) and borderNum or 0
+				)
+				drawCharacterFramebuffer(x, y, character, "lightGrey", "black")
+			    ::continue::
+			end
+		end
+		for i, line in ipairs({
+			"Press a key to rebind:",
+			"\"" .. util.capitalise(self.menuInfo.controlToRebindDisplayName) .. "\"",
+			-- "",
+			-- "[BACKSPACE] to clear",
+			-- "[ESCAPE] to cancel"
+		}) do
+			drawStringFramebuffer(X + math.floor((width - #line) / 2), Y + i + 1, line, "white", "black")
+		end
+	end
+
+	if curSubmenu.showVersion then
+		local text = "Version: " .. self.version
+		drawStringFramebuffer(self.framebufferWidth - #text, self.framebufferHeight - 1, text, "darkGrey", "black")
 	end
 end
 

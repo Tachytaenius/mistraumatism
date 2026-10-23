@@ -95,30 +95,44 @@ for groupName, commandGroup in pairs(commandGroups) do
 	end
 end
 
+local modifiers = {
+	dodgeMode = true,
+	moveAlternativeMode = true,
+	moveCursorMode = true,
+	meleeChargeMode = true,
+	ammoListMode = true,
+	dropMode = true,
+	reloadMode = true,
+	unloadMode = true,
+	energyWeaponChargeMode = true,
+	energyWeaponDischargeMode = true,
+	changeWornItemMode = true,
+	operateGunSide1 = true,
+	operateGunSide2 = true,
+	rotateAmmoBackwardsMode = true,
+	rotateAmmoForwardsMode = true
+}
+local groupFromModifier = {
+	reloadMode = "reloadUnload",
+	unloadMode = "reloadUnload",
+
+	energyWeaponChargeMode = "energyWeaponSelect",
+	energyWeaponDischargeMode = "energyWeaponSelect",
+
+	operateGunSide1 = "gunSideSelect",
+	operateGunSide2 = "gunSideSelect",
+
+	rotateAmmoBackwardsMode = "ammoRotate",
+	rotateAmmoForwardsMode = "ammoRotate",
+
+	moveCursorMode = "movement",
+	moveAlternativeMode = "movement",
+	dodgeMode = "movement"
+}
+
 return {
 	commands = commands,
 	commandGroups = commandGroups,
-	modifiers = {
-		dodgeMode = true,
-		moveAlternativeMode = true,
-		moveCursorMode = true,
-		meleeChargeMode = true,
-		ammoListMode = true,
-		dropMode = true,
-		reloadMode = true,
-		unloadMode = true,
-		energyWeaponChargeMode = true,
-		energyWeaponDischargeMode = true,
-		changeWornItemMode = true,
-		operateGunSide1 = true,
-		operateGunSide2 = true,
-		rotateAmmoBackwardsMode = true,
-		rotateAmmoForwardsMode = true
-	},
-	modifierGroups = {
-		{"reloadMode", "unloadMode"},
-		{"energyWeaponChargeMode", "energyWeaponDischargeMode"},
-		{"operateGunSide1", "operateGunSide2"},
-		{"rotateAmmoBackwardsMode", "rotateAmmoForwardsMode"}
-	}
+	modifiers = modifiers,
+	groupFromModifier = groupFromModifier
 }

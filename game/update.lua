@@ -33,7 +33,7 @@ function game:realtimeUpdate(dt)
 	if self.mode ~= "menu" then
 		if commands.checkCommand("menu") then
 			self:initMenu()
-			self:updateMenu(dt)
+			-- self:updateMenu(dt)
 			return
 		end
 	else
@@ -178,6 +178,7 @@ function game:realtimeUpdate(dt)
 	elseif self.mode == "text" then
 		if not self.textInfo.text then
 			local text = love.filesystem.read(self.textInfo.path)
+			-- NOTE: This might not be the right way to handle UTF-8 find/replace. Or maybe it is, depending on how UTF-8 works...?
 			text = text:gsub("—", "─") -- Em dash to single-line horizontal box drawing
 			self.textInfo.text = text
 		end
