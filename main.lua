@@ -47,7 +47,7 @@ function love.keypressed(key)
 end
 
 local function handleSettings()
-	love.audio.setVolume(settings.sound.volume)
+	love.audio.setVolume(settings.sound.masterVolume)
 
 	-- Window should've been made already
 	local prevFullscreen = settings.graphics.fullscreen

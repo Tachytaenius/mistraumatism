@@ -1,3 +1,5 @@
+local settings = require("settings")
+
 local game = {}
 
 function game:loadSounds()
@@ -61,6 +63,7 @@ function game:setMusic(name, forceFadeoutEnd, noLoop)
 	self.music = self.musicSources[name]
 	self.musicName = name
 	self.music:setLooping(not noLoop)
+	self:applySoundVolumeMultipliers() -- Do this here just before playing to avoid an initial 100% volume
 	self.music:play()
 end
 
@@ -74,11 +77,27 @@ function game:fadeMusicOut(time)
 	self.musicFadeoutTimer = 0
 end
 
+function game:applySoundVolumeMultipliers()
+	if self.music then
+		self.music:setVolume(self.musicFadeVolume * settings.sound.musicVolume)
+	end
+
+	for _, source in pairs(self.soundSources) do
+		source:setVolume(settings.sound.soundVolume)
+	end
+end
+
 function game:handleMusicFade(dt)
+	if self.music and not self.music:isPlaying() then
+		return
+	end
+
+	self.musicFadeVolume = 1
+
 	if self.music and self.musicName == self.horrorMusicName then
 		self.horrorMusicFadeInTimer = math.min(self.horrorMusicFadeInTimerLength, self.horrorMusicFadeInTimer + dt)
 		local vol = self.horrorMusicFadeInTimerLength > 0 and self.horrorMusicFadeInTimer / self.horrorMusicFadeInTimerLength or 1
-		self.music:setVolume(vol)
+		self.musicFadeVolume = vol
 	end
 
 	if not (self.music and self.musicFadeoutTimer) then
@@ -94,7 +113,7 @@ function game:handleMusicFade(dt)
 		end
 		return
 	end
-	self.music:setVolume(1 - self.musicFadeoutTimer / self.musicFadeoutEnd)
+	self.musicFadeVolume = 1 - self.musicFadeoutTimer / self.musicFadeoutEnd
 end
 
 function game:pauseSound()

@@ -1,6 +1,8 @@
 return {
 	sound = {
-		volume = 0.75
+		masterVolume = 0.75,
+		soundVolume = 1,
+		musicVolume = 1
 	},
 	graphics = {
 		canvasScale = 1,

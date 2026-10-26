@@ -27,7 +27,9 @@ function game:isPlayerInControl()
 end
 
 function game:realtimeUpdate(dt)
-	self:handleMusicFade(dt)
+	self:handleMusicFade(dt) -- Doesn't do anything if music is paused (like when in menu)
+	self:applySoundVolumeMultipliers() -- Master volume is handled by love.audio.setVolume
+
 	self:handleCursorButtonMode(dt)
 
 	if self.mode ~= "menu" then
