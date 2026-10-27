@@ -43,14 +43,37 @@ function game:pushSubmenu(name)
 				self:pushSubmenu("help")
 			end
 		})
+		if self.menuInfo.oldMode ~= "title" then
+			table.insert(new, {
+				displayName = "Quit to Title",
+				onSelect = function()
+					self:pushSubmenu("quitTitle")
+				end
+			})
+		end
 		table.insert(new, {
-			displayName = "Quit Game",
+			displayName = "Close Game",
 			onSelect = function()
 				self:pushSubmenu("quit")
 			end
 		})
+	elseif name == "quitTitle" then
+		new.title = "Quit to Title?"
+		table.insert(new, {
+			displayName = "No, keep playing",
+			onSelect = function()
+				self:popSubmenu()
+			end
+		})
+		table.insert(new, {
+			displayName = "Yes, quit to title",
+			onSelect = function()
+				self.menuInfo = nil
+				self.enterTitleFunction()
+			end
+		})
 	elseif name == "quit" then
-		new.title = "Quit game?"
+		new.title = "Close Game?"
 		table.insert(new, {
 			displayName = "No, keep playing",
 			onSelect = function()
@@ -120,7 +143,33 @@ function game:pushSubmenu(name)
 				self:popSubmenu()
 			end
 		})
-		table.insert(new, {displayName = "TODO"})
+		table.insert(new, {
+			displayName = "Master Volume",
+			onSelect = function()
+				local bar = self:pushSubmenu("bar")
+				bar.settingCategory = "sound"
+				bar.settingName = "masterVolume"
+				bar.title = "Master Volume"
+			end
+		})
+		table.insert(new, {
+			displayName = "Music Volume",
+			onSelect = function()
+				local bar = self:pushSubmenu("bar")
+				bar.settingCategory = "sound"
+				bar.settingName = "musicVolume"
+				bar.title = "Music Volume"
+			end
+		})
+		table.insert(new, {
+			displayName = "Sound Effects Volume",
+			onSelect = function()
+				local bar = self:pushSubmenu("bar")
+				bar.settingCategory = "sound"
+				bar.settingName = "soundVolume"
+				bar.title = "Sound Effects Volume"
+			end
+		})
 	elseif name == "settings" then
 		new.title = "Settings"
 		table.insert(new, {
@@ -153,10 +202,16 @@ function game:pushSubmenu(name)
 				self:pushSubmenu("audio")
 			end
 		})
+	elseif name == "bar" then
+		new.drawType = "bar"
+		new.isBar = true
+		new.drawNext = true
+		new.popOnConfirmWithoutEntry = true
 	else
 		error("Unknown submenu name " .. tostring(name))
 	end
 	table.insert(self.menuInfo.submenuStack, new)
+	return new
 end
 
 function game:initMenu()
@@ -225,29 +280,52 @@ function game:updateMenu(dt)
 	end
 
 	local curSubmenu = self.menuInfo.submenuStack[#self.menuInfo.submenuStack]
-	local cursorPosZero = curSubmenu.cursorPos - 1
-	local len = #curSubmenu
-	if curSubmenu.showControls then
-		len = len + self.menuInfo.controlsListLen
+
+	if curSubmenu.isBar then
+		local change = 0
+		if commands.checkCommand("scrollListBackwards") then
+			change = change - 1
+		end
+		if commands.checkCommand("scrollListForwards") then
+			change = change + 1
+		end
+		if change ~= 0 then
+			local steps = consts.audioSteps
+			local value = settings[curSubmenu.settingCategory][curSubmenu.settingName]
+			value = math.floor(value * steps + 0.5) / steps
+			value = math.max(0, math.min(1, value + change / steps))
+			settings[curSubmenu.settingCategory][curSubmenu.settingName] = value
+			settings("save")
+		end
+	else
+		local cursorPosZero = curSubmenu.cursorPos - 1
+		local len = #curSubmenu
+		if curSubmenu.showControls then
+			len = len + self.menuInfo.controlsListLen
+		end
+		if commands.checkCommand("scrollListBackwards") then
+			cursorPosZero = (cursorPosZero - 1) % len
+		end
+		if commands.checkCommand("scrollListForwards") then
+			cursorPosZero = (cursorPosZero + 1) % len
+		end
+		curSubmenu.cursorPos = cursorPosZero + 1
 	end
-	if commands.checkCommand("scrollListBackwards") then
-		cursorPosZero = (cursorPosZero - 1) % len
-	end
-	if commands.checkCommand("scrollListForwards") then
-		cursorPosZero = (cursorPosZero + 1) % len
-	end
-	curSubmenu.cursorPos = cursorPosZero + 1
 
 	self:updateMenuScroll()
 
 	if commands.checkCommand("confirm") then
 		local entry = curSubmenu[curSubmenu.cursorPos]
-		if not entry then
+		if not entry and curSubmenu.showControls then
 			local binding, name = self:getSelectedKeybinding()
 			self.menuInfo.controlToRebind = binding
 			self.menuInfo.controlToRebindDisplayName = name
 			self.menuInfo.rebinding = true
-		elseif entry.onSelect then
+		elseif not entry and curSubmenu.popOnConfirmWithoutEntry then
+			if self:popSubmenuAllowed() then
+				self:popSubmenu()
+			end
+		elseif entry and entry.onSelect then
 			entry.onSelect()
 		end
 	end

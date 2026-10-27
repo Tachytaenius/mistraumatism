@@ -87,34 +87,34 @@ function game:realtimeUpdate(dt)
 				self:stopMusic() -- Should've already stopped
 				self.mode = "text"
 				self.textInfo = {
-				path = "text/a-sweet-weakness.txt",
-				timer = 0,
-				fullRedTime = 5,
-				changeToWhiteStartTime = 6.5,
-				changeToWhiteTime = 2.5,
-				xContribution = 0.1, -- Gradient of the red-to-white change
-				releaseTime = 9.5,
-				updateFunction = function(self, dt)
-					if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
-						self.state.enterTitleFunction()
-						-- return true
-					end
-					self.textInfo.timer = self.textInfo.timer + dt
-
-					local stages = {"black", "darkRed", "red"}
-
-					function self.textInfo.getColour(x, y)
-						local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullRedTime)
-						if self.textInfo.timer >= self.textInfo.changeToWhiteStartTime then
-							local proportion = (self.textInfo.timer - self.textInfo.changeToWhiteStartTime) / self.textInfo.changeToWhiteTime
-							if (y + x * self.textInfo.xContribution) / self.framebufferHeight <= proportion then
-								return "white", "black"
-							end
+					path = "text/a-sweet-weakness.txt",
+					timer = 0,
+					fullRedTime = 5,
+					changeToWhiteStartTime = 6.5,
+					changeToWhiteTime = 2.5,
+					xContribution = 0.1, -- Gradient of the red-to-white change
+					releaseTime = 9.5,
+					updateFunction = function(self, dt)
+						if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
+							self.enterTitleFunction()
+							-- return true
 						end
-						return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
+						self.textInfo.timer = self.textInfo.timer + dt
+
+						local stages = {"black", "darkRed", "red"}
+
+						function self.textInfo.getColour(x, y)
+							local proportion = math.min(1, self.textInfo.timer / self.textInfo.fullRedTime)
+							if self.textInfo.timer >= self.textInfo.changeToWhiteStartTime then
+								local proportion = (self.textInfo.timer - self.textInfo.changeToWhiteStartTime) / self.textInfo.changeToWhiteTime
+								if (y + x * self.textInfo.xContribution) / self.framebufferHeight <= proportion then
+									return "white", "black"
+								end
+							end
+							return stages[math.floor(proportion * (#stages - 1)) + 1] or "white", "black"
+						end
 					end
-				end
-			}
+				}
 				return true
 			end
 		end

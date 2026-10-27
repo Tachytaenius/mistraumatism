@@ -177,7 +177,6 @@ function game:init(args)
 			noPlayer = noPlayer,
 			playerCreatureType = playerCreatureType
 		})
-		self.state.enterTitleFunction = makeTitle
 		if haveFadein then
 			self.state.startLevelTimer = consts.startLevelTimerLength
 		end
@@ -304,7 +303,12 @@ function game:init(args)
 	end
 
 	local function exitTitle()
-		levelSelect()
+		if startLevelName then
+			exitIntro(startLevelName, not skipIntro)
+			self.forceRepeatUpdate = true
+		else
+			levelSelect()
+		end
 	end
 
 	function makeTitle()
@@ -312,6 +316,7 @@ function game:init(args)
 		self.mode = "title"
 		self:initTitle(exitTitle)
 	end
+	self.enterTitleFunction = makeTitle
 
 	if skipTitle then
 		exitTitle()
