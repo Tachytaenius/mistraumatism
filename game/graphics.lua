@@ -1939,6 +1939,19 @@ function game:drawFramebufferMenu(framebuffer)
 				end
 				write()
 			end
+			if curSubmenu.showPaletteSample then
+				for sampleY = 0, 15 do
+					write(nil, function(drawY)
+						for sampleX = 0, 15 do
+							local drawX = sampleX + 1
+							local fg = consts.coloursFromId[sampleY]
+							local bg = consts.coloursFromId[sampleX]
+							drawCharacterFramebuffer(drawX, drawY, "•", fg, bg)
+						end
+					end)
+				end
+				write()
+			end
 
 			for i, entry in ipairs(curSubmenu) do
 				write(3, entry.displayName, "white", i == curSubmenu.cursorPos)

@@ -1,4 +1,5 @@
 local commandTypes = require("commandTypes")
+local util = require("util")
 local commands = require("commands")
 local settings = require("settings")
 local consts = require("consts")
@@ -134,6 +135,18 @@ function game:pushSubmenu(name)
 				self:popSubmenu()
 			end
 		})
+		table.insert(new, {
+			displayName = "Font",
+			onSelect = function()
+				self:pushSubmenu("font")
+			end
+		})
+		table.insert(new, {
+			displayName = "Palette",
+			onSelect = function()
+				self:pushSubmenu("palette")
+			end
+		})
 		table.insert(new, {displayName = "TODO"})
 	elseif name == "audio" then
 		new.title = "Audio"
@@ -207,6 +220,53 @@ function game:pushSubmenu(name)
 		new.isBar = true
 		new.drawNext = true
 		new.popOnConfirmWithoutEntry = true
+	elseif name == "font" then
+		new.title = "Font"
+		new.needsScroll = true
+		new.help = {
+			"New CP437 font image files can be placed in \"fonts\" in",
+			"the save directory.",
+			""
+		}
+		for _, line in ipairs(consts.cp437Lines) do
+			table.insert(new.help, line)
+		end
+		table.insert(new, {
+			displayName = "Back",
+			onSelect = function()
+				self:popSubmenu()
+			end
+		})
+		for _, filename in pairs(love.filesystem.getDirectoryItems("fonts")) do
+			table.insert(new, {
+				displayName = filename,
+				onSelect = function()
+					self:tryChangeFont(filename)
+				end
+			})
+		end
+	elseif name == "palette" then
+		new.title = "Palette"
+		new.needsScroll = true
+		new.help = {
+			"New palette image files can be placed in \"palettes\"",
+			"in the save directory."
+		}
+		new.showPaletteSample = true
+		table.insert(new, {
+			displayName = "Back",
+			onSelect = function()
+				self:popSubmenu()
+			end
+		})
+		for _, filename in pairs(love.filesystem.getDirectoryItems("palettes")) do
+			table.insert(new, {
+				displayName = filename,
+				onSelect = function()
+					self:tryChangePalette(filename)
+				end
+			})
+		end
 	else
 		error("Unknown submenu name " .. tostring(name))
 	end
@@ -261,6 +321,11 @@ function game:updateMenuScroll()
 			curSubmenu.scroll = cur - (height - margin) + 1
 		end
 		curSubmenu.scroll = math.max(0, math.min(max - height + 2, curSubmenu.scroll))
+
+		if curSubmenu.cursorPos == 1 then
+			-- Special case for large help texts etc (help is unselectable)
+			curSubmenu.scroll = 0
+		end
 	end
 end
 
@@ -396,6 +461,9 @@ function game:getMenuCursorY(override) -- Should match graphics
 	if curSubmenu.help then
 		y = y + #curSubmenu.help + 1
 	end
+	if curSubmenu.showPaletteSample then
+		y = y + 16 + 1
+	end
 
 	local lastReturnableY = y
 
@@ -428,6 +496,59 @@ function game:getMenuCursorY(override) -- Should match graphics
 
 	-- ???
 	return lastReturnableY
+end
+
+function game:tryChangeFont(filename, init)
+	local prevWidth, prevHeight
+	if not init then
+		prevWidth, prevHeight = self.fontImage:getDimensions()
+	end
+
+	local success, fontImageData = pcall(function() return love.image.newImageData("fonts/" .. filename) end)
+	if not success then
+		-- Assume this is OK since the default should be in the game's own files
+		settings("resetSingle", "graphics", "fontName")
+		fontImageData = love.image.newImageData("fonts/" .. settings.graphics.fontName)
+		settings("save")
+	else
+		if not init then
+			settings.graphics.fontName = filename
+			settings("save")
+		end
+	end
+
+	if init then
+		local canvasWidth, canvasHeight = self:getCanvasSize(fontImageData:getDimensions())
+		self:remakeWindow(canvasWidth, canvasHeight)
+		self.fontImage = love.graphics.newImage(fontImageData)
+	else
+		self.fontImage = love.graphics.newImage(fontImageData)
+		if not (prevWidth == self.fontImage:getWidth() and prevHeight == self.fontImage:getHeight()) then
+			settings.graphics.canvasScale = math.min(settings.graphics.canvasScale, util.getLargestAllowableCanvasScale(self:getCanvasSize(self.fontImage:getDimensions())))
+			if not settings.graphics.fullscreen then
+				self:remakeWindow()
+			end
+			self:handleResize()
+		end
+	end
+end
+
+function game:tryChangePalette(filename, settingsAlreadySavedToThis)
+	local success, paletteImage = pcall(function() return love.graphics.newImage("palettes/" .. filename) end)
+	if not success then
+		-- Assume this is OK since the default should be in the game's own files
+		settings("resetSingle", "graphics", "paletteName")
+		self.paletteImage = love.graphics.newImage("palettes/" .. settings.graphics.paletteName)
+		settings("save")
+	else
+		self.paletteImage = paletteImage
+		if settingsAlreadySavedToThis then
+			-- Avoid unnecessary write
+			return
+		end
+		settings.graphics.paletteName = filename
+		settings("save")
+	end
 end
 
 return game

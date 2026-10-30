@@ -110,31 +110,12 @@ function game:init(args)
 	self.realTime = 0
 	self.tickTimes = {}
 
-	-- TODO: Replace args here with settings
-	local fontName, paletteName
-	local fontArg, paletteArg = "^--font=", "^--palette="
-	for _, arg in ipairs(args) do
-		if arg:match(fontArg) then
-			fontName = arg:gsub(fontArg, "")
-		elseif arg:match(paletteArg) then
-			paletteName = arg:gsub(paletteArg, "")
-		end
-	end
-	fontName = fontName or "traumatica"
-	paletteName = paletteName or "natural"
-
-	local fontLocation = "fonts/" .. fontName .. ".png"
-	local fontImageData = love.image.newImageData(fontLocation)
-	local canvasWidth, canvasHeight = self:getCanvasSize(fontImageData:getDimensions())
-
 	settings("load")
 	settings("save")
-	-- settings.graphics.canvasScale = settings.graphics.canvasScale or util.getLargestAllowableCanvasScale(canvasWidth, canvasHeight)
 
-	self:remakeWindow(canvasWidth, canvasHeight)
 	self:setIcon("icons/main.png")
-	self.fontImage = love.graphics.newImage(fontLocation)
-	self.paletteImage = love.graphics.newImage("palettes/" .. paletteName .. ".png")
+	self:tryChangeFont(settings.graphics.fontName, true)
+	self:tryChangePalette(settings.graphics.paletteName, true)
 	self.framebufferImage = love.graphics.newImage(self.framebufferData, {
 		linear = true
 	})
@@ -312,6 +293,8 @@ function game:init(args)
 	end
 
 	function makeTitle()
+		self.endingSequenceGraphics = nil
+		self:stopMusic()
 		self.state = nil
 		self.mode = "title"
 		self:initTitle(exitTitle)

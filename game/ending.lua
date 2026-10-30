@@ -299,7 +299,7 @@ function game:initEndScene()
 		position = vec3(-sizeX / 2, 1, 0),
 		orientation = quat()
 	})
-	for _=1, 5000 do
+	for _=1, 500 do
 		local x = (love.math.random() - 0.5) * sizeX
 		local z = (love.math.random() - 0.5) * sizeY
 		table.insert(g.objects, {

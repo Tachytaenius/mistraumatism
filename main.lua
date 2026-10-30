@@ -55,6 +55,16 @@ local function handleSettings()
 	local shouldRemakeWindow
 	local shouldRemakeEndCanvasses
 	local settingChanged = not not prevFullscreen == not not settings.graphics.fullscreen
+	local largest = util.getLargestAllowableCanvasScale(game:getCanvasSize())
+	local initialCanvasScale = settings.graphics.canvasScale
+	if initialCanvasScale > largest then
+		settings.graphics.canvasScale = largest
+		settingChanged = true
+		shouldRemakeEndCanvasses = true
+		if not settings.graphics.fullscreen then
+			shouldRemakeWindow = true
+		end
+	end
 	if commands.checkCommand("decreaseCanvasScale") then
 		if settings.graphics.canvasScale > 1 then
 			settings.graphics.canvasScale = settings.graphics.canvasScale - 1
@@ -66,7 +76,7 @@ local function handleSettings()
 		end
 	end
 	if commands.checkCommand("increaseCanvasScale") then
-		if settings.graphics.canvasScale < util.getLargestAllowableCanvasScale(game:getCanvasSize()) then
+		if settings.graphics.canvasScale < largest then
 			settings.graphics.canvasScale = settings.graphics.canvasScale + 1
 			settingChanged = true
 			shouldRemakeEndCanvasses = true

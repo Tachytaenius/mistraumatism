@@ -6,7 +6,9 @@ return {
 	},
 	graphics = {
 		canvasScale = 1,
-		fullscreen = false
+		fullscreen = false,
+		fontName = "traumatica.png",
+		paletteName = "natural.png"
 	},
 	input = {
 		initialKeyRepeatTimerLength = 0.2,

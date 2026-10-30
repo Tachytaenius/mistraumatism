@@ -10,23 +10,25 @@ consts.iconScale = 16
 
 local null = utf8.char(0)
 local nonBreakingSpace = utf8.char(160)
-consts.cp437String =
-	null .. "☺☻♥♦♣♠•◘○◙♂♀♪♫☼" ..
-	"►◄↕‼¶§▬↨↑↓→←∟↔▲▼" ..
-	" !\"#$%&\'()*+,-./" ..
-	"0123456789:;<=>?" ..
-	"@ABCDEFGHIJKLMNO" ..
-	"PQRSTUVWXYZ[\\]^_" ..
-	"`abcdefghijklmno" ..
-	"pqrstuvwxyz{|}~⌂" ..
-	"ÇüéâäàåçêëèïîìÄÅ" ..
-	"ÉæÆôöòûùÿÖÜ¢£¥₧ƒ" ..
-	"áíóúñÑªº¿⌐¬½¼¡«»" ..
-	"░▒▓│┤╡╢╖╕╣║╗╝╜╛┐" ..
-	"└┴┬├─┼╞╟╚╔╩╦╠═╬╧" ..
-	"╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀" ..
-	"αßΓπΣσµτΦΘΩδ∞φε∩" ..
+consts.cp437Lines = {
+	null .. "☺☻♥♦♣♠•◘○◙♂♀♪♫☼",
+	"►◄↕‼¶§▬↨↑↓→←∟↔▲▼",
+	" !\"#$%&\'()*+,-./",
+	"0123456789:;<=>?",
+	"@ABCDEFGHIJKLMNO",
+	"PQRSTUVWXYZ[\\]^_",
+	"`abcdefghijklmno",
+	"pqrstuvwxyz{|}~⌂",
+	"ÇüéâäàåçêëèïîìÄÅ",
+	"ÉæÆôöòûùÿÖÜ¢£¥₧ƒ",
+	"áíóúñÑªº¿⌐¬½¼¡«»",
+	"░▒▓│┤╡╢╖╕╣║╗╝╜╛┐",
+	"└┴┬├─┼╞╟╚╔╩╦╠═╬╧",
+	"╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀",
+	"αßΓπΣσµτΦΘΩδ∞φε∩",
 	"≡±≥≤⌠⌡÷≈°∙·√ⁿ²■" .. nonBreakingSpace
+}
+consts.cp437String = table.concat(consts.cp437Lines)
 
 consts.cp437Map = {} -- cp437 codepoint <-> utf8 char
 local i = 0
@@ -51,6 +53,10 @@ consts.colourIds = {
 	darkMagenta = 12, magenta = 13,
 	lightGrey = 14, white = 15
 }
+consts.coloursFromId = {}
+for k, v in pairs(consts.colourIds) do
+	consts.coloursFromId[v] = k
+end
 
 consts.darkerColours = {}
 consts.darkerColours.darkGrey = "black"

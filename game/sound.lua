@@ -63,7 +63,11 @@ function game:setMusic(name, forceFadeoutEnd, noLoop)
 	self.music = self.musicSources[name]
 	self.musicName = name
 	self.music:setLooping(not noLoop)
-	self:applySoundVolumeMultipliers() -- Do this here just before playing to avoid an initial 100% volume
+
+	-- Do these here just before playing to avoid an initial 100% volume
+	self:applySoundVolumeMultipliers()
+	love.audio.setVolume(settings.sound.masterVolume)
+
 	self.music:play()
 end
 
@@ -79,7 +83,7 @@ end
 
 function game:applySoundVolumeMultipliers()
 	if self.music then
-		self.music:setVolume(self.musicFadeVolume * settings.sound.musicVolume)
+		self.music:setVolume((self.musicFadeVolume or 1) * settings.sound.musicVolume)
 	end
 
 	for _, source in pairs(self.soundSources) do
