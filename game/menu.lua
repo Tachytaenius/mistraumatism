@@ -237,7 +237,9 @@ function game:pushSubmenu(name)
 				self:popSubmenu()
 			end
 		})
-		for _, filename in pairs(love.filesystem.getDirectoryItems("fonts")) do
+		local files = love.filesystem.getDirectoryItems("fonts")
+		table.sort(files)
+		for _, filename in ipairs(files) do
 			table.insert(new, {
 				displayName = filename,
 				onSelect = function()
@@ -259,7 +261,9 @@ function game:pushSubmenu(name)
 				self:popSubmenu()
 			end
 		})
-		for _, filename in pairs(love.filesystem.getDirectoryItems("palettes")) do
+		local files = love.filesystem.getDirectoryItems("palettes")
+		table.sort(files)
+		for _, filename in ipairs(files) do
 			table.insert(new, {
 				displayName = filename,
 				onSelect = function()
