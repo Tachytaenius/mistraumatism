@@ -177,6 +177,4 @@ consts.vertexFormat = {
 }
 consts.entityLoadObjZMultiplier = -1
 
-consts.audioSteps = 16
-
 return consts

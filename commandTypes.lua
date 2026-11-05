@@ -51,7 +51,7 @@ local function newDirGroup(dir)
 	local move = "move" .. dir
 	local moveCursor = "moveCursor" .. dir
 	commandGroups[move .. "Group"] = {isGroup = true,
-		[move] = {type = "hold"},
+		[move] = {type = "delayHold"},
 		[moveCursor] = {type = "repeat", modifiers = {"moveCursorMode"}},
 	}
 end

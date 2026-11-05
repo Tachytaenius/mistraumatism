@@ -10,10 +10,11 @@ return {
 		fontName = "traumatica.png",
 		paletteName = "natural.png"
 	},
-	input = {
+	general = {
 		initialKeyRepeatTimerLength = 0.2,
 		keyRepeatTimerLength = 0.05,
 		cursorButtonTimerLength = 0.25,
+		delayHoldKeyTimerLength = 0.2,
 		autoOpenDoors = true
 	},
 	inputBindings = {

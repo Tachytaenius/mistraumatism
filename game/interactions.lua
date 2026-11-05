@@ -1,5 +1,4 @@
 local commands = require("commands")
-local consts = require("consts")
 
 local game = {}
 
@@ -573,7 +572,7 @@ function game:loadInteractionTypes()
 			self:setCursor()
 			self.state.sleepTimer = 260
 			self.state.sleepTimerStart = self.state.sleepTimer
-			self:fadeMusicOut(self.state.sleepTimer * consts.fixedUpdateTickLength * 0.6)
+			self:fadeMusicOut(0.2)
 			function self.state.sleepFunc()
 				self:announce("At last you are asleep. With a warming sense of hope,\nyou begin to dream.", "green")
 				self.state.toCreditsTimer = 240

@@ -87,7 +87,7 @@ function commands.tickStarted(dt)
 			-- Hopefully a group or a modifier
 			goto continue
 		end
-		if commandValue.type ~= "repeat" then
+		if commandValue.type ~= "repeat" and commandValue.type ~= "delayHold" then
 			goto continue
 		end
 		if not areModifiersOK(commandValue) then
@@ -96,16 +96,18 @@ function commands.tickStarted(dt)
 		if areAnyKeysDown(controls[commandValue.group and commandValue.group.groupName or command]) then
 			local previous = commands.previousTickRepeatKeys[command]
 			local thisTick
+			local delayHold = commandValue.type == "delayHold"
 			if previous then
 				local timerNow = previous.timer - dt
 				if timerNow <= 0 then
-					timerNow = settings.input.keyRepeatTimerLength
+					timerNow = delayHold and 0 or settings.general.keyRepeatTimerLength
 					thisTick = {triggered = true, timer = timerNow}
 				else
 					thisTick = {triggered = false, timer = timerNow}
 				end
 			else
-				thisTick = {triggered = true, timer = settings.input.initialKeyRepeatTimerLength}
+				local timer = delayHold and settings.general.delayHoldKeyTimerLength or settings.general.initialKeyRepeatTimerLength
+				thisTick = {triggered = true, timer = timer}
 			end
 			commands.thisTickRepeatKeys[command] = thisTick
 		end
@@ -154,7 +156,7 @@ function commands.checkCommand(command)
 		return areAnyKeysDown(controls[value.group and value.group.groupName or command])
 	elseif type == "pressed" then
 		return commands.pressed[command]
-	elseif type == "repeat" then
+	elseif type == "repeat" or type == "delayHold" then
 		local info = commands.thisTickRepeatKeys[command]
 		return info and info.triggered
 	end

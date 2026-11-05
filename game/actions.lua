@@ -1256,7 +1256,7 @@ function game:loadActionTypes()
 	end
 	function interact.fromInput(self, player)
 		local targetEntity
-		local autoDoorOpen = settings.input.autoOpenDoors
+		local autoDoorOpen = settings.general.autoOpenDoors
 		if autoDoorOpen then
 			-- Try door
 			local direction

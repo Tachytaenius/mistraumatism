@@ -118,8 +118,8 @@ function game:pushSubmenu(name)
 			end
 		})
 		table.insert(new, {displayName = "TODO"})
-	elseif name == "input" then
-		new.title = "Input"
+	elseif name == "general" then
+		new.title = "General"
 		table.insert(new, {
 			displayName = "Back",
 			onSelect = function()
@@ -160,6 +160,7 @@ function game:pushSubmenu(name)
 			displayName = "Master Volume",
 			onSelect = function()
 				local bar = self:pushSubmenu("bar")
+				bar.barSteps = 16
 				bar.settingCategory = "sound"
 				bar.settingName = "masterVolume"
 				bar.title = "Master Volume"
@@ -169,6 +170,7 @@ function game:pushSubmenu(name)
 			displayName = "Music Volume",
 			onSelect = function()
 				local bar = self:pushSubmenu("bar")
+				bar.barSteps = 16
 				bar.settingCategory = "sound"
 				bar.settingName = "musicVolume"
 				bar.title = "Music Volume"
@@ -178,6 +180,7 @@ function game:pushSubmenu(name)
 			displayName = "Sound Effects Volume",
 			onSelect = function()
 				local bar = self:pushSubmenu("bar")
+				bar.barSteps = 16
 				bar.settingCategory = "sound"
 				bar.settingName = "soundVolume"
 				bar.title = "Sound Effects Volume"
@@ -198,9 +201,9 @@ function game:pushSubmenu(name)
 			end
 		})
 		table.insert(new, {
-			displayName = "Input",
+			displayName = "General",
 			onSelect = function()
-				self:pushSubmenu("input")
+				self:pushSubmenu("general")
 			end
 		})
 		table.insert(new, {
@@ -359,7 +362,7 @@ function game:updateMenu(dt)
 			change = change + 1
 		end
 		if change ~= 0 then
-			local steps = consts.audioSteps
+			local steps = curSubmenu.barSteps
 			local value = settings[curSubmenu.settingCategory][curSubmenu.settingName]
 			value = math.floor(value * steps + 0.5) / steps
 			value = math.max(0, math.min(1, value + change / steps))

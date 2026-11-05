@@ -1910,7 +1910,7 @@ function game:drawFramebufferMenu(framebuffer)
 		end
 
 		if curSubmenu.drawType == "bar" then
-			local width = 9 + consts.audioSteps
+			local width = 9 + curSubmenu.barSteps
 			local height = 5
 			local x = math.floor((self.framebufferWidth - width) / 2)
 			local y = math.floor((self.framebufferHeight - height) / 2)
@@ -1920,9 +1920,9 @@ function game:drawFramebufferMenu(framebuffer)
 
 			local value = settings[curSubmenu.settingCategory][curSubmenu.settingName]
 
-			drawStringFramebuffer(x + 2, y + 2, string.rep(" ", consts.audioSteps), "black", "darkRed")
-			local amount = math.floor(value * consts.audioSteps + 0.5)
-			amount = math.max(0, math.min(consts.audioSteps, amount))
+			drawStringFramebuffer(x + 2, y + 2, string.rep(" ", curSubmenu.barSteps), "black", "darkRed")
+			local amount = math.floor(value * curSubmenu.barSteps + 0.5)
+			amount = math.max(0, math.min(curSubmenu.barSteps, amount))
 			drawStringFramebuffer(x + 2, y + 2, string.rep("█", amount), "green", "black")
 
 			local display = math.floor(value * 100 + 0.5) .. "%"
