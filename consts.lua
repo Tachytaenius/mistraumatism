@@ -105,8 +105,8 @@ consts.investigationTimeoutThreshold = 400
 consts.armourDefenceAtBreakPoint = 0.1
 consts.defenceMax = 26
 
-consts.changeToLevelTimerLength = 50
-consts.startLevelTimerLength = 50
+consts.changeToLevelTimerLength = 2
+consts.startLevelTimerLength = 2
 
 consts.defaultPathfindingDistanceLimit = 30
 consts.defaultFleePathfindMaxDistance = 12

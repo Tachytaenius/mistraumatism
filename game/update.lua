@@ -1,5 +1,6 @@
 local consts = require("consts")
 local commands = require("commands")
+local settings = require("settings")
 
 local game = {}
 
@@ -27,6 +28,8 @@ function game:isPlayerInControl()
 end
 
 function game:realtimeUpdate(dt)
+	local state = self.state
+
 	self:handleMusicFade(dt) -- Doesn't do anything if music is paused (like when in menu)
 	self:applySoundVolumeMultipliers() -- Master volume is handled by love.audio.setVolume
 
@@ -119,6 +122,49 @@ function game:realtimeUpdate(dt)
 			end
 		end
 
+		local dont = false
+		if state.changeToLevelTimer then
+			state.changeToLevelTimer = state.changeToLevelTimer - dt
+			if state.changeToLevelTimer <= 0 then
+				state.changeToLevelTimer = nil
+				self:changeLevel(state.changeToLevel)
+				state.changeToLevel = nil
+
+				state.startLevelTimer = consts.startLevelTimerLength
+			end
+			dont = true
+		elseif state.startLevelTimer then
+			state.startLevelTimer = state.startLevelTimer - dt
+			if state.startLevelTimer <= 0 then
+				state.startLevelTimer = nil
+				self:announceLevelArrival()
+			end
+			dont = true
+		end
+		if state.sleepTimer then -- Not a part of update and ticks, I guess
+			state.sleepTimer = state.sleepTimer - dt
+			if state.sleepTimer <= 0 then
+				state.sleepTimer = nil
+				state.sleepTimerStart = nil
+				if state.sleepFunc then
+					state.sleepFunc()
+				end
+			end
+		end
+		if state.toCreditsTimer then
+			state.toCreditsTimer = state.toCreditsTimer - dt
+			if state.toCreditsTimer <= 0 then
+				state.toCreditsTimer = nil
+				self:toCredits()
+				self.forceRepeatUpdate = true
+				dont = true
+			end
+		end
+		if dont then
+			self:updateEntitiesToDraw(self:getIncrementEntityDisplays(dt))
+			return
+		end
+
 		local hadTickBecauseOfWaiting = false
 		local function inner()
 			if not self.state.player or self.state.player.dead then
@@ -148,7 +194,7 @@ function game:realtimeUpdate(dt)
 			end
 
 			local run = false
-			if self.fastForward then
+			if settings.general.fastForward then
 				run = true
 			else
 				self.updateTimer = self.updateTimer + dt
@@ -175,7 +221,7 @@ function game:realtimeUpdate(dt)
 			end
 		end
 		inner() -- Didn't want to refactor around the returns
-		self:updateEntitiesToDraw(dt)
+		self:updateEntitiesToDraw(self:getIncrementEntityDisplays(dt))
 		self.state.hadTickBecauseOfWaiting = hadTickBecauseOfWaiting
 	elseif self.mode == "text" then
 		if not self.textInfo.text then
@@ -200,7 +246,7 @@ function game:getPlayerInput(dt)
 	end
 
 	-- Try waiting
-	if commands.checkCommand("waitHold") or commands.checkCommand("waitPrecise") then
+	if commands.checkCommand("wait") then
 		return {wait = true} -- No further actions
 	end
 
@@ -260,44 +306,6 @@ function game:update()
 
 	if self.endingSequenceGraphics then
 		self.endingSequenceGraphics.update()
-	end
-
-	if state.changeToLevelTimer then
-		state.changeToLevelTimer = state.changeToLevelTimer - 1
-		if state.changeToLevelTimer <= 0 then
-			state.changeToLevelTimer = nil
-			self:changeLevel(state.changeToLevel)
-			state.changeToLevel = nil
-
-			state.startLevelTimer = consts.startLevelTimerLength
-		end
-		return
-	elseif state.startLevelTimer then
-		state.startLevelTimer = state.startLevelTimer - 1
-		if state.startLevelTimer <= 0 then
-			state.startLevelTimer = nil
-			self:announceLevelArrival()
-		end
-		return
-	end
-	if state.sleepTimer then
-		state.sleepTimer = state.sleepTimer - 1
-		if state.sleepTimer <= 0 then
-			state.sleepTimer = nil
-			state.sleepTimerStart = nil
-			if state.sleepFunc then
-				state.sleepFunc()
-			end
-		end
-	end
-	if state.toCreditsTimer then
-		state.toCreditsTimer = state.toCreditsTimer - 1
-		if state.toCreditsTimer <= 0 then
-			state.toCreditsTimer = nil
-			self:toCredits()
-			self.forceRepeatUpdate = true
-			return
-		end
 	end
 
 	state.damagesQueue = state.damagesQueue or {}

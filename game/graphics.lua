@@ -894,7 +894,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	local statusHeight = self.framebufferHeight - self.consoleHeight - 3
 
 	-- Draw current status indicator
-	local bed = state.sleepTimer or state.toCreditsTimer
+	local bed = state.sleepTimer or state.toCreditsTimer -- These actually cause the game to tick
 	local none = not state.player
 	local dead = state.player and state.player.dead
 	local waiting = state.waiting or state.hadTickBecauseOfWaiting

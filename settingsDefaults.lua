@@ -11,6 +11,8 @@ return {
 		paletteName = "natural.png"
 	},
 	general = {
+		fastForward = false,
+		vsync = true,
 		initialKeyRepeatTimerLength = 0.2,
 		keyRepeatTimerLength = 0.05,
 		cursorButtonTimerLength = 0.25,
@@ -40,8 +42,7 @@ return {
 		shoot = "f",
 		melee = "v",
 		useHeldItem = "t",
-		waitHold = "h",
-		waitPrecise = "y",
+		wait = "h",
 		interact = "b",
 
 		pickUpOrDropGroup = "g",

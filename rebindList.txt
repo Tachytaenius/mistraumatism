@@ -18,8 +18,7 @@ deselectGroup deselect
 shoot shoot
 melee melee
 useHeldItem use held item
-waitHold wait (hold)
-waitPrecise wait (precise)
+wait wait
 interact interact
 jump jump
 viewJumpReach view jump reach

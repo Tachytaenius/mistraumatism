@@ -1358,9 +1358,8 @@ function game:entityListChanged(x, y, listType)
 	return not util.arraysEqual(current, previous)
 end
 
-function game:updateEntitiesToDraw(dt)
+function game:getIncrementEntityDisplays(dt)
 	local state = self.state
-
 	local incrementEntityDisplays = false
 	state.incrementEntityDisplaysTimer = state.incrementEntityDisplaysTimer - dt
 	if state.incrementEntityDisplaysTimer <= 0 then
@@ -1369,6 +1368,11 @@ function game:updateEntitiesToDraw(dt)
 		incrementEntityDisplays = true
 	end
 	state.incrementingEntityDisplays = incrementEntityDisplays -- Just so that we can guarantee at least one frame of switching indicator
+	return incrementEntityDisplays
+end
+
+function game:updateEntitiesToDraw(incrementEntityDisplays)
+	local state = self.state
 
 	local previousEntityListDrawsByTile = state.entityListDrawsByTile or {}
 	state.entityListDrawsByTile = nil

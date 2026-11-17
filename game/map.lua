@@ -127,7 +127,7 @@ end
 function game:getSpatterAmount(x, y, materialName)
 	local tile = self:getTile(x, y)
 
-	if not tile.spatter then
+	if not tile or not tile.spatter then
 		return 0
 	end
 	for _, tileSpatter in ipairs(tile.spatter) do

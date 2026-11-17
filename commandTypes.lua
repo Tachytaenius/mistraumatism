@@ -22,8 +22,7 @@ local commands = {
 	decreaseCanvasScale = {type = "pressed"},
 	increaseCanvasScale = {type = "pressed"},
 
-	waitHold = {type = "hold"},
-	waitPrecise = {type = "pressed"},
+	wait = {type = "delayHold"}
 }
 
 local commandGroups = {
@@ -51,7 +50,7 @@ local function newDirGroup(dir)
 	local move = "move" .. dir
 	local moveCursor = "moveCursor" .. dir
 	commandGroups[move .. "Group"] = {isGroup = true,
-		[move] = {type = "delayHold"},
+		[move] = {type = "repeat"},
 		[moveCursor] = {type = "repeat", modifiers = {"moveCursorMode"}},
 	}
 end

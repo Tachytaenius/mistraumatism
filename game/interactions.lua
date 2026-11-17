@@ -570,12 +570,12 @@ function game:loadInteractionTypes()
 		end
 		if info.type == "sleep" then
 			self:setCursor()
-			self.state.sleepTimer = 260
+			self.state.sleepTimer = 8
 			self.state.sleepTimerStart = self.state.sleepTimer
-			self:fadeMusicOut(0.2)
+			self:fadeMusicOut(2.5)
 			function self.state.sleepFunc()
 				self:announce("At last you are asleep. With a warming sense of hope,\nyou begin to dream.", "green")
-				self.state.toCreditsTimer = 240
+				self.state.toCreditsTimer = 6
 				self.state.noVision = true
 			end
 		end

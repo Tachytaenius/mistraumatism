@@ -223,7 +223,8 @@ function game:remakeWindow(canvasWidth, canvasHeight)
 		{
 			fullscreen = settings.graphics.fullscreen,
 			borderless = settings.graphics.fullscreen,
-			display = currentDisplay
+			display = currentDisplay,
+			vsync = settings.general.vsync
 		}
 	)
 	love.window.setTitle(consts.windowTitle)

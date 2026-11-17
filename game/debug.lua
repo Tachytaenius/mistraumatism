@@ -85,7 +85,7 @@ function game:enableArmourTesting()
 	self.state.testingArmour = true
 	self.state.fastActions = true
 	self.state.meleeOnly = true
-	self.fastForward = true
+	-- self.fastForward = true -- Is a setting now
 	self.noDraw = true
 end
 -- The test will take place on the top left tile of the map.
