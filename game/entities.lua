@@ -621,10 +621,10 @@ function game:updateEntitiesAndProjectiles()
 		processActions("drop")
 		processActions("doffItem")
 		processActions("donItem")
-		self.entityPickUps = {}
+		state.entityPickUps = {}
 		processActions("pickUp")
 		processActions("interact")
-		for _, itemPickup in ipairs(self.entityPickUps) do
+		for _, itemPickup in ipairs(state.entityPickUps) do
 			if #itemPickup > 1 then
 				-- TODO: If one of the entities is the player, announce pickup clash
 				-- Only really needed if other entities can pick up items.

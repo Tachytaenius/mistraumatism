@@ -366,9 +366,10 @@ function game:cycleGun(gun, x, y)
 end
 
 function game:registerPickUp(entity, itemEntity)
-	assert(self.entityPickUps, "No entityPickUps table. Is this function being used in its intended place?")
+	local state = self.state
+	assert(state.entityPickUps, "No entityPickUps table. Is this function being used in its intended place?")
 	local pickupTable
-	for _, t in ipairs(self.entityPickUps) do
+	for _, t in ipairs(state.entityPickUps) do
 		if t.item == itemEntity then
 			pickupTable = t
 			break
@@ -376,7 +377,7 @@ function game:registerPickUp(entity, itemEntity)
 	end
 	if not pickupTable then
 		pickupTable = {item = itemEntity}
-		self.entityPickUps[#self.entityPickUps+1] = pickupTable
+		state.entityPickUps[#state.entityPickUps+1] = pickupTable
 	end
 	pickupTable[#pickupTable+1] = entity
 end

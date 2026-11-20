@@ -249,18 +249,18 @@ function game:handleCursorButtonMode(dt)
 	self.cursorButtonResult = nil
 	local held = commands.checkModifier("moveCursorMode")
 	if held then
-		if not self.wasHeld and not self.cursorButtonTimer and (self.state and self.state.cursor) then
+		if not self.wasCursorHeld and not self.cursorButtonTimer and (self.state and self.state.cursor) then
 			self.cursorButtonTimer = settings.general.cursorButtonTimerLength
 		end
 	else
-		if self.wasHeld and self.cursorButtonTimer then
+		if self.wasCursorHeld and self.cursorButtonTimer then
 			self.cursorButtonResult = "clear"
 		end
 	end
 	if held then
 		self.cursorButtonResult = self.cursorButtonResult or "create"
 	end
-	self.wasHeld = held
+	self.wasCursorHeld = held
 end
 
 return game

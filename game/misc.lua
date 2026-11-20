@@ -237,10 +237,10 @@ function game:handleResize()
 end
 
 function game:setIcon(path)
-	if path == self.path then
+	if path == self.iconPath then
 		return
 	end
-	self.path = path
+	self.iconPath = path
 	if not path then
 		self.scaledIconImageData = nil
 		love.window.setIcon()

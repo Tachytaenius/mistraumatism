@@ -293,9 +293,36 @@ function game:init(args)
 	end
 
 	function makeTitle()
+		-- To get variables put after "self.":
+		-- grep -Phro "(?<=self\.)[a-zA-Z0-9_]+" | awk '!x[$0]++' | sort
+		self.afterEndingSequence = nil
+		self.autoOpenDoorHackTimer = nil
+		self.autoOpenDoorHackTriedThisTick = nil
+		self.cursorButtonResult = nil
+		self.cursorButtonTimer = nil
 		self.endingSequenceGraphics = nil
-		self:stopMusic()
+		self.forceRepeatUpdate = nil
+		self.gameOverScreenTimer = nil
+		self.horrorMusicFadeInTimer = nil
+		self.horrorMusicFadeInTimerLength = nil
+		self.horrorMusicName = nil
+		self.levelSelectInfo = nil
+		self.loopingAfterFadeout = nil
+		self.menuInfo = nil
+		self.music = nil
+		self.musicAfterFadeout = nil
+		self.musicFadeoutEnd = nil
+		self.musicFadeoutTimer = nil
+		self.musicFadeVolume = nil
+		self.musicName = nil
+		self.preGameOverScreenTimer = nil
 		self.state = nil
+		self.textInfo = nil
+		self.updateTimer = nil
+		self.wasCursorHeld = nil
+
+		self:stopMusic()
+		self:resetAllSoundEffects()
 		self.mode = "title"
 		self:initTitle(exitTitle)
 	end

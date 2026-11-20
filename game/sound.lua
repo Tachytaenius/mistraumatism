@@ -43,6 +43,7 @@ function game:stopMusic()
 	end
 	self.music = nil
 	self.musicName = nil
+	self.musicAfterFadeout = nil
 	self.musicFadeoutEnd = nil
 	self.musicFadeoutTimer = nil
 end
@@ -138,6 +139,13 @@ function game:resumeSound()
 	-- self.pausedSources = nil
 	love.audio.play(self.pausedSources)
 	self.pausedSources = nil
+end
+
+function game:resetAllSoundEffects()
+	self.pausedSources = nil
+	for _, source in ipairs(self.soundSources) do
+		source:stop()
+	end
 end
 
 return game
