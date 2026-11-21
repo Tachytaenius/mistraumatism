@@ -109,7 +109,7 @@ function game:realtimeUpdate(dt)
 					updateFunction = function(self, dt)
 						if commands.checkCommand("confirm") and self.textInfo.timer >= self.textInfo.releaseTime then
 							self.enterTitleFunction()
-							-- return true
+							return true
 						end
 						self.textInfo.timer = self.textInfo.timer + dt
 

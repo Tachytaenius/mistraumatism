@@ -301,7 +301,6 @@ function game:init(args)
 		self.cursorButtonResult = nil
 		self.cursorButtonTimer = nil
 		self.endingSequenceGraphics = nil
-		self.forceRepeatUpdate = nil
 		self.gameOverScreenTimer = nil
 		self.horrorMusicFadeInTimer = nil
 		self.horrorMusicFadeInTimerLength = nil

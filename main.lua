@@ -116,9 +116,11 @@ function love.update(dt)
 
 	handleSettings()
 
+	local first = true
 	local repeatUpdate -- For changing state and not immediately drawing before updating it
 	repeat
-		repeatUpdate = game:realtimeUpdate(dt)
+		repeatUpdate = game:realtimeUpdate(first and dt or 0)
+		first = false
 		if game.quitting then
 			return
 		end
