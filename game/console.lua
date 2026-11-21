@@ -90,4 +90,53 @@ function game:getMaxConsoleHistoryScroll()
 	return math.max(0, #self.state.splitAnnouncements - screenMax)
 end
 
+function game:clearUnreadAnnouncements()
+	local state = self.state
+	for announcement in pairs(state.unreadAnnouncements) do
+		for _, split in ipairs(announcement.splits) do
+			split.read = true
+		end
+	end
+	state.unreadAnnouncements = {}
+end
+
+function game:clearUnreadAnnouncementsAndInitialUnreadInfo()
+	self:clearUnreadAnnouncements()
+	self.state.unreadAnnouncementsOnHistoryOpen = {}
+end
+
+function game:jumpToUnreadConsoleHistory() -- Starts checking for unreads above current screen
+	local state = self.state
+	assert(state.consoleHistoryMode, "Can't use jumpToUnreadConsoleHistory outside of console history mode")
+	local max = self:getMaxConsoleHistoryScroll()
+	local height = self.framebufferHeight - 2
+	local begin = #state.splitAnnouncements - (state.consoleHistoryScroll or 0) - height
+	for i = begin, 1, -1 do
+		local split = state.splitAnnouncements[i]
+		if state.unreadAnnouncementsOnHistoryOpen[split.announcement] then
+			state.consoleHistoryScroll = math.min(max, #state.splitAnnouncements - i - 2)
+			break
+		end
+	end
+end
+
+local function copy(t)
+	local r = {}
+	for k, v in pairs(t) do
+		r[k] = v
+	end
+	return r
+end
+function game:enterConsoleHistoryMode()
+	self.state.consoleHistoryMode = true
+	self.state.consoleHistoryScroll = 0
+	self.state.unreadAnnouncementsOnHistoryOpen = copy(self.state.unreadAnnouncements)
+end
+
+function game:exitConsoleHistoryMode()
+	self.state.consoleHistoryMode = false
+	self.state.consoleHistoryScroll = nil
+	self.state.unreadAnnouncementsOnHistoryOpen = nil
+end
+
 return game

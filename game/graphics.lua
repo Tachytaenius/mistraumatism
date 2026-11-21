@@ -346,6 +346,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 		end
 	end
 
+	local announcementFlash = self.realTime % 3 < 1.5
+
 	local function drawConsole(height)
 		local y = self.framebufferHeight - 1 - height
 		local rows = {}
@@ -356,7 +358,8 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				colour = line.announcement.colour,
 				isContinuedLine = line.isContinuedLine,
 				isFirstOfTick = line.announcement.isFirstOfTick,
-				isFirstAfterPlayerControlLost = line.announcement.isFirstAfterPlayerControlLost
+				isFirstAfterPlayerControlLost = line.announcement.isFirstAfterPlayerControlLost,
+				wasUnread = self.state.unreadAnnouncementsOnHistoryOpen and self.state.unreadAnnouncementsOnHistoryOpen[line.announcement]
 			})
 			if #rows >= height then
 				break
@@ -378,7 +381,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 				1,
 				y + rowI - 1,
 				icon,
-				"darkGrey",
+				row.wasUnread and (announcementFlash and "yellow" or "darkYellow") or "darkGrey",
 				"black"
 			)
 			for _, code in utf8.codes(row.text) do
@@ -446,8 +449,7 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	end
 	if state.linesSincePlayerInControl > self.consoleHeight or state.unreadAnnouncementsWarn then
 		local char = "↑"
-		local flash = self.realTime % 3 < 1.5
-		local col = flash and "yellow" or "darkYellow"
+		local col = announcementFlash and "yellow" or "darkYellow"
 		drawStringFramebuffer(2, self.framebufferHeight - 1, char, col, "black")
 		drawStringFramebuffer(self.framebufferWidth - 3, self.framebufferHeight - 1, char, col, "black")
 	end
@@ -884,7 +886,9 @@ function game:drawFramebufferGameplay(framebuffer) -- After this function comple
 	end
 
 	-- Console
-	drawConsole(self.consoleHeight)
+	if not self.state.consoleHistoryMode then
+		drawConsole(self.consoleHeight)
+	end
 
 	-- Status panel etc
 

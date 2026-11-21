@@ -55,6 +55,17 @@ function game:realtimeUpdate(dt)
 
 	if self.mode == "gameplay" then
 		if self.state.consoleHistoryMode then
+			if commands.checkCommand("jump") then
+				self:jumpToUnreadConsoleHistory()
+			end
+			if commands.checkCommand("confirm") then
+				-- if self.state.unreadAnnouncementsWarn then
+				-- 	self:clearUnreadAnnouncements()
+				-- else
+				-- 	self:clearUnreadAnnouncementsAndInitialUnreadInfo()
+				-- end
+				self:clearUnreadAnnouncementsAndInitialUnreadInfo()
+			end
 			if commands.checkCommand("scrollListBackwards") then
 				self.state.consoleHistoryScroll = self.state.consoleHistoryScroll + 1
 			end
@@ -63,8 +74,7 @@ function game:realtimeUpdate(dt)
 			end
 			self.state.consoleHistoryScroll = math.max(0, math.min(self:getMaxConsoleHistoryScroll(), self.state.consoleHistoryScroll))
 			if commands.checkCommand("toggleHistory") then
-				self.state.consoleHistoryMode = false
-				self.state.consoleHistoryScroll = nil
+				self:exitConsoleHistoryMode()
 			end
 			self:updateAnnouncements()
 			return
@@ -72,8 +82,7 @@ function game:realtimeUpdate(dt)
 
 		local ok = not self:specialState()
 		if ok and not self.state.consoleHistoryMode and commands.checkCommand("toggleHistory") then
-			self.state.consoleHistoryMode = true
-			self.state.consoleHistoryScroll = 0
+			self:enterConsoleHistoryMode()
 		end
 
 		if self.preGameOverScreenTimer then
