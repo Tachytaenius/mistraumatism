@@ -13,9 +13,7 @@ return {
 	general = {
 		fastForward = false,
 		vsync = true,
-		initialKeyRepeatTimerLength = 0.25,
-		delayHoldKeyTimerLength = 0.25,
-		cursorButtonTimerLength = 0.25,
+		keySinglePressTimerLength = 0.25,
 		keyRepeatTimerLength = 0.05,
 		autoOpenDoors = true
 	},

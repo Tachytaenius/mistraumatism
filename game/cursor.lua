@@ -250,7 +250,7 @@ function game:handleCursorButtonMode(dt)
 	local held = commands.checkModifier("moveCursorMode")
 	if held then
 		if not self.wasCursorHeld and not self.cursorButtonTimer and (self.state and self.state.cursor) then
-			self.cursorButtonTimer = settings.general.cursorButtonTimerLength
+			self.cursorButtonTimer = settings.general.keySinglePressTimerLength
 		end
 	else
 		if self.wasCursorHeld and self.cursorButtonTimer then

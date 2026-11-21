@@ -106,7 +106,7 @@ function commands.tickStarted(dt)
 					thisTick = {triggered = false, timer = timerNow}
 				end
 			else
-				local timer = delayHold and settings.general.delayHoldKeyTimerLength or settings.general.initialKeyRepeatTimerLength
+				local timer = settings.general.keySinglePressTimerLength
 				thisTick = {triggered = true, timer = timer}
 			end
 			commands.thisTickRepeatKeys[command] = thisTick
