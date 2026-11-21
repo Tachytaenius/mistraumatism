@@ -13,10 +13,10 @@ return {
 	general = {
 		fastForward = false,
 		vsync = true,
-		initialKeyRepeatTimerLength = 0.2,
-		keyRepeatTimerLength = 0.05,
+		initialKeyRepeatTimerLength = 0.25,
+		delayHoldKeyTimerLength = 0.25,
 		cursorButtonTimerLength = 0.25,
-		delayHoldKeyTimerLength = 0.2,
+		keyRepeatTimerLength = 0.05,
 		autoOpenDoors = true
 	},
 	inputBindings = {
